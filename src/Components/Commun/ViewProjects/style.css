@@ -1,0 +1,75 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.left-panel,
+.right-panel {
+  display: flex;
+
+  border-radius: 5px;
+  overflow: hidden;
+  flex-direction: column;
+  flex: 1 1 45%;
+  min-width: 40ch;
+}
+
+.card-projects {
+  margin: 0.5rem;
+  border: 1px solid rgb(185, 185, 185);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.left-panel {
+  max-width: 50%;
+}
+
+.right-panel {
+  max-height: 35rem;
+  position: fixed;
+  top: 0rem;
+  left: 50%;
+  margin-top: 5%;
+  height: 90%;
+  min-width: 40ch;
+  width: 45%;
+  border: 1px solid rgb(185, 185, 185);
+}
+
+.header {
+  flex: 1 1 20%;
+  overflow: hidden;
+  max-height: 5rem;
+  text-overflow: ellipsis;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.body {
+  flex: 1 1 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+.bottom {
+  padding: 1rem;
+}
+
+.body-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.project-title-table-view {
+  cursor: pointer;
+}
+
+.project-title-table-view:hover {
+  text-decoration: underline;
+}
