@@ -13,12 +13,23 @@ export function assignTagsToTeachers(listTeachers, listTags) {
 
   return _teachers;
 }
+export function assignDatesToTeachers(teachers, dates) {
+  var _teachs = [...teachers];
+  for (let t of _teachs) {
+    var prefs = [];
+    for (let p of dates)
+      if (t.id_utilisateur === p.id_utilisateur) prefs.push(p);
+    t.dates = prefs;
+  }
+  return _teachs;
+}
 
 function Data(props) {
   const dispatch = useDispatch();
   var projects = useSelector((state) => state.projects);
   const users = useSelector((state) => state.users.all);
-  const tags = useSelector((state) => state.tags);
+  const tags = useSelector((state) => state.soutenance.tags);
+  const preferences = useSelector((state) => state.soutenance.preferences);
   var teachers = users.filter((el) => {
     return el.role === "enseignant";
   });
@@ -71,6 +82,7 @@ function Data(props) {
     console.log(projects);
     return projects;
   }
+
   projects = assignStudentsToProjects();
   teachers = assignTagsToTeachers(teachers, tags);
   projects = assignPotentialTeacherToProjects();

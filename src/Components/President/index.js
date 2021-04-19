@@ -5,7 +5,7 @@ import { Switch, Route } from "react-router-dom";
 import ViewProjects from "../Commun/ViewProjects";
 import EditProfile from "../Commun/EditProfile";
 import Soutenances from "./Soutenances";
-import Teachers from "./Teachers";
+import Teachers from "./Teachers/Teachers";
 
 function President() {
   return (

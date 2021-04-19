@@ -1,6 +1,4 @@
 import {
-  Box,
-  Button,
   Checkbox,
   Chip,
   Collapse,
@@ -13,12 +11,15 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography,
 } from "@material-ui/core";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { sendReminderForTeachersNotifications } from "../../Notifications";
-import { assignTagsToTeachers } from "./Soutenances/Data";
+import { sendReminderForTeachersNotifications } from "../../../Notifications";
+import {
+  assignTagsToTeachers,
+  assignDatesToTeachers,
+} from "../Soutenances/Data";
+import TableToolbar from "./TableToolbar";
 
 const useRowStyles = makeStyles({
   root: {
@@ -32,10 +33,11 @@ function Teachers(props) {
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
   var teachers = users.all.filter((user) => user.role === "enseignant");
-  const tags = useSelector((state) => state.tags);
+  const tags = useSelector((state) => state.soutenance.tags);
+  const dates = useSelector((state) => state.soutenance.dates);
   const [showTags, setShowTags] = useState(false);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
   const [selectedTeachers, setSelectedTeachers] = useState([]);
 
   const classes = useRowStyles();
@@ -75,7 +77,26 @@ function Teachers(props) {
     setSelectedTeachers(selected);
   };
 
+  const selectTeachersWithoutTags = () => {
+    var _selected = [];
+    for (let t of teachers)
+      if (t.tags.length < 1 && selectedTeachers.indexOf(t) < 0)
+        _selected.push(t.id_utilisateur);
+
+    setSelectedTeachers(_selected);
+  };
+
+  const selectTeachersWithoutDates = () => {
+    var _selected = [];
+    for (let t of teachers)
+      if (t.dates.length < 1 && selectedTeachers.indexOf(t) < 0)
+        _selected.push(t.id_utilisateur);
+
+    setSelectedTeachers(_selected);
+  };
+
   teachers = assignTagsToTeachers(teachers, tags);
+  teachers = assignDatesToTeachers(teachers, dates);
 
   function notify(isForTags) {
     sendReminderForTeachersNotifications(
@@ -103,6 +124,9 @@ function Teachers(props) {
           selected={selectedTeachers}
           setShowTags={setShowTags}
           showTags={showTags}
+          selectTeachersWithoutTags={selectTeachersWithoutTags}
+          selectTeachersWithoutDates={selectTeachersWithoutDates}
+          setSelectedTeachers={setSelectedTeachers}
         />
         <Table>
           <TableHead>
@@ -144,9 +168,39 @@ function Teachers(props) {
                   </TableCell>
                   <TableCell>{teacher.nom}</TableCell>
                   <TableCell></TableCell>
-                  <TableCell>{teacher.tags.length}</TableCell>
+                  <TableCell>
+                    {teacher.tags.length > 0 ? (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        label={"Validé (" + teacher.tags.length + ")"}
+                      />
+                    ) : (
+                      <Chip
+                        size="small"
+                        color="secondary"
+                        label="Non definit"
+                      />
+                    )}
+                  </TableCell>
                   <TableCell>{teacher.email}</TableCell>
-                  <TableCell></TableCell>
+                  <TableCell>
+                    {teacher.dates.length > 0 ? (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        label={"Validé (" + teacher.dates.length + ")"}
+                      />
+                    ) : (
+                      <Chip
+                        size="small"
+                        color="secondary"
+                        label="Non definit"
+                      />
+                    )}
+                  </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell padding="checkbox" />
@@ -179,7 +233,7 @@ function Teachers(props) {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[8, 15, 20, 50]}
+        rowsPerPageOptions={[6, 10, 20, 50]}
         component="div"
         count={teachers.length}
         rowsPerPage={rowsPerPage}
@@ -192,49 +246,3 @@ function Teachers(props) {
 }
 
 export default Teachers;
-
-const TableToolbar = (props) => {
-  const { selected, setShowTags, showTags, notify } = props;
-
-  return selected.length === 0 ? (
-    <div
-      style={{
-        padding: "1rem 0.5rem",
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      <Typography variant="h5">Liste des enseignants</Typography>
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        <Checkbox onChange={() => setShowTags(!showTags)} selected={showTags} />
-      </div>
-      <Typography>Afficher les spécialités</Typography>
-    </div>
-  ) : (
-    <div
-      style={{
-        padding: "1rem 0.5rem",
-        display: "flex",
-        justifyContent: "space-between",
-        backgroundColor: "pink",
-      }}
-    >
-      <Typography variant="h5">Séléctionnés {selected.length}</Typography>
-      <Button
-        variant="outlined"
-        style={{ textTransform: "none" }}
-        onClick={() => notify(true)}
-      >
-        Notifier pour ajouter des Tags
-      </Button>
-      <Button
-        variant="outlined"
-        style={{ textTransform: "none" }}
-        onClick={() => notify(false)}
-      >
-        Notifier pour ajouter des Préférences
-      </Button>
-      <Typography variant="h6">Grade </Typography>
-    </div>
-  );
-};

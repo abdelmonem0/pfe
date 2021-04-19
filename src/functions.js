@@ -1,5 +1,7 @@
 import axios from "axios";
 
+// https://pfe-abdelmonem.herokuapp.com
+
 export function loginUser(id_utilisateur, mot_de_passe) {
   return axios.post("https://pfe-abdelmonem.herokuapp.com/api/login", {
     id_utilisateur,
@@ -207,6 +209,16 @@ export function checkNotification(id_notification) {
     "https://pfe-abdelmonem.herokuapp.com/api/check-notifications",
     {
       id_notification,
+    }
+  );
+}
+
+export function send2ndCandidatureComment(id_candidature, commentaire) {
+  return axios.post(
+    "https://pfe-abdelmonem.herokuapp.com/api/add-2nd-comment",
+    {
+      id_candidature,
+      commentaire,
     }
   );
 }

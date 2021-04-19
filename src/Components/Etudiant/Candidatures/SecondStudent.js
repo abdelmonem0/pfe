@@ -7,14 +7,49 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import {
+  addFileToDatabase,
+  send2ndCandidatureComment,
+} from "../../../functions";
 import UploadFile from "../../UploadFile";
 
 function SecondStudent(props) {
-  const candidature = props.candidature;
+  const { candidature, send2ndStudentFiles } = props;
   const [dialog, setDialog] = useState(false);
   const [comment, setComment] = useState("");
   const [textField, setTextField] = useState("");
+
+  const files = useSelector((state) => state.files);
+  const users = useSelector((state) => state.users);
+
+  function sendFiles() {
+    var fichiers = [];
+    for (let file of files) {
+      let fichier = [
+        file.path,
+        users.current.id_utilisateur,
+        candidature.id_candidature,
+        "candidature",
+      ];
+      fichiers.push(fichier);
+    }
+    if (fichiers.length > 0)
+      addFileToDatabase(fichiers).catch((err) => console.error(err));
+    if (comment.length > 0)
+      send2ndCandidatureComment(
+        candidature.id_candidature,
+        comment
+      ).catch((err) => console.error(err));
+  }
+
+  useEffect(() => {
+    if (send2ndStudentFiles) {
+      sendFiles();
+    }
+  }, [send2ndStudentFiles]);
+
   return (
     <div
       style={{

@@ -5,6 +5,7 @@ import Membre from "./Membre";
 import Admin from "./Admin";
 import {
   getAllTags,
+  getAllTeachersDates,
   getCandidatures,
   getNotifications,
   getProjects,
@@ -33,9 +34,18 @@ function Redirect(props) {
       )
       .then(() => {
         if (role === "president")
-          getAllTags().then((result) =>
-            dispatch({ type: "SET_TAGS", payload: result.data })
-          );
+          getAllTags()
+            .then((result) =>
+              dispatch({ type: "SET_TEACHERS_TAGS", payload: result.data })
+            )
+            .then(() =>
+              getAllTeachersDates().then((result) =>
+                dispatch({
+                  type: "SET_TEACHERS_DATES",
+                  payload: result.data,
+                })
+              )
+            );
       })
       .then(() =>
         getNotifications(props.current.id_utilisateur).then((result) =>

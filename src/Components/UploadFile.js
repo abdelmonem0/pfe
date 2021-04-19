@@ -11,15 +11,15 @@ function UploadFile(props) {
 
   const [files, setFiles] = useState([]);
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const handleDelete = (path) => {
     deleteFileFromDatabase(path).then(() => {
-      setFiles(
-        files.filter((file) => {
-          return file.path !== path;
-        })
-      );
+      var remainingFiles = files.filter((file) => {
+        return file.path !== path;
+      });
+      setFiles(remainingFiles);
+      dispatch({ type: "SET_FILES", remainingFiles });
     });
   };
 
@@ -27,8 +27,14 @@ function UploadFile(props) {
     let allFiles = files;
     allFiles[index].path = path;
     setFiles(allFiles);
-    dispatch({type:'SET_FILES', payload: allFiles})
+    dispatch({ type: "SET_FILES", payload: allFiles });
   }
+
+  useEffect(() => {
+    return function () {
+      dispatch({ type: "CLEAR_FILES" });
+    };
+  }, []);
 
   return (
     <Paper

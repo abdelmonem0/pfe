@@ -1,4 +1,4 @@
-import { React, useEffect } from "react";
+import { React, useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -21,6 +21,8 @@ const Candidature = (props) => {
   const candidature = props.candidature;
   const users = props.users;
 
+  const [send2ndStudentFiles, setSend2ndStudentFiles] = useState(false);
+
   const dispatch = useDispatch();
 
   const files = candidature.fichiers;
@@ -34,6 +36,7 @@ const Candidature = (props) => {
   });
 
   function acceptCand(isAccepted) {
+    setSend2ndStudentFiles(true);
     acceptCandidatureEtudiant(
       users.current.id_utilisateur,
       candidature.id_candidature,
@@ -41,9 +44,10 @@ const Candidature = (props) => {
         ? Candidature_States.waiting_for_response
         : Candidature_States.refused_by_student
     ).then(() =>
-      getCandidatures(users.current.id_utilisateur).then((result) =>
-        dispatch({ type: "SET_CANDIDATURES", payload: result.data })
-      )
+      getCandidatures(users.current.id_utilisateur).then((result) => {
+        dispatch({ type: "SET_CANDIDATURES", payload: result.data });
+        setSend2ndStudentFiles(true);
+      })
     );
   }
 
@@ -105,12 +109,25 @@ const Candidature = (props) => {
         >
           Commentaires: {'"' + candidature.commentaires + '"'}
         </Typography>
+        {candidature.commentaire_2 && (
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            style={{ fontStyle: "italic" }}
+            paragraph
+          >
+            Commentaires: {'"' + candidature.commentaire_2 + '"'}
+          </Typography>
+        )}
         {candidature.fichiers && candidature.fichiers.length > 0 && (
           <AttachedFiles fichiers={candidature.fichiers} />
         )}
         {candidature.id_etudiant_2 === users.current.id_utilisateur &&
           candidature.etat === Candidature_States.waiting_for_student && (
-            <SecondStudent candidature={candidature} />
+            <SecondStudent
+              candidature={candidature}
+              send2ndStudentFiles={send2ndStudentFiles}
+            />
           )}
       </CardContent>
 
