@@ -1,5 +1,4 @@
-import { React, useState } from "react";
-import axios from "axios";
+import { React, useEffect, useState } from "react";
 import {
   Button,
   TextField,
@@ -12,28 +11,45 @@ import {
 import { Autocomplete } from "@material-ui/lab";
 import moment from "moment";
 import "moment/locale/fr";
-import { AttachFile } from "@material-ui/icons";
 import { useSelector, useDispatch } from "react-redux";
-import { addProject } from "../../functions";
+import { addFileToDatabase, addProject, getProjects } from "../../functions";
+import UploadFile from "../UploadFile";
+import { v4 as uuid } from "uuid";
 
 moment.locale("fr");
 
 function AddProject(props) {
   const dispatch = useDispatch();
-
+  const files = useSelector((state) => state.files);
   const current = useSelector((state) => state.users.current);
   const users = useSelector((state) => state.users.all)
-    .filter((object) => {
-      return object.role === "enseignant";
-    })
+    .filter(
+      (object) =>
+        object.role === "enseignant" &&
+        object.id_utilisateur !== current.id_utilisateur
+    )
     .sort((a, b) => a.nom.localeCompare(b.nom));
 
-  const [techs, setTechs] = useState();
+  const [techs, setTechs] = useState("");
   const [values, setValues] = useState({
     encSec: false,
-    interne: current.role === "etudiant" ? false : true,
+  });
+  const [errors, setErrors] = useState({
+    titre: "",
+    description: "",
+    travail: "",
+    techs: "",
+    enc_sec: "",
+    lieu: "",
+    enc_ext: "",
   });
   const [form, setForm] = useState({
+    titre: "",
+    description: "",
+    travail: "",
+    interne: current.role === "etudiant" ? false : true,
+    enc_prim: current.role === "enseignant" ? current.id_utilisateur : null,
+    enc_sec: null,
     interne: current.role === "etudiant" ? false : true,
     date: new Date(),
   });
@@ -43,17 +59,27 @@ function AddProject(props) {
   };
 
   const onAutocompleteChange = (e, option) => {
-    var name = e.target.id;
-    name = name.substring(0, name.indexOf("-"));
-    var id_utilisateur = option === null ? null : option.id_utilisateur;
-    setForm({ ...form, [name]: id_utilisateur });
+    var id_utilisateur = option?.id_utilisateur || null;
+    setForm({ ...form, enc_sec: id_utilisateur });
   };
 
   const sendData = () => {
+    const id_sujet = uuid();
+    if (!validate()) return;
+
+    const object = { sujet: { ...form, id_sujet }, tags: techs };
     dispatch({ type: "OPEN_BACKDROP" });
-    const object = { sujet: form, tags: techs };
     addProject(object)
       .then((res) => {
+        if (!form.interne) {
+          const file = [
+            files[0].path,
+            current.id_utilisateur,
+            id_sujet,
+            "fiche externe",
+          ];
+          addFileToDatabase([file]);
+        }
         dispatch({ type: "CLOSE_BACKDROP" });
         dispatch({
           type: "OPEN_SNACK",
@@ -66,6 +92,95 @@ function AddProject(props) {
       })
       .catch((err) => console.error(err));
   };
+
+  const validate = () => {
+    var temp = {};
+    temp.titre =
+      form.titre.length > 0
+        ? form.titre.length < 255
+          ? ""
+          : "Le titre ne doit pas depasser 255 charactères."
+        : "Ce champs est obligatoire.";
+    temp.description =
+      form.description.length > 0
+        ? form.description.length < 21844
+          ? ""
+          : "Ce n'est qu'une description, vous n'êtes pas censé écrire un livre ici!"
+        : "Ce champs est obligatoire.";
+    temp.travail =
+      form.travail.length > 0
+        ? form.travail.length < 21844
+          ? ""
+          : "Ce n'est qu'une description, vous n'êtes pas censé écrire un livre ici!"
+        : "Ce champs est obligatoire.";
+    temp.enc_sec = values.encSec
+      ? !form.enc_sec || form.enc_sec.length === 0
+        ? "Vous avez coucher l'option deuxieme encadrant, vous devez le specifier!"
+        : ""
+      : "";
+    temp.techs =
+      techs.length > 0
+        ? techs.length > 20
+          ? "Ce champs ne peut pas contenir plus que 20 technologies."
+          : techs.filter((el) => el.length > 100).length > 0
+          ? "Chaque technologie ne doit pas comporter plus que 100 charactères."
+          : ""
+        : "Ce champs est obligatoir.";
+    temp.lieu = !form.interne
+      ? !form.lieu || form.lieu.length === 0
+        ? "Tant que le projet est externe, ce champs est obligatoir."
+        : form.lieu.length > 100
+        ? "Ce champs ne peut pas comporter plus que 100 charactères."
+        : ""
+      : "";
+    temp.enc_ext = !form.interne
+      ? !form.enc_ext || form.enc_ext.length === 0
+        ? "Tant que le projet est externe, ce champs est obligatoir."
+        : form.enc_ext.length > 36
+        ? "Ce champs ne peut pas comporter plus que 36 charactères."
+        : ""
+      : "";
+
+    setErrors(temp);
+    if (Object.values(temp).every((el) => el.length === 0)) {
+      if (!form.interne && files.length === 0) {
+        dispatch({
+          type: "OPEN_SNACK",
+          payload: {
+            type: "error",
+            message: "Ajouter une fiche externe!",
+            open: true,
+          },
+        });
+        return false;
+      }
+      return true;
+    } else {
+      dispatch({
+        type: "OPEN_SNACK",
+        payload: {
+          type: "error",
+          message: "Remplire tout les champs",
+          open: true,
+        },
+      });
+      return false;
+    }
+  };
+
+  const toggleEncSec = () => {
+    var temp = !values.encSec;
+    setValues((values) => ({ ...values, encSec: !values.encSec }));
+    if (!temp) {
+      setForm({ ...form, enc_sec: null });
+    }
+  };
+
+  useEffect(() => {
+    return getProjects().then((result) => {
+      dispatch({ type: "SET_PROJECTS", payload: result.data });
+    });
+  }, []);
 
   return (
     <div
@@ -83,13 +198,15 @@ function AddProject(props) {
           gap: "0.5rem",
           display: "flex",
           flexWrap: "wrap",
+          alignItems: "flex-start",
         }}
       >
         <Typography variant="h4" paragraph style={{ flex: "1 1 100%" }}>
           Proposer un sujet
         </Typography>
-        {!current.role === "etudiant" && (
+        {current.role !== "etudiant" && (
           <ButtonGroup
+            size="large"
             style={{
               flex: "1 1 30%",
             }}
@@ -121,6 +238,8 @@ function AddProject(props) {
           id="titre"
           placeholder="Le titre du sujet"
           variant="outlined"
+          error={errors.titre.length > 0}
+          helperText={errors.titre}
           style={{ flex: "1 1 65%" }}
         />
         <TextField
@@ -130,6 +249,8 @@ function AddProject(props) {
           placeholder="La description du sujet"
           variant="outlined"
           multiline
+          error={errors.description.length > 0}
+          helperText={errors.description}
           style={{ flex: "1 1 45%", minWidth: "16rem" }}
           inputProps={{
             style: {
@@ -145,6 +266,8 @@ function AddProject(props) {
           "
           variant="outlined"
           multiline
+          error={errors.travail.length > 0}
+          helperText={errors.travail}
           style={{ flex: "1 1 45%", minWidth: "16rem" }}
           inputProps={{
             style: {
@@ -152,28 +275,16 @@ function AddProject(props) {
             },
           }}
         />
-        <Autocomplete
-          onChange={onAutocompleteChange}
-          id="enc_prim"
-          options={users}
-          getOptionLabel={(option) => option.nom}
-          //getOptionDisabled={(option) => option.includes("m")}
-          groupBy={(option) => option.nom.charAt(0)}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Encadreur primair"
-              variant="outlined"
-              placeholder="Séléctionner l'encadreur pour ce sujet."
-            />
-          )}
+
+        <TextField
+          label="Encadrant primair"
+          variant="outlined"
+          value={current.nom}
+          disabled
           style={{ flex: "1 1 45%", minWidth: "16rem" }}
         />
         <div style={{ display: "flex", flex: "1 1 45%", minWidth: "16rem" }}>
-          <Checkbox
-            color="primary"
-            onChange={() => setValues({ encSec: !values.encSec })}
-          />
+          <Checkbox color="primary" onChange={() => toggleEncSec()} />
           <Autocomplete
             onChange={onAutocompleteChange}
             id="enc_sec"
@@ -185,9 +296,11 @@ function AddProject(props) {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Encadreur secondair"
+                label="Encadrant secondair"
                 variant="outlined"
-                placeholder="Séléctionner l'encadreur pour ce sujet."
+                placeholder="Séléctionner l'encadrant pour ce sujet."
+                error={errors.enc_sec.length > 0}
+                helperText={errors.enc_sec}
               />
             )}
             style={{ flex: "1" }}
@@ -198,35 +311,24 @@ function AddProject(props) {
           color="primary"
           label="Technologies/outils"
           multiline
+          error={errors.techs.length > 0}
+          helperText={errors.techs}
           placeholder='Separer les elements par un virgule. ex: "NodeJS, ReactJS, mySQL"'
           onChange={(e) => {
-            setTechs(e.target.value.replace(/\s/g, " ").split(","));
+            setTechs(e.target.value.replace(/\s/g, "").split(","));
           }}
           style={{ flex: "1 1 100%" }}
         />
-        <Collapse in={!form.interne} style={{ flex: "1 1 100%" }}>
+        <Collapse unmountOnExit in={!form.interne} style={{ flex: "1 1 100%" }}>
           <Paper
             elevation={0}
             style={{
               gap: "0.5rem",
               display: "flex",
               flexWrap: "wrap",
+              alignItems: "flex-start",
             }}
           >
-            <Button
-              color="primary"
-              variant="outlined"
-              style={{
-                flex: "1 1 32%",
-                minWidth: "16rem",
-                fontSize: "1.2rem",
-                textTransform: "none",
-              }}
-              onClick={() => {}}
-              startIcon={<AttachFile />}
-            >
-              Fiche externe
-            </Button>
             <TextField
               onChange={(e) =>
                 setForm({ ...form, [e.target.id]: e.target.value })
@@ -234,18 +336,23 @@ function AddProject(props) {
               label="Lieu (Societé)"
               id="lieu"
               variant="outlined"
-              style={{ flex: "1 1 32%", minWidth: "16rem" }}
+              error={errors.lieu.length > 0}
+              helperText={errors.lieu}
+              style={{ flex: "1 1 49%", minWidth: "16rem" }}
             />
             <TextField
               onChange={(e, value) =>
                 setForm({ ...form, [e.target.id]: e.target.value })
               }
               id="enc_ext"
-              label="Encadreur externe"
+              label="Encadrant externe"
               variant="outlined"
-              placeholder="Séléctionner l'encadreur pour ce sujet."
-              style={{ flex: "1 1 32%", minWidth: "16rem" }}
+              placeholder="Séléctionner l'encadrant pour ce sujet."
+              error={errors.enc_ext.length > 0}
+              helperText={errors.enc_ext}
+              style={{ flex: "1 1 49%", minWidth: "16rem" }}
             />
+            <UploadFile size="large" fileProp="Fiche externe" />
           </Paper>
         </Collapse>
       </Paper>
@@ -263,34 +370,8 @@ function AddProject(props) {
         <Button color="primary" variant="contained" onClick={() => sendData()}>
           Envoyer
         </Button>
-        <Button color="warning" variant="outlined">
-          Brouillon
-        </Button>
       </Paper>
     </div>
   );
 }
 export default AddProject;
-
-{
-  /* <MuiPickersUtilsProvider
-            libInstance={moment}
-            utils={MomentUtils}
-            local="fr"
-          >
-            <DatePicker
-              id="date"
-              label="Date du projet"
-              allowKeyboardControl
-              disablePast
-              inputVariant="outlined"
-              variant="inline"
-              autoOk={true}
-              value={form.date}
-              onChange={(date) =>
-                setForm({ ...form, date: date.toISOString() })
-              }
-              style={{ flex: "1 1 30%" }}
-            />
-    </MuiPickersUtilsProvider> */
-}

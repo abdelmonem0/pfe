@@ -29,11 +29,14 @@ const options = {
 function Dates(props) {
   const dispatch = useDispatch();
   const current = useSelector((state) => state.users.current);
+  const fetchedDates = useSelector((state) => state.dates);
   const [dates, setDates] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
-  const [selectedDates, setSelectedDates] = useState([]);
-  const [datesSaved, setDatesSaved] = useState(false);
+  const [selectedDates, setSelectedDates] = useState(
+    normalizeFetchedDates(fetchedDates, options) || []
+  );
+  const [datesSaved, setDatesSaved] = useState(fetchedDates.length > 0);
 
   const sliceStart = page * rowsPerPage < dates.length ? page * rowsPerPage : 0;
   const sliceEnd =
@@ -104,6 +107,33 @@ function Dates(props) {
   }
 
   function saveDates() {
+    if (selectedDates.length === 0) {
+      dispatch({
+        type: "OPEN_SNACK",
+        payload: {
+          open: true,
+          message: "Aucun date séléctionné!",
+          type: "error",
+        },
+      });
+      return;
+    }
+
+    for (let d of selectedDates)
+      if (d.crenaux.length < 1) {
+        dispatch({
+          type: "OPEN_SNACK",
+          payload: {
+            open: true,
+            message:
+              new Date(d.iso).toLocaleDateString("fr-FR", options) +
+              ": aucun crénaux séléctionné!",
+            type: "error",
+          },
+        });
+        return;
+      }
+
     dispatch({ type: "OPEN_BACKDROP" });
     saveTeacherDates(current.id_utilisateur, selectedDates)
       .then(() => {
@@ -125,7 +155,7 @@ function Dates(props) {
     getSoutenancesDates()
       .then((result) => setDates(getDays(result.data, options)))
       .then(() => {
-        if (!datesSaved) {
+        if (!datesSaved && fetchedDates.length === 0) {
           getTeacherDates(current.id_utilisateur).then((result) => {
             var newDates = normalizeFetchedDates(result.data, options);
             if (newDates.length > 0) {
@@ -143,9 +173,6 @@ function Dates(props) {
 
   return dates.length > 0 ? (
     <Paper style={{ flex: "1" }}>
-      <Typography paragraph variant="h4">
-        Dates soutenances
-      </Typography>
       {datesSaved && (
         <Typography variant="h6" color="primary">
           Vous avez des préférences enregistrés, vous pouvez les modifier en

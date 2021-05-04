@@ -2,30 +2,33 @@ import { React } from "react";
 import "../../App.css";
 import { Switch, Route } from "react-router-dom";
 
-import AddProject from "../Commun/AddProject";
+import AddProject from "./AddProject";
 import ViewProjects from "../Commun/ViewProjects";
-import Candidatures from "./Candidatures";
 import EditProfile from "../Commun/EditProfile";
+import HomePage from "../Commun/HomePage";
+import Candidatures from "../Commun/Candidature.js";
 
 function Etudiant() {
-
   return (
-      <div style={{ display: "flex", justifyContent: "center", width:'100%' }}>
-          <Switch>
-            <Route path="/ajouter">
-              <AddProject />
-            </Route>
-            <Route path="/sujets">
-              <ViewProjects />
-            </Route>
-            <Route path="/candidatures">
-              <Candidatures />
-            </Route>
-            <Route path="/profile">
-              <EditProfile />
-            </Route>
-          </Switch>
-      </div>
+    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+      <Switch>
+        <Route exact path="/">
+          <HomePage />
+        </Route>
+        <Route exact path="/ajouter">
+          <AddProject />
+        </Route>
+        <Route exact path="/sujets">
+          <ViewProjects />
+        </Route>
+        <Route exact path="/candidatures">
+          <Candidatures />
+        </Route>
+        <Route exact path="/profile">
+          <EditProfile />
+        </Route>
+      </Switch>
+    </div>
   );
 }
 

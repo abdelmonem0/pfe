@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   TextField,
-  Paper,
   Button,
   Typography,
   useTheme,
@@ -15,34 +14,32 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { Person } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
-import axios from "axios";
 import { v4 as uuid } from "uuid";
 import UploadFile from "../UploadFile";
-import { addFileToDatabase, getCandidatures } from "../../functions";
+import {
+  addCandidature,
+  addFileToDatabase,
+  getCandidatures,
+} from "../../functions";
 import { Candidature_States } from "../../Constants";
 import Slide from "@material-ui/core/Slide";
+import { getCandidaturePartner } from "../Commun/Constraints";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 function AddCandidature(props) {
+  const { project, dialog, openDialog } = props;
+
   const [values, setValues] = useState({ commentaires: "", partner: false });
+  const users = useSelector((state) => state.users);
+  const etudiants = getCandidaturePartner();
+  const files = useSelector((state) => state.files);
+  const dispatch = useDispatch();
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("xs"));
-
-  const project = props.project;
-  const users = useSelector((state) => state.users);
-  const etudiants = users.all.filter((user) => {
-    return (
-      user.role === "etudiant" &&
-      user.id_utilisateur != users.current.id_utilisateur &&
-      !user.sujet_affecte
-    );
-  });
-  const files = useSelector((state) => state.files);
-  const dispatch = useDispatch();
 
   const id_candidature = uuid();
 
@@ -76,26 +73,36 @@ function AddCandidature(props) {
       fichiers.push(fichier);
     }
 
-    axios
-      .post("http://localhost:5000/api/add-candidature", candidature)
+    addCandidature(candidature)
+      .then((result) => {
+        if (result.status === 200)
+          dispatch({
+            type: "OPEN_SNACK",
+            payload: {
+              type: "success",
+              message: result.data,
+            },
+          });
+        else throw new Error(result.data);
+      })
       .then(() => {
-        if (fichiers && fichiers.length > 0)
+        if (fichiers.length > 0)
           addFileToDatabase(fichiers).then(() => {
             dispatch({ type: "CLEAR_FILES" });
           });
       })
       .then(() => {
-        props.closeCandidature(false);
+        openDialog(false);
         getCandidatures(users.current.id_utilisateur).then((result) => {
           dispatch({ type: "SET_CANDIDATURES", payload: result.data });
         });
       })
-      .then(() =>
+      .catch((err) =>
         dispatch({
           type: "OPEN_SNACK",
           payload: {
-            type: "success",
-            message: "Candidature ajouté avec succèss.",
+            type: "error",
+            message: err,
           },
         })
       );
@@ -103,12 +110,12 @@ function AddCandidature(props) {
 
   return (
     <Dialog
-      open={props.open}
+      open={dialog}
       fullWidth
       fullScreen={fullScreen}
       maxWidth={"sm"}
       TransitionComponent={Transition}
-      onClose={() => props.closeCandidature(false)}
+      onClose={() => openDialog(false)}
     >
       <DialogTitle>
         <Typography variant="h6">Candidater</Typography>
@@ -117,20 +124,25 @@ function AddCandidature(props) {
         style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
       >
         <Typography>{project.titre}</Typography>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <Typography color="textSecondary">
-            <Person />
-          </Typography>
-
-          {project.encadrants.map((e) => (
-            <Typography variant="subtitle2" color="textSecondary">
-              {e.nom}
+        {project.encadrants.length > 0 && (
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+            <Typography color="textSecondary">
+              <Person />
             </Typography>
-          ))}
-        </div>
+
+            {project.encadrants.map((e) => (
+              <Typography
+                key={e.id_utilisateur}
+                variant="subtitle2"
+                color="textSecondary"
+              >
+                {e.nom}
+              </Typography>
+            ))}
+          </div>
+        )}
         <Divider />
         <TextField
-          value={values.commentaires}
           label="Commentaires"
           placeholder="optionel"
           multiline
@@ -203,7 +215,7 @@ function AddCandidature(props) {
         <Button
           variant="outlined"
           color="secondary"
-          onClick={() => props.closeCandidature(false)}
+          onClick={() => openDialog(false)}
         >
           Annuler
         </Button>

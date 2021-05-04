@@ -37,8 +37,27 @@
   }
 }
 
-.candidature-project-title{
+.candidature-project-title {
   cursor: pointer;
   text-decoration: underline;
   border-radius: 5px;
+}
+
+.horizontal-list {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.mh-2 {
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+
+.mt-1 {
+  padding-top: 1rem;
 }

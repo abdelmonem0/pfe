@@ -15,7 +15,7 @@ const constantsReducer = (
       };
       return state;
     case "CLOSE_SNACK":
-      state = { ...state, snackbar: { open: false } };
+      state = { ...state, snackbar: { ...state.snackbar, open: false } };
       return state;
     case "OPEN_BACKDROP":
       state = { ...state, backdrop: { open: true } };

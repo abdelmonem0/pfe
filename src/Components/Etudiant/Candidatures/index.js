@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Paper, Typography } from "@material-ui/core";
+import { Paper, Typography, useTheme } from "@material-ui/core";
 import { useSelector, useDispatch } from "react-redux";
 
 import "../../../App.css";
@@ -8,13 +8,16 @@ import Candidature from "./Candidature";
 import { getCandidatures, getProjects } from "../../../functions";
 
 function Candidatures() {
+  const theme = useTheme();
   const users = useSelector((state) => state.users);
-  const projects = useSelector((state) => state.projects);
+  const projects = useSelector((state) => state.projects.dataArray);
   const dispatch = useDispatch();
   const candidatures = useSelector((state) => state.candidatures);
 
   const [openProject, setOpenProject] = useState(false);
   const [selectedProject, setSelectedProject] = useState(undefined);
+  const gotAcceptedProject =
+    projects.filter((p) => p.affecte_a.indexOf(users.current) > -1).length > 0;
 
   useEffect(() => {
     getProjects()
@@ -47,7 +50,14 @@ function Candidatures() {
           >
             {/* Info candidatures - Etudiants */}
             {users.current.role === "etudiant" &&
-              (candidatures.length >= 3 ? (
+              (gotAcceptedProject ? (
+                <Typography
+                  variant="h6"
+                  style={{ color: theme.palette.success.dark }}
+                >
+                  Vous aver un sujet accepté
+                </Typography>
+              ) : candidatures.length >= 3 ? (
                 <Typography variant="h6" style={{ color: "red" }}>
                   Vous ne pouvez candidater que pour 3 sujets à la fois, une
                   fois une candidature est refusée, vous pourrez candidater de

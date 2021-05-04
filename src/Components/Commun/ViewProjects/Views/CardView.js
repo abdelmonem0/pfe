@@ -3,16 +3,10 @@ import Pagination from "@material-ui/lab/Pagination";
 import ProjectCard from "../ProjectCard";
 
 function CardView(props) {
-  const {
-    projects,
-    openProject,
-    setSelectedProject,
-    setAddCandidature,
-  } = props;
+  const { projects } = props;
 
   const [page, setPage] = useState(1);
   const [elPerPage, setElPerPage] = useState(5);
-  const [willScrollToTop, setWillScrollToTop] = useState(false);
   const pagesCount = Math.ceil(projects.length / elPerPage);
 
   const sliceStart = (page - 1) * elPerPage;
@@ -22,6 +16,7 @@ function CardView(props) {
     setPage(v);
     window.scrollTo(0, 0);
   };
+
   return (
     <>
       <Pagination
@@ -32,13 +27,7 @@ function CardView(props) {
         onChange={handlePageChange}
       />
       {projects.slice(sliceStart, sliceEnd).map((project) => (
-        <ProjectCard
-          key={project.id_sujet}
-          project={project}
-          openProject={openProject}
-          setSelectedProject={setSelectedProject}
-          openCandidature={setAddCandidature}
-        />
+        <ProjectCard project={project} />
       ))}
       <Pagination
         count={pagesCount}

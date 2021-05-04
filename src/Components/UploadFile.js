@@ -7,7 +7,8 @@ import { deleteFileFromDatabase, uploadFile } from "../functions";
 import { useDispatch } from "react-redux";
 
 function UploadFile(props) {
-  const fileProp = props.fileProp ? props.fileProp : "Fichier";
+  const fileProp = props.fileProp || "Fichier";
+  const size = props.size || "medium";
 
   const [files, setFiles] = useState([]);
 
@@ -50,6 +51,7 @@ function UploadFile(props) {
         component="label"
         variant="contained"
         color="primary"
+        size={size}
         startIcon={<CloudUpload />}
       >
         <input

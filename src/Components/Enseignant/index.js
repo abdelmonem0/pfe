@@ -4,11 +4,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { Switch, Route } from "react-router-dom";
 import axios from "axios";
 
-import AddProject from "../Commun/AddProject";
+import AddProject from "./AddProject";
 import ViewProjects from "../Commun/ViewProjects";
-import Candidatures from "./Candidatures";
 import EditProfile from "../Commun/EditProfile";
 import Preferences from "./Preferences/index";
+import Candidatures from "../Commun/Candidature.js";
 
 function Enseignant(props) {
   const user = useSelector((state) => state.users.current);

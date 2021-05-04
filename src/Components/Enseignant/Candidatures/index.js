@@ -10,7 +10,7 @@ import { Candidature_States } from "../../../Constants";
 
 function Candidatures() {
   const users = useSelector((state) => state.users);
-  const projects = useSelector((state) => state.projects);
+  const projects = useSelector((state) => state.projects.dataArray);
   const dispatch = useDispatch();
   const candidatures = useSelector((state) => state.candidatures);
 
@@ -30,7 +30,7 @@ function Candidatures() {
   }, []);
 
   return (
-    <Paper elevation={0}>
+    <Paper elevation={0} style={{ flex: "1" }}>
       {selectedProject && (
         <ProjectDetail
           open={openProject}
@@ -43,7 +43,7 @@ function Candidatures() {
           Candidatures
         </Typography>
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {candidatures &&
+          {/* {
             candidatures
               .filter((el1) => {
                 return (
@@ -63,7 +63,16 @@ function Candidatures() {
                   openProject={setOpenProject}
                   setSelectedProject={setSelectedProject}
                 />
-              ))}
+              ))} */}
+          {projects
+            .filter(
+              (project) =>
+                project.enc_prim === users.current.id_utilisateur ||
+                project.enc_sec === users.current.id_utilisateur
+            )
+            .map((project) => (
+              <div>{project.titre}</div>
+            ))}
         </div>
       </Paper>
     </Paper>

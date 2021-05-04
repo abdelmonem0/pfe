@@ -63,7 +63,11 @@ const NotificationsMenu = (props) => {
     <Menu
       autoFocus
       open={anchor !== null}
+      id="menu-appbar"
       anchorEl={anchor}
+      getContentAnchorEl={null}
+      anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      transformOrigin={{ vertical: "top", horizontal: "center" }}
       onClose={handleClose}
     >
       <MenuList>

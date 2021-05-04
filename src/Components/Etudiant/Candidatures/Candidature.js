@@ -6,20 +6,24 @@ import {
   CardActions,
   Typography,
   Button,
-  Tooltip,
-  CardActionArea,
+  useTheme,
 } from "@material-ui/core";
 import { Person, Schedule } from "@material-ui/icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { acceptCandidatureEtudiant, getCandidatures } from "../../../functions";
 import AttachedFiles from "../../Commun/AttachedFiles";
 import SecondStudent from "./SecondStudent";
 import { Candidature_States } from "../../../Constants";
+import ProjectDetail from "../../Commun/ProjectDetail";
 
 const Candidature = (props) => {
+  const theme = useTheme();
   const candidature = props.candidature;
-  const users = props.users;
+  const users = useSelector((state) => state.users);
+  const project = useSelector((state) => state.projects).filter(
+    (p) => p.id_sujet === candidature.id_sujet
+  )[0];
 
   const [send2ndStudentFiles, setSend2ndStudentFiles] = useState(false);
 
@@ -27,11 +31,11 @@ const Candidature = (props) => {
 
   const files = candidature.fichiers;
 
-  const bg = bgColor(candidature.etat);
+  const bg = bgColor(candidature.etat, theme);
   const encadrants = users.all.filter((user) => {
     return (
-      user.id_utilisateur === props.project[0].enc_prim ||
-      user.id_utilisateur === props.project[0].enc_sec
+      user.id_utilisateur === project.enc_prim ||
+      user.id_utilisateur === project.enc_sec
     );
   });
 
@@ -55,7 +59,7 @@ const Candidature = (props) => {
     console.log(encadrants);
   }, []);
   return (
-    <Card elevation={10}>
+    <Card variant="outlined">
       <CardHeader
         style={{ backgroundColor: bg }}
         title={
@@ -80,27 +84,12 @@ const Candidature = (props) => {
           </Typography>
           <Typography variant="body2" color="textSecondary" paragraph>
             <Schedule />
-            {" " + candidature.date}
+            {" " + new Date(candidature.date).toLocaleDateString()}
           </Typography>
         </div>
 
         {/* Titre - Consulter sujet */}
-        <CardActionArea
-          onClick={() => {
-            props.setSelectedProject(props.project[0]);
-            props.openProject(true);
-          }}
-        >
-          <Tooltip title="Consulter le sujet">
-            <Typography
-              className="candidature-project-title"
-              paragraph
-              variant="h6"
-            >
-              {props.project[0].titre}
-            </Typography>
-          </Tooltip>
-        </CardActionArea>
+        <ProjectDetail project={project}>{project.titre}</ProjectDetail>
         <Typography
           variant="body2"
           color="textSecondary"
@@ -119,9 +108,7 @@ const Candidature = (props) => {
             Commentaires: {'"' + candidature.commentaire_2 + '"'}
           </Typography>
         )}
-        {candidature.fichiers && candidature.fichiers.length > 0 && (
-          <AttachedFiles fichiers={candidature.fichiers} />
-        )}
+        <AttachedFiles fichiers={candidature.fichiers} />
         {candidature.id_etudiant_2 === users.current.id_utilisateur &&
           candidature.etat === Candidature_States.waiting_for_student && (
             <SecondStudent
@@ -158,10 +145,11 @@ const Candidature = (props) => {
   );
 };
 
-function bgColor(state) {
-  if (state === Candidature_States.waiting_for_student) return "#FFAD00";
-  if (state === Candidature_States.accepted) return "#33CA00";
-  if (state === Candidature_States.refused) return "#EE4C52";
+function bgColor(state, theme) {
+  if (state === Candidature_States.waiting_for_student)
+    return theme.palette.warning.main;
+  if (state === Candidature_States.accepted) return theme.palette.success.main;
+  if (state === Candidature_States.refused) return theme.palette.error.dark;
   return "#54B5D2";
 }
 

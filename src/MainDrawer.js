@@ -4,7 +4,6 @@ import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
-import List from "@material-ui/core/List";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
@@ -12,15 +11,14 @@ import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import MailIcon from "@material-ui/icons/Mail";
 import Login from "./Components/Login";
-import { Button, Hidden, ListItemText } from "@material-ui/core";
+import { Button, Hidden } from "@material-ui/core";
 import { useSelector, useDispatch } from "react-redux";
 import Redirect from "./Components/Redirect";
 import { useHistory } from "react-router-dom";
 import NotificationBar from "./Components/Commun/Notification/NotificationBar";
+import { ExitToApp, Settings } from "@material-ui/icons";
+import MenuItems from "./Components/MenuItems";
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -86,18 +84,21 @@ const useStyles = makeStyles((theme) => ({
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
+    paddingLeft: theme.spacing(5),
+    paddingRight: theme.spacing(5),
     [theme.breakpoints.down("sm")]: {
-      padding: "0.5rem",
+      padding: theme.spacing(1),
     },
   },
 }));
 
-function MainDrawer() {
+function MainDrawer(props) {
+  const { themeType, setThemeType } = props;
   const classes = useStyles();
   const theme = useTheme();
 
   const currentUser = useSelector((state) => state.users.current);
-  const pages = useSelector((state) => state.pages);
+  const pages = useSelector((state) => state.pages.pages);
   const dispatch = useDispatch();
 
   const history = useHistory();
@@ -113,12 +114,7 @@ function MainDrawer() {
       <CssBaseline />
       {currentUser && (
         <>
-          <AppBar
-            position="fixed"
-            className={clsx(classes.appBar, {
-              [classes.appBarShift]: open,
-            })}
-          >
+          <AppBar position="fixed" className={classes.appBar}>
             <Toolbar>
               <IconButton
                 color="inherit"
@@ -138,11 +134,25 @@ function MainDrawer() {
                 {currentUser.nom + " - " + currentUser.role}
               </Typography>
               <div style={{ flex: 1 }} />
+              <IconButton
+                onClick={() =>
+                  setThemeType(themeType === "light" ? "dark" : "light")
+                }
+              >
+                <Settings />
+              </IconButton>
               <NotificationBar />
               <Button
                 variant="contained"
-                color="secondary"
+                style={{
+                  backgroundColor: theme.palette.error.main,
+                  color: "white",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+                disableElevation
                 onClick={() => dispatch({ type: "PURGE" })}
+                endIcon={<ExitToApp />}
               >
                 Deconnexion
               </Button>
@@ -176,20 +186,11 @@ function MainDrawer() {
                   </IconButton>
                 </div>
                 <Divider />
-                <List>
-                  {pages.map((page) => (
-                    <ListItem
-                      button
-                      key={page.text}
-                      onClick={() => history.push(page.link)}
-                    >
-                      <ListItemIcon>
-                        <MailIcon />
-                      </ListItemIcon>
-                      <ListItemText primary={page.text} />
-                    </ListItem>
-                  ))}
-                </List>
+                <MenuItems
+                  drawerOpen={open}
+                  pages={pages}
+                  closeDrawer={handleDrawerOpen}
+                />
               </div>
             </Drawer>
           </Hidden>
@@ -213,29 +214,17 @@ function MainDrawer() {
                 </IconButton>
               </div>
               <Divider />
-              <List>
-                {pages.map((page) => (
-                  <ListItem
-                    button
-                    key={page.text}
-                    onClick={() => {
-                      history.push(page.link);
-                      handleDrawerOpen();
-                    }}
-                  >
-                    <ListItemIcon>
-                      <MailIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={page.text} />
-                  </ListItem>
-                ))}
-              </List>
+              <MenuItems
+                drawerOpen={open}
+                pages={pages}
+                closeDrawer={handleDrawerOpen}
+              />
             </Drawer>
           </Hidden>
         </>
       )}
 
-      <Main currentUser={currentUser} classes={classes} />
+      <Main currentUser={currentUser} classes={classes} themeType={themeType} />
     </div>
   );
 }

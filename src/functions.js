@@ -24,6 +24,13 @@ export function getProjects() {
   return axios.get("https://pfe-abdelmonem.herokuapp.com/api/get-projects");
 }
 
+export function addCandidature(candidature) {
+  return axios.post(
+    "https://pfe-abdelmonem.herokuapp.com/api/add-candidature",
+    candidature
+  );
+}
+
 export function acceptCandidatureEtudiant(
   id_utilisateur,
   id_candidature,
@@ -81,9 +88,19 @@ export function addAvis(id_utilisateur, id_sujet, avis_favorable, _delete) {
   });
 }
 
+export function getAvis() {
+  return axios.get("https://pfe-abdelmonem.herokuapp.com/api/get-avis");
+}
+
 export function addLike(id_sujet, id_utilisateur) {
   return axios.post("https://pfe-abdelmonem.herokuapp.com/api/add-like", {
     id_sujet,
+    id_utilisateur,
+  });
+}
+
+export function getLikes(id_utilisateur) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/get-likes", {
     id_utilisateur,
   });
 }

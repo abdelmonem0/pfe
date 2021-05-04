@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   makeStyles,
   Paper,
@@ -14,12 +17,22 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
   Typography,
+  useTheme,
 } from "@material-ui/core";
 import LikeButton from "../../LikeButton";
-import { ExpandLess, ExpandMore } from "@material-ui/icons";
-import { Project_States } from "../../../../Constants";
+import { Attachment, ExpandLess, ExpandMore } from "@material-ui/icons";
 import "../style.css";
+import AttachedFiles from "../../AttachedFiles";
+import { useSelector } from "react-redux";
+import AddCandidature from "../../../Etudiant/AddCandidature";
+import CandidatButton from "../CandidatButton";
+import ProjectDetail from "../../ProjectDetail";
+import StateChip from "../StateChip";
+import MembreProjectActions from "../../../Membre/MembreProjectActions";
+import { canViewAttachement } from "../../Constraints";
+import PresidentProjectActions from "../../../President/PresidentProjectActions";
 
 const useRowStyles = makeStyles({
   root: {
@@ -34,8 +47,12 @@ function TableView(props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selectedProject, setSelectedProject] = useState([]);
+  const [selectedRow, setSelectedRow] = useState("");
+  const [expandAll, setExpandAll] = useState(false);
 
   const classes = useRowStyles();
+  const theme = useTheme();
+  const selectedRowColor = theme.palette.action.disabledBackground;
 
   const sliceStart =
     page * rowsPerPage < projects.length ? page * rowsPerPage : 0;
@@ -67,23 +84,43 @@ function TableView(props) {
 
   return (
     <Paper>
+      <Button
+        variant="outlined"
+        color="primary"
+        onClick={() => setExpandAll(!expandAll)}
+        style={{ textTransform: "none" }}
+      >
+        {!expandAll
+          ? "Ouvrir tout les descriptions"
+          : "Fermer tout les descriptions"}
+      </Button>
       <TableContainer>
-        <Table stickyHeader>
+        <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox"></TableCell>
               <TableCell padding="checkbox">Etat</TableCell>
               <TableCell>Projet</TableCell>
-              <TableCell align="right">Type</TableCell>
-              <TableCell align="right">Lieu</TableCell>
-              <TableCell align="right">Encadrant interne</TableCell>
-              <TableCell align="right">Encadrant externe</TableCell>
+              <TableCell align="left">Actions</TableCell>
+              <TableCell align="left">Lieu</TableCell>
+              <TableCell align="left">Encadrant interne</TableCell>
+              <TableCell align="left">Encadrant externe</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {projects.slice(sliceStart, sliceEnd).map((project, idx) => (
               <React.Fragment>
-                <TableRow key={project.id_sujet} className={classes.root}>
+                <TableRow
+                  key={project.id_sujet + "1"}
+                  className={classes.root}
+                  style={{
+                    backgroundColor:
+                      selectedRow === project.id_sujet
+                        ? selectedRowColor
+                        : "inherit",
+                  }}
+                  onClick={() => setSelectedRow(project.id_sujet)}
+                >
                   <TableCell padding="checkbox">
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <IconButton
@@ -102,36 +139,44 @@ function TableView(props) {
                     </div>
                   </TableCell>
                   <TableCell padding="checkbox">
-                    <Badge
-                      etat={project.etat}
-                      current={current}
-                      affecte_a={project.affecte_a}
-                    />
+                    <StateChip project={project} />
                   </TableCell>
                   <TableCell onClick={() => openProject(project)}>
-                    <div className="project-title-table-view">
+                    <ProjectDetail project={project}>
                       {project.titre}
-                    </div>
+                    </ProjectDetail>
                   </TableCell>
-                  <TableCell align="right">
-                    {project.interne ? "Interne" : "Externe"}
+                  <TableCell align="left">
+                    <Actions project={project} />
                   </TableCell>
-                  <TableCell align="right">{project.lieu}</TableCell>
-                  <TableCell align="right">
-                    {project.encadrants[0].nom}
+                  <TableCell align="left">{project.lieu}</TableCell>
+                  <TableCell align="left">
+                    {project.encadrants[0] ? project.encadrants[0].nom : ""}
                     {project.encadrants[1]
                       ? " / " + project.encadrants[1].nom
                       : ""}
                   </TableCell>
-                  <TableCell align="right">{project.enc_ext || ""}</TableCell>
+                  <TableCell align="left">{project.enc_ext || ""}</TableCell>
                 </TableRow>
-                <TableRow key={idx}>
+                <TableRow
+                  key={project.id_sujet + "2"}
+                  style={{
+                    backgroundColor:
+                      selectedRow === project.id_sujet
+                        ? selectedRowColor
+                        : "inherit",
+                  }}
+                  onClick={() => setSelectedRow(project.id_sujet)}
+                >
                   <TableCell
                     style={{ paddingBottom: 0, paddingTop: 0 }}
                     colSpan={7}
                   >
                     <Collapse
-                      in={selectedProject.indexOf(project.id_sujet) !== -1}
+                      in={
+                        selectedProject.indexOf(project.id_sujet) !== -1 ||
+                        expandAll
+                      }
                     >
                       <Box padding={1}>
                         <Typography variant="body1" color="primary">
@@ -170,34 +215,50 @@ function TableView(props) {
 
 export default TableView;
 
-const Badge = ({ etat, current, affecte_a }) => {
-  const _etat =
-    current.role === "president"
-      ? etat === Project_States.waiting
-        ? "En instance"
-        : etat
-      : affecte_a.length > 0
-      ? "Affecté"
-      : "En instance";
-  const chipColor =
-    current.role === "president"
-      ? etat === Project_States.accepted
-        ? "primary"
-        : etat === Project_States.refused
-        ? "secondary"
-        : "default"
-      : affecte_a.length > 0
-      ? "primary"
-      : "default";
-  const chipStyle =
-    current.role === "president"
-      ? etat !== Project_States.waiting
-        ? "default"
-        : "outlined"
-      : affecte_a.length > 0
-      ? "default"
-      : "outlined";
+const Actions = (props) => {
+  const { project } = props;
+  const current = useSelector((state) => state.users.current);
+  const [dialog, openDialog] = useState(false);
+  const [candidature, openCandidature] = useState(false);
   return (
-    <Chip color={chipColor} variant={chipStyle} size="small" label={_etat} />
+    <>
+      <AddCandidature
+        open={candidature}
+        closeCandidature={openCandidature}
+        project={project}
+      />
+
+      <div style={{ display: "flex" }}>
+        <CandidatButton project={project} iconButton />
+
+        <MembreProjectActions project={project} iconButton />
+        <PresidentProjectActions project={project} iconButton />
+        {canViewAttachement(project) && (
+          <Tooltip title="Contient des fichiers">
+            <IconButton onClick={() => openDialog(true)} size="small">
+              <Attachment />
+            </IconButton>
+          </Tooltip>
+        )}
+        {/* files dialog */}
+        <Dialog
+          open={dialog}
+          onClose={() => openDialog(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Attachement</DialogTitle>
+          <DialogContent>
+            <Typography paragraph>{project.titre}</Typography>
+            <AttachedFiles fichiers={project.fichiers} />
+          </DialogContent>
+          <DialogActions>
+            <Button color="secondary" onClick={() => openDialog(false)}>
+              Fermer
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </>
   );
 };

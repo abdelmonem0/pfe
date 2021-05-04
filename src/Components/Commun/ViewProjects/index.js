@@ -1,10 +1,8 @@
 import { React, useEffect, useState } from "react";
-import { Button, IconButton, Paper, Typography } from "@material-ui/core";
-import axios from "axios";
+import { Button, Paper, Typography } from "@material-ui/core";
 import { useSelector, useDispatch } from "react-redux";
 
 import "./style.css";
-import ProjectCard from "./ProjectCard";
 import ProjectDetail from "../ProjectDetail";
 import AddCandidature from "../../Etudiant/AddCandidature";
 import { getCandidatures, getProjects } from "../../../functions";
@@ -15,26 +13,14 @@ import { ViewAgenda, ViewHeadline } from "@material-ui/icons";
 
 function ViewProjects() {
   const current = useSelector((state) => state.users.current);
-  const projects = useSelector((state) => state.projects);
+  const fetchedProjects = useSelector((state) => state.projects.dataArray);
   const dispatch = useDispatch();
 
+  const [projects, setProjects] = useState(fetchedProjects);
   const [dialog, setDialog] = useState(false);
   const [addCandidature, setAddCandidature] = useState(false);
   const [selectedProject, setSelectedProject] = useState(undefined);
   const [cardView, setCardView] = useState(true);
-
-  useEffect(() => {
-    getProjects()
-      .then((result) => {
-        dispatch({ type: "SET_PROJECTS", payload: result.data });
-      })
-      .then(() => {
-        console.log("Entered");
-        getCandidatures(current.id_utilisateur).then((result) =>
-          dispatch({ type: "SET_CANDIDATURES", payload: result.data })
-        );
-      });
-  }, []);
 
   function openProject(project) {
     setSelectedProject(project);
@@ -45,9 +31,20 @@ function ViewProjects() {
     setDialog(false);
   }
 
+  useEffect(() => {
+    getProjects()
+      .then((result) => {
+        dispatch({ type: "SET_PROJECTS", payload: result.data });
+      })
+      .then(() => {
+        getCandidatures(current.id_utilisateur).then((result) =>
+          dispatch({ type: "SET_CANDIDATURES", payload: result.data })
+        );
+      });
+  }, []);
+
   return (
-    projects &&
-    projects.length > 0 && (
+    projects && (
       <>
         {selectedProject && (
           <ProjectDetail
@@ -67,17 +64,21 @@ function ViewProjects() {
           />
         )}
 
-        <Paper
-          elevation={0}
-          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-        >
-          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div className="vertical-list">
+          <div
+            style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}
+          >
             <Typography variant="h4" paragraph>
               List des sujets
             </Typography>
             <SwitchView cardView={cardView} setCardView={setCardView} />
           </div>
           {/* <FiltreProjects /> */}
+          <FiltreProjects
+            projects={projects}
+            setProjects={setProjects}
+            fetchedProjects={fetchedProjects}
+          />
 
           {cardView ? (
             <CardView
@@ -93,7 +94,7 @@ function ViewProjects() {
               current={current}
             />
           )}
-        </Paper>
+        </div>
       </>
     )
   );

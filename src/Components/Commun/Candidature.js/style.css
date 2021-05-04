@@ -1,0 +1,48 @@
+.index {
+  flex: 1;
+}
+
+.candidature-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.name-list {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.name-list-container {
+  display: flex;
+  column-gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.vertical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.horizontal-list {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.badge {
+  border: 1px solid lightslategrey;
+  border-radius: 5px;
+}
+
+.no-tr {
+  text-transform: none;
+}
+
+.space-between {
+  justify-content: space-between;
+}

@@ -12,12 +12,21 @@ import constantsReducer from "./constants";
 import tagsReducer from "./tags";
 import soutenanceReducer from "./soutenance";
 import notificationsReducer from "./notifications";
+import datesReducer from "./dates";
+import avisReducer from "./avis";
 
 const persistConfig = {
   key: "root",
   storage,
-  whiteliste: ["users", "projects", "candidatures", "files"],
-  blacklist: ["constants"],
+  whiteliste: [
+    "users",
+    "projects",
+    "candidatures",
+    "soutenance",
+    "likes",
+    "tags",
+    "notifications",
+  ],
 };
 
 const allReducers = combineReducers({
@@ -27,10 +36,12 @@ const allReducers = combineReducers({
   candidatures: candidaturesReducer,
   files: filesReducer,
   constants: constantsReducer,
+  avis: avisReducer,
   likes: likesReducer,
   tags: tagsReducer,
   soutenance: soutenanceReducer,
   notifications: notificationsReducer,
+  dates: datesReducer,
 });
 
 export default persistReducer(persistConfig, allReducers);

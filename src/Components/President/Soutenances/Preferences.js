@@ -1,204 +1,242 @@
-import { Button, TextField, Typography } from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
 import {
-  MuiPickersUtilsProvider,
-  KeyboardDatePicker,
-} from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns";
-import React, { useState } from "react";
+  Button,
+  Step,
+  StepLabel,
+  Stepper,
+  Tooltip,
+  Typography,
+  useTheme,
+} from "@material-ui/core";
+import { CheckCircle, Info } from "@material-ui/icons";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { saveSoutenanceDates } from "../../../functions";
-import { sendSoutenanceDatesNotifications } from "../../../Notifications";
+import { getStepToShow } from "./SoutenanceLogic";
+import Soutenances from "./Soutenances";
+import DateSale from "./Steps/DateSale";
+import TableView from "./Steps/Projects/TableView";
+import Teachers from "./Steps/Teachers/Teachers";
+
+const constants = {
+  startDate: new Date().toISOString(),
+  endDate: new Date().toISOString(),
+  maxCrenaux: 1,
+  sales: "",
+  selectedTeachers: [],
+  selectedProjects: [],
+  presidents: [],
+};
 
 function Preferences(props) {
+  const values = useSelector((state) => state.soutenance.values);
+  const {
+    startDate,
+    endDate,
+    maxCrenaux,
+    sales,
+    selectedTeachers,
+    selectedProjects,
+    presidents,
+  } = values || constants;
+
+  const theme = useTheme();
   const dispatch = useDispatch();
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
-  const [maxCrenaux, setMaxCrenaux] = useState(1);
-  const [sales, setSales] = useState([]);
 
-  const projects = useSelector((state) => state.soutenance.projects);
-  const users = useSelector((state) => state.users);
-
-  function getBusinessDateCount() {
-    var elapsed, daysBeforeFirstSaturday, daysAfterLastSunday;
-    var ifThen = function (a, b, c) {
-      return a == b ? c : a;
-    };
-
-    elapsed = endDate - startDate;
-    elapsed /= 86400000;
-
-    daysBeforeFirstSaturday = (7 - startDate.getDay()) % 7;
-    daysAfterLastSunday = endDate.getDay();
-
-    elapsed -= daysBeforeFirstSaturday + daysAfterLastSunday;
-    elapsed = (elapsed / 7) * 5;
-    elapsed +=
-      ifThen(daysBeforeFirstSaturday - 1, -1, 0) +
-      ifThen(daysAfterLastSunday, 6, 5);
-
-    return Math.ceil(elapsed);
-  }
-  const handleSaleListChange = (e) => {
-    var _sales = e.target.value
-      .replaceAll(" ", "")
-      .split(",")
-      .filter((sale) => {
-        return sale != "";
-      });
-    setSales(_sales);
+  const setStartDate = (value) => {
+    dispatch({ type: "UPDATE_VALUES", payload: { prop: "startDate", value } });
   };
-  const handleCrenauxOnChange = (e, v) => {
-    setMaxCrenaux(parseInt(v));
+  const setEndDate = (value) => {
+    dispatch({ type: "UPDATE_VALUES", payload: { prop: "endDate", value } });
   };
-  const handleSaveDate = () => {
-    saveSoutenanceDates(startDate.toISOString(), endDate.toISOString()).then(
-      () => {
-        dispatch({
-          type: "OPEN_SNACK",
-          payload: {
-            open: true,
-            message: "Dates enregistrés.",
-            type: "success",
-          },
-        });
-        sendSoutenanceDatesNotifications(users, false).catch((err) =>
-          console.error(err)
+  const setMaxCrenaux = (value) => {
+    dispatch({ type: "UPDATE_VALUES", payload: { prop: "maxCrenaux", value } });
+  };
+  const setSales = (value) => {
+    dispatch({ type: "UPDATE_VALUES", payload: { prop: "sales", value } });
+  };
+  const setSelectedTeachers = (value) => {
+    dispatch({
+      type: "UPDATE_VALUES",
+      payload: { prop: "selectedTeachers", value },
+    });
+  };
+  const setSelectedProjects = (value) => {
+    dispatch({
+      type: "UPDATE_VALUES",
+      payload: { prop: "selectedProjects", value },
+    });
+  };
+  const setPresidents = (value) => {
+    dispatch({ type: "UPDATE_VALUES", payload: { prop: "presidents", value } });
+  };
+
+  const [step, setStep] = useState(0);
+
+  const projects = useSelector((state) => state.projects.dataArray).filter(
+    (proj) => proj.enc_prim != null
+  );
+
+  const teachers = useSelector((state) => state.soutenance.teachers);
+
+  const handleStep = (willIncrement) => {
+    setStep(step + (willIncrement ? 1 : -1));
+  };
+
+  const choosePage = () => {
+    switch (step) {
+      case 0:
+        return (
+          <DateSale
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            maxCrenaux={maxCrenaux}
+            setMaxCrenaux={setMaxCrenaux}
+            sales={sales}
+            setSales={setSales}
+          />
         );
-      }
-    );
-  };
-  function generate(data) {
-    var _projects = data;
-    var soutenances = [];
-    for (let proj of _projects) {
-      //assigning the date and crenaux
-      {
-        var sout = { project: proj };
-        var lastSout =
-          soutenances.length > 0 ? soutenances[soutenances.length - 1] : null;
-        var crenaux = lastSout
-          ? lastSout.crenaux === maxCrenaux
-            ? 1
-            : lastSout.crenaux + 1
-          : 1;
-        var date = lastSout
-          ? crenaux === 1
-            ? new Date(
-                new Date(lastSout.date).setDate(
-                  new Date(lastSout.date).getDate() + 1
-                )
-              ).toISOString()
-            : new Date(lastSout.date).toISOString()
-          : startDate.toISOString();
-        sout = { ...sout, crenaux, date };
-      }
-
-      //sorting teachers by number of matched tags
-      {
-        var enseignants = proj.potential.sort((a, b) => {
-          return a.matched_tags.length < b.matched_tags.length;
-        });
-        _projects.potential = enseignants;
-      }
-
-      soutenances.push(sout);
+      case 1:
+        return (
+          <TableView
+            projects={projects}
+            selectedProjects={selectedProjects}
+            setSelectedProjects={setSelectedProjects}
+          />
+        );
+      case 2:
+        return (
+          <Teachers
+            selectedTeachers={selectedTeachers}
+            setSelectedTeachers={setSelectedTeachers}
+            presidents={presidents}
+            setPresidents={setPresidents}
+          />
+        );
+      case 3:
+        return (
+          <Soutenances
+            startDate={startDate}
+            endDate={endDate}
+            sales={sales}
+            maxCrenaux={maxCrenaux}
+            selectedTeachers={selectedTeachers}
+            selectedProjects={selectedProjects}
+            presidents={presidents}
+            projects={projects}
+            teachers={teachers}
+          />
+        );
     }
-
-    console.log(soutenances);
-  }
-  const generateSoutenances = () => {
-    var soutenances = [];
   };
+
+  const [calculatedStep, setCalculatedStep] = useState(-1);
+  useEffect(() => {
+    const st = getStepToShow(step);
+    if (calculatedStep === -1) setStep(st.step);
+    setCalculatedStep(st);
+  }, [values, step]);
 
   return (
-    <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <KeyboardDatePicker
-            margin="normal"
-            id="date-picker-dialog"
-            label="Date de début des soutenances"
-            format="MM/dd/yyyy"
-            value={startDate}
-            onChange={(date) => setStartDate(date)}
-            KeyboardButtonProps={{
-              "aria-label": "change date",
-            }}
-          />
-          <KeyboardDatePicker
-            margin="normal"
-            id="date-picker-dialog"
-            label="Date de fin des soutenances"
-            format="MM/dd/yyyy"
-            value={endDate}
-            onChange={(date) => setEndDate(date)}
-            KeyboardButtonProps={{
-              "aria-label": "change date",
-            }}
-          />
-          <div>
-            <Typography>
-              De: {startDate.toDateString()} à{" " + endDate.toDateString()}
-            </Typography>
-            <Typography>
-              durée: {getBusinessDateCount()} jours (samedie et dimanche non
-              inclus)
-            </Typography>
-          </div>
+    (values && projects && teachers && (
+      <div>
+        <Stepper activeStep={step} style={{ backgroundColor: "transparent" }}>
+          <Step>
+            <StepLabel
+              optional={
+                <Typography variant="subtitle2" color="textSecondary">
+                  Dates, sales et crénaux
+                </Typography>
+              }
+            >
+              <Typography>Paramètres générales</Typography>
+            </StepLabel>
+          </Step>
+          <Step>
+            <StepLabel>
+              <Typography>Choisir les sujets</Typography>
+            </StepLabel>
+          </Step>
+          <Step>
+            <StepLabel>
+              <Typography>Choisir les enseignants</Typography>
+            </StepLabel>
+          </Step>
+          <Step>
+            <StepLabel>
+              <Typography>Soutenances générées</Typography>
+            </StepLabel>
+          </Step>
+        </Stepper>
+        <div className="horizontal-list mh-2" style={{ flexWrap: "wrap" }}>
           <Button
-            variant="outlined"
+            variant="contained"
             color="primary"
-            onClick={() => handleSaveDate()}
+            disabled={step <= 0}
+            onClick={() => handleStep(false)}
           >
-            Enrégistrer
+            Précédant
           </Button>
-        </div>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <Autocomplete
-            options={["1", "2", "3", "4", "5"]}
-            getOptionLabel={(option) => option}
-            onChange={handleCrenauxOnChange}
-            style={{ minWidth: "16rem" }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Nombre des crenaux par jour"
-                variant="outlined"
-              />
-            )}
-          />
-          <TextField
-            label="Liste des salles séparée par des virgules"
-            onChange={handleSaleListChange}
-            variant="outlined"
-            fullWidth
-            style={{ minWidth: "16rem" }}
-          />
-        </div>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <Typography>
-            Il y en a {projects.length} projets, if faut{" "}
-            {Math.ceil(projects.length / maxCrenaux)} jours à {maxCrenaux}{" "}
-            crenaux et {sales.length} sales.
-          </Typography>
-        </div>
-        <div>
-          <Button variant="outlined" onClick={() => generate(projects)}>
-            Test
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={calculatedStep.step <= step || step >= 3}
+            onClick={() => handleStep(true)}
+          >
+            Suivant
           </Button>
+          <ResetValues setStep={setStep} values={values} dispatch={dispatch} />
+          {calculatedStep.raison !== "success" ? (
+            <Tooltip
+              style={{ color: theme.palette.warning.main }}
+              title={calculatedStep.raison}
+            >
+              <Info />
+            </Tooltip>
+          ) : (
+            <Tooltip
+              title="Términé"
+              style={{ color: theme.palette.success.main }}
+            >
+              <CheckCircle />
+            </Tooltip>
+          )}
         </div>
+        <div className="mh-2 mt-1">{choosePage()}</div>
       </div>
-    </MuiPickersUtilsProvider>
+    )) || <div>Soutenances - Preferences.js</div>
   );
 }
 
 export default Preferences;
+
+const ResetValues = ({ values, dispatch, setStep }) => {
+  const _values = { ...values };
+  _values.startDate = new Date(values.startDate).getDate();
+  _values.endDate = new Date(values.endDate).getDate();
+  const constants = {
+    startDate: new Date().getDate(),
+    endDate: new Date().getDate(),
+    maxCrenaux: 1,
+    sales: "",
+    selectedTeachers: [],
+    selectedProjects: [],
+    presidents: [],
+  };
+
+  const disabled = JSON.stringify(_values) === JSON.stringify(constants);
+
+  return (
+    <Button
+      disabled={disabled}
+      variant="outlined"
+      color="primary"
+      onClick={() => {
+        setStep(0);
+        dispatch({ type: "RESET_VALUES" });
+      }}
+    >
+      RESET
+    </Button>
+  );
+};

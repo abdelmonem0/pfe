@@ -46,15 +46,7 @@ function EditProfile() {
   }, [values.newPassword, values.repeatPassword]);
 
   return (
-    <Paper
-      elevation={0}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "1rem",
-        width: "100%",
-      }}
-    >
+    <div className="vertical-list" style={{ flex: "1" }}>
       <Typography variant="h4">Profile</Typography>
       <TextField
         variant="outlined"
@@ -143,7 +135,7 @@ function EditProfile() {
       >
         Enregistrer
       </Button>
-    </Paper>
+    </div>
   );
 }
 

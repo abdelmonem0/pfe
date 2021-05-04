@@ -3,7 +3,6 @@ import {
   Chip,
   Collapse,
   makeStyles,
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -14,11 +13,8 @@ import {
 } from "@material-ui/core";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { sendReminderForTeachersNotifications } from "../../../Notifications";
-import {
-  assignTagsToTeachers,
-  assignDatesToTeachers,
-} from "../Soutenances/Data";
+import { sendReminderForTeachersNotifications } from "../../../../../Notifications";
+import { isPresident, presidentCheckBox } from "../../SoutenanceLogic";
 import TableToolbar from "./TableToolbar";
 
 const useRowStyles = makeStyles({
@@ -30,15 +26,20 @@ const useRowStyles = makeStyles({
 });
 
 function Teachers(props) {
+  const {
+    selectedTeachers,
+    setSelectedTeachers,
+    presidents,
+    setPresidents,
+  } = props;
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
-  var teachers = users.all.filter((user) => user.role === "enseignant");
+  var teachers = useSelector((state) => state.soutenance.teachers);
   const tags = useSelector((state) => state.soutenance.tags);
   const dates = useSelector((state) => state.soutenance.dates);
   const [showTags, setShowTags] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [selectedTeachers, setSelectedTeachers] = useState([]);
 
   const classes = useRowStyles();
 
@@ -64,6 +65,11 @@ function Teachers(props) {
     } else {
       setSelectedTeachers(selectedTeachers.filter((st) => st !== id));
     }
+  };
+
+  const handlePresidentCheckBox = (id) => {
+    const temp = presidentCheckBox(selectedTeachers, id);
+    setSelectedTeachers(temp);
   };
 
   const handleSelectAllTeachers = () => {
@@ -95,9 +101,6 @@ function Teachers(props) {
     setSelectedTeachers(_selected);
   };
 
-  teachers = assignTagsToTeachers(teachers, tags);
-  teachers = assignDatesToTeachers(teachers, dates);
-
   function notify(isForTags) {
     sendReminderForTeachersNotifications(
       users.current,
@@ -117,11 +120,12 @@ function Teachers(props) {
   }
 
   return (
-    <Paper style={{ flex: "1" }} elevation={0}>
-      <TableContainer component={Paper}>
+    <div style={{ flex: "1" }}>
+      <TableContainer component="div">
         <TableToolbar
           notify={notify}
           selected={selectedTeachers}
+          presidents={presidents}
           setShowTags={setShowTags}
           showTags={showTags}
           selectTeachersWithoutTags={selectTeachersWithoutTags}
@@ -145,29 +149,42 @@ function Teachers(props) {
                 />
               </TableCell>
               <TableCell>Nom</TableCell>
-              <TableCell>Grade</TableCell>
+              <TableCell>Président</TableCell>
               <TableCell># spécialités</TableCell>
-              <TableCell>email</TableCell>
               <TableCell>Préférances</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {teachers.slice(sliceStart, sliceEnd).map((teacher) => (
               <React.Fragment>
-                <TableRow
-                  className={classes.root}
-                  role="checkbox"
-                  onClick={() => handleSelectTeacher(teacher.id_utilisateur)}
-                >
+                <TableRow className={classes.root} role="checkbox">
                   <TableCell padding="checkbox">
                     <Checkbox
+                      onChange={() =>
+                        handleSelectTeacher(teacher.id_utilisateur)
+                      }
                       checked={
                         selectedTeachers.indexOf(teacher.id_utilisateur) > -1
                       }
                     />
                   </TableCell>
-                  <TableCell>{teacher.nom}</TableCell>
-                  <TableCell></TableCell>
+                  <TableCell
+                    onClick={() => handleSelectTeacher(teacher.id_utilisateur)}
+                  >
+                    {teacher.nom}
+                  </TableCell>
+                  <TableCell style={{ paddingTop: 0, paddingBottom: 0 }}>
+                    <Checkbox
+                      checked={isPresident(presidents, teacher.id_utilisateur)}
+                      onChange={() => {
+                        presidentCheckBox(
+                          presidents,
+                          setPresidents,
+                          teacher.id_utilisateur
+                        );
+                      }}
+                    />
+                  </TableCell>
                   <TableCell>
                     {teacher.tags.length > 0 ? (
                       <Chip
@@ -184,7 +201,6 @@ function Teachers(props) {
                       />
                     )}
                   </TableCell>
-                  <TableCell>{teacher.email}</TableCell>
                   <TableCell>
                     {teacher.dates.length > 0 ? (
                       <Chip
@@ -241,7 +257,7 @@ function Teachers(props) {
         onChangePage={handleChangePage}
         onChangeRowsPerPage={handleChangeRowsPerPage}
       />
-    </Paper>
+    </div>
   );
 }
 

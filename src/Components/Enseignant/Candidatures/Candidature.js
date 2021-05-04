@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Paper,
 } from "@material-ui/core";
 import { Person, Schedule } from "@material-ui/icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -56,23 +57,35 @@ const Candidature = (props) => {
       users.current.id_utilisateur,
       candidature.id_candidature,
       etat
-    ).then(() =>
-      getCandidatures(users.current.id_utilisateur)
-        .then((result) => {
+    )
+      .then((result) => {
+        if (result.status === 200) {
+          dispatch({
+            type: "OPEN_SNACK",
+            payload: {
+              open: true,
+              message: result.data,
+              type: "success",
+            },
+          });
+        } else throw new Error(result.data);
+      })
+      .then(() =>
+        getCandidatures(users.current.id_utilisateur).then((result) => {
           dispatch({ type: "SET_CANDIDATURES", payload: result.data });
-          if (etat === Candidature_States.accepted_by_teacher_partner)
-            dispatch({
-              type: "OPEN_SNACK",
-              payload: {
-                open: true,
-                message: "Entèrement acceptée, en attente de " + otherEnc,
-                type: "success",
-              },
-            });
-          setDialog(false);
         })
-        .catch((err) => console.error(err))
-    );
+      )
+      .catch((err) =>
+        dispatch({
+          type: "OPEN_SNACK",
+          payload: {
+            open: true,
+            message: err.toString(),
+            type: "error",
+          },
+        })
+      )
+      .finally(() => setDialog(false));
   }
 
   return (
@@ -83,7 +96,7 @@ const Candidature = (props) => {
         close={setDialog}
         decision={decision}
       />
-      <Card>
+      <Card variant="outlined" style={{ flex: "1" }}>
         <CardHeader
           title={
             <Header
@@ -101,7 +114,10 @@ const Candidature = (props) => {
           }
         />
         <CardContent>
-          <Typography>{project.titre}</Typography>
+          <Typography gutterBottom>{project.titre}</Typography>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            <StudentStuff candidature={candidature} />
+          </div>
         </CardContent>
         <Bottom
           candidature={candidature}
@@ -206,3 +222,58 @@ const ConfirmDialog = (props) => {
 };
 
 export default Candidature;
+
+const StudentStuff = ({ candidature }) => {
+  const s1_files = candidature.fichiers.filter(
+    (f) => f.id_utilisateur === candidature.id_etudiant
+  );
+  const s2_files = candidature.fichiers.filter(
+    (f) => f.id_utilisateur === candidature.id_etudiant_2
+  );
+
+  const users = useSelector((state) => state.users.all).filter((el) => {
+    return (
+      el.id_utilisateur === candidature.id_etudiant ||
+      el.id_utilisateur === candidature.id_etudiant_2
+    );
+  });
+
+  return (
+    <>
+      {!candidature.commentaires && s1_files.length === 0 ? null : (
+        <Paper
+          variant="outlined"
+          style={{ flex: "1 1 49%", padding: "0.5rem", minWidth: "16rem" }}
+        >
+          {users.length > 1 && (
+            <Typography gutterBottom variant="subtitle2">
+              {users[0].nom}
+            </Typography>
+          )}
+          <Typography variant="subtitle2" color="textSecondary">
+            {candidature.commentaires
+              ? "Commentaire: " + candidature.commentaires
+              : "Pas de commentaire."}
+          </Typography>
+          <AttachedFiles fichiers={s1_files} />
+        </Paper>
+      )}
+      {!candidature.commentaire_2 && s2_files.length === 0 ? null : (
+        <Paper
+          variant="outlined"
+          style={{ flex: "1 1 49%", padding: "0.5rem", minWidth: "16rem" }}
+        >
+          <Typography gutterBottom variant="subtitle2">
+            {users[1].nom}
+          </Typography>
+          <Typography variant="subtitle2" color="textSecondary">
+            {candidature.commentaire_2
+              ? "Commentaire: " + candidature.commentaire_2
+              : "Pas de commentaire."}
+          </Typography>
+          <AttachedFiles fichiers={s2_files} />
+        </Paper>
+      )}
+    </>
+  );
+};

@@ -2,15 +2,16 @@ export const Candidature_States = {
   waiting_for_student: "En attente de la reponse du partenaire.",
   waiting_for_response: "En attente de la reponse de l'encadrant.",
   accepted: "Accepté",
-  refused: "Réfusé",
   refused_by_student: "Réfusé de la part du partenaire.",
   accepted_by_teacher_partner: "Accepté par ",
+  inactive: "Candidature non active",
 };
 
 export const Project_States = {
   waiting: "En instance",
   accepted: "Accepté",
   refused: "Réfusé",
+  waiting_for_second_student: "En attente de la reponse du partenaire.",
 };
 
 export const File_States = {

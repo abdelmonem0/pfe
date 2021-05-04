@@ -1,36 +1,52 @@
-import { Button } from "@material-ui/core";
-import React from "react";
-import { Candidature_States } from "../../../Constants";
+import { Button, IconButton, Tooltip } from "@material-ui/core";
+import { AddRounded } from "@material-ui/icons";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import AddCandidature from "../../Etudiant/AddCandidature";
+import { canCandidate, leftCandidaturesText } from "../Constraints";
 
 function CandidatButton(props) {
-  const { candidatures, project, setSelectedProject, openCandidature } = props;
-  const waitingCand = candidatures.filter((el) => {
-    return (
-      el.etat === Candidature_States.waiting_for_response ||
-      Candidature_States.waiting_for_student
-    );
-  });
-  const gotAcceptedCand =
-    candidatures.filter((el) => {
-      return el.etat === Candidature_States.accepted;
-    }).length > 0;
+  const { project, iconButton } = props;
+  const [dialog, openDialog] = useState(false);
+  const canCand = canCandidate(project);
+  const student =
+    useSelector((state) => state.users.current.role) === "etudiant";
+  const leftCandText = leftCandidaturesText();
 
+  const candidatures = useSelector((state) => state.candidatures);
   return (
-    !gotAcceptedCand && (
-      <div>
-        <Button
-          disabled={waitingCand.length > 3}
-          variant={waitingCand.length >= 3 ? "outlined" : "contained"}
-          color="primary"
-          disableElevation
-          onClick={() => {
-            setSelectedProject(project);
-            openCandidature(true);
-          }}
-        >
-          Postuler
-        </Button>
-      </div>
+    student &&
+    canCand && (
+      <Tooltip title={leftCandText}>
+        <div>
+          <AddCandidature
+            project={project}
+            dialog={dialog}
+            openDialog={openDialog}
+          />
+          {iconButton ? (
+            <IconButton
+              size="small"
+              onClick={() => {
+                openDialog(true);
+              }}
+            >
+              <AddRounded />
+            </IconButton>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              disableElevation
+              onClick={() => {
+                openDialog(true);
+              }}
+            >
+              Postuler
+            </Button>
+          )}
+        </div>
+      </Tooltip>
     )
   );
 }

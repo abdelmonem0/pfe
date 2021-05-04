@@ -6,22 +6,41 @@ import Admin from "./Admin";
 import {
   getAllTags,
   getAllTeachersDates,
+  getAvis,
   getCandidatures,
   getNotifications,
   getProjects,
+  getTeacherDates,
   getUsers,
 } from "../functions";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import President from "./President";
+import { Project_States } from "../Constants";
+import {
+  assignTagsToTeachers,
+  assignDatesToTeachers,
+  willInitSoutenanceValues,
+} from "./President/Soutenances/SoutenanceLogic";
+import { setPages } from "./redirectLogic";
 
 function Redirect(props) {
-  const role = props.current.role;
+  const current = props.current;
+  const role = current.role;
+  const tags = useSelector((state) => state.soutenance.tags);
+  const dates = useSelector((state) => state.soutenance.dates);
   const [allDone, setAllDone] = useState(false);
   const dispatch = useDispatch();
 
   const loadAllData = () => {
     getProjects()
-      .then((res1) => dispatch({ type: "SET_PROJECTS", payload: res1.data }))
+      .then((res1) => {
+        if (role === "etudiant") {
+          const filtered = res1.data.filter(
+            (p) => p.etat !== Project_States.refused
+          );
+          dispatch({ type: "SET_PROJECTS", payload: filtered });
+        } else dispatch({ type: "SET_PROJECTS", payload: res1.data });
+      })
       .then(() =>
         getCandidatures(props.current.id_utilisateur).then((res2) =>
           dispatch({ type: "SET_CANDIDATURES", payload: res2.data })
@@ -33,20 +52,41 @@ function Redirect(props) {
         )
       )
       .then(() => {
-        if (role === "president")
+        if (role === "president") {
+          if (willInitSoutenanceValues()) dispatch({ type: "SET_VALUES" });
           getAllTags()
             .then((result) =>
               dispatch({ type: "SET_TEACHERS_TAGS", payload: result.data })
             )
             .then(() =>
-              getAllTeachersDates().then((result) =>
-                dispatch({
-                  type: "SET_TEACHERS_DATES",
-                  payload: result.data,
+              getAllTeachersDates()
+                .then((result) =>
+                  dispatch({
+                    type: "SET_TEACHERS_DATES",
+                    payload: result.data,
+                  })
+                )
+                .then(() => {
+                  if (tags && dates) {
+                    var teachers = assignTagsToTeachers();
+                    teachers = assignDatesToTeachers();
+                    dispatch({ type: "SET_TEACHERS", payload: teachers });
+                  }
                 })
-              )
             );
+        }
       })
+      .then(() => {
+        if (role === "membre" || role === "president")
+          getAvis().then((result) =>
+            dispatch({ type: "SET_AVIS", payload: result.data })
+          );
+      })
+      .then(() =>
+        getTeacherDates(props.current.id_utilisateur).then((result) =>
+          dispatch({ type: "SET_DATES", payload: result.data })
+        )
+      )
       .then(() =>
         getNotifications(props.current.id_utilisateur).then((result) =>
           dispatch({ type: "SET_NOTIFICATIONS", payload: result.data })
@@ -55,85 +95,34 @@ function Redirect(props) {
       .then(() => {
         dispatch({ type: "CLOSE_BACKDROP" });
         setAllDone(true);
-      });
-  };
-
-  const setPages = () => {
-    switch (role) {
-      case "etudiant":
-        dispatch({
-          type: "SET_PAGES",
-          payload: [
-            { text: "Ajouter", link: "/ajouter" },
-            { text: "Sujets", link: "/sujets" },
-            { text: "Candidatures", link: "/candidatures" },
-            { text: "Profile", link: "/profile" },
-          ],
-        });
-        break;
-      case "enseignant":
-        dispatch({
-          type: "SET_PAGES",
-          payload: [
-            { text: "Ajouter", link: "/ajouter" },
-            { text: "Sujets", link: "/sujets" },
-            { text: "Candidatures", link: "/candidatures" },
-            { text: "Préférences", link: "/preferences" },
-            { text: "Profile", link: "/profile" },
-          ],
-        });
-        break;
-      case "membre":
-        dispatch({
-          type: "SET_PAGES",
-          payload: [
-            { text: "Sujets", link: "/sujets" },
-            { text: "Profile", link: "/profile" },
-          ],
-        });
-        break;
-      case "admin":
-        dispatch({ type: "SET_PAGES", payload: [] });
-        break;
-      case "president":
-        dispatch({
-          type: "SET_PAGES",
-          payload: [
-            { text: "Sujets", link: "/sujets" },
-            { text: "Profile", link: "/profile" },
-            { text: "Soutenances", link: "/soutenances" },
-            { text: "Enseignants", link: "/enseignants" },
-          ],
-        });
-        break;
-      default:
-        break;
-    }
-  };
-
-  const UserType = () => {
-    switch (role) {
-      case "etudiant":
-        return <Etudiant />;
-      case "enseignant":
-        return <Enseignant />;
-      case "membre":
-        return <Membre />;
-      case "admin":
-        return <Admin />;
-      case "president":
-        return <President />;
-      default:
-        return null;
-    }
+      })
+      .catch((err) => console.error(err));
   };
 
   React.useEffect(() => {
+    console.log("refetching");
     loadAllData();
-    setPages();
-  }, []);
+    if (allDone) setPages(role);
+  }, [allDone]);
 
-  return allDone && <UserType />;
+  return allDone ? <UserType role={role} /> : <div>!allDone (Redirect.js)</div>;
 }
+
+const UserType = React.memo((props) => {
+  switch (props.role) {
+    case "etudiant":
+      return <Etudiant />;
+    case "enseignant":
+      return <Enseignant />;
+    case "membre":
+      return <Membre />;
+    case "admin":
+      return <Admin />;
+    case "president":
+      return <President />;
+    default:
+      return <div>Default case from UserType (Redirect.js)</div>;
+  }
+});
 
 export default Redirect;
