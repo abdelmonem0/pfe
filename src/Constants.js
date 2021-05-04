@@ -12,6 +12,7 @@ export const Project_States = {
   accepted: "Accepté",
   refused: "Réfusé",
   waiting_for_second_student: "En attente de la reponse du partenaire.",
+  refused_by_student: "Réfusé par l'etudiant",
 };
 
 export const File_States = {

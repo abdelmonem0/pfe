@@ -1,5 +1,5 @@
-import { store } from "../..";
-import { Project_States } from "../../Constants";
+import { store } from "../../../index";
+import { Project_States } from "../../../Constants";
 
 export function calculateProjectsStatistics(theme) {
   const state = store.getState();

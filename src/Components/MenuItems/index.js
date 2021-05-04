@@ -29,7 +29,8 @@ function getChildren(pages, page) {
 
 function MenuItems(props) {
   const { pages, drawerOpen, closeDrawer } = props;
-  const [drawerLink, setDrawerLink] = React.useState("");
+  const history = useHistory();
+  const [drawerLink, setDrawerLink] = React.useState(history.location.pathname);
   const [logoutDialog, setLogoutDialog] = React.useState(false);
   const theme = useTheme();
 

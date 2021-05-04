@@ -7,27 +7,31 @@ import EditProfile from "../Commun/EditProfile";
 import Soutenances from "./Soutenances";
 import Teachers from "./Soutenances/Teachers/Teachers";
 import { Dialog, Typography } from "@material-ui/core";
+import Homepage from "./Homepage";
 
 function President() {
   return (
     <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
       <Switch>
-        <Route path="/sujets">
+        <Route exact path="/">
+          <Homepage />
+        </Route>
+        <Route exact path="/sujets">
           <ViewProjects />
         </Route>
-        <Route path="/soutenances">
+        <Route exact path="/soutenances">
           <Soutenances />
         </Route>
-        <Route path="/profile">
+        <Route exact path="/profile">
           <EditProfile />
         </Route>
-        <Route path="/enseignants/dialog">
+        <Route exact path="/enseignants/dialog">
           <Teachers />
           <Dialog open={true}>
             <Typography>Test</Typography>
           </Dialog>
         </Route>
-        <Route path="/enseignants">
+        <Route exact path="/enseignants">
           <Teachers />
         </Route>
       </Switch>

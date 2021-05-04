@@ -19,7 +19,7 @@ function Statistics(props) {
   return (
     <div style={{ display: "flex", flex: "1" }}>
       <div style={{ flex: "1 1 50%", maxWidth: "20rem" }}>
-        <DoughnutChart state={state.projects.dataArrayStatistics} />
+        <DoughnutChart state={state.projectsStatistics} />
       </div>
       <div style={{ flex: "1 1 50%", maxWidth: "35rem" }}>
         <GeneralStatistics state={state.generalStatistics} />

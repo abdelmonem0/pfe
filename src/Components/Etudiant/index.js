@@ -5,15 +5,15 @@ import { Switch, Route } from "react-router-dom";
 import AddProject from "./AddProject";
 import ViewProjects from "../Commun/ViewProjects";
 import EditProfile from "../Commun/EditProfile";
-import HomePage from "../Commun/HomePage";
 import Candidatures from "../Commun/Candidature.js";
+import Homepage from "./Homepage";
 
 function Etudiant() {
   return (
     <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
       <Switch>
         <Route exact path="/">
-          <HomePage />
+          <Homepage />
         </Route>
         <Route exact path="/ajouter">
           <AddProject />
