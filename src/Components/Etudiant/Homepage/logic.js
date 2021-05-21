@@ -9,7 +9,7 @@ export function saveCahierDeCharge(project) {
     file.path,
     state.users.current.id_utilisateur,
     project.id_sujet,
-    File_States.cahier_de_charge,
+    File_States.cahier_de_charge_en_instance,
   ];
   addFileToDatabase([fichier]).then(() => {
     store.dispatch({
@@ -18,7 +18,7 @@ export function saveCahierDeCharge(project) {
         id_fichier: file.path,
         id_utilisateur: state.users.current.id_utilisateur,
         attache_a: project.id_sujet,
-        type: File_States.cahier_de_charge,
+        type: File_States.cahier_de_charge_en_instance,
       },
     });
     store.dispatch({
@@ -30,6 +30,10 @@ export function saveCahierDeCharge(project) {
 
 export function willRenderUploadCahier(project) {
   for (let file of project.fichiers)
-    if (file.type === File_States.cahier_de_charge) return false;
+    if (
+      file.type === File_States.cahier_de_charge_accepte ||
+      file.type === File_States.cahier_de_charge_en_instance
+    )
+      return false;
   return true;
 }

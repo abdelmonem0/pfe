@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import "./App.css";
-import { Backdrop, Snackbar, CircularProgress, Slide } from "@material-ui/core";
+import { Snackbar, Slide } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 
 import MainDrawer from "./MainDrawer";
@@ -14,13 +14,7 @@ import {
   makeStyles,
 } from "@material-ui/core/styles";
 import { frFR } from "@material-ui/core/locale";
-
-const useStyles = makeStyles((theme) => ({
-  backdrop: {
-    zIndex: theme.zIndex.drawer + 2,
-    color: "#fff",
-  },
-}));
+import Loading from "./Components/Loading";
 
 function SlideTransition(props) {
   return <Slide {...props} direction="up" />;
@@ -28,7 +22,6 @@ function SlideTransition(props) {
 
 function App() {
   const [themeType, setThemeType] = useState("light");
-  const classes = useStyles();
   const constants = useSelector((state) => state.constants);
   const dispatch = useDispatch();
 
@@ -36,8 +29,11 @@ function App() {
     {
       palette: {
         type: themeType,
-        primary: { main: themeType === "light" ? "#1976d2" : "#ab47bc" },
-        secondary: { main: themeType === "light" ? "#ef6c00" : "#ef6c00" },
+        primary: { main: themeType === "light" ? "#1976d2" : "#17b3cc" },
+        secondary: { main: themeType === "light" ? "#ef6c00" : "#ff726f" },
+        background: {
+          paper: themeType === "light" ? "#f1f1f1" : "#393e46",
+        },
       },
     },
     frFR
@@ -56,6 +52,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
+        {constants.backdrop.open && <Loading />}
         <Snackbar
           TransitionComponent={SlideTransition}
           key="snack"
@@ -71,9 +68,9 @@ function App() {
             {constants.snackbar.message}
           </Alert>
         </Snackbar>
-        <Backdrop className={classes.backdrop} open={constants.backdrop.open}>
+        {/* <Backdrop className={classes.backdrop} open={constants.backdrop.open}>
           <CircularProgress color="inherit" />
-        </Backdrop>
+        </Backdrop> */}
         <MainDrawer themeType={themeType} setThemeType={setThemeType} />
       </Router>
     </ThemeProvider>

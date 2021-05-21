@@ -8,6 +8,8 @@ import Soutenances from "./Soutenances";
 import Teachers from "./Soutenances/Teachers/Teachers";
 import { Dialog, Typography } from "@material-ui/core";
 import Homepage from "./Homepage";
+import Parameters from "./Parameters";
+import EditProject from "../Enseignant/ProjectForm/EditProject";
 
 function President() {
   return (
@@ -33,6 +35,12 @@ function President() {
         </Route>
         <Route exact path="/enseignants">
           <Teachers />
+        </Route>
+        <Route exact path="/modifier">
+          <EditProject />
+        </Route>
+        <Route exact path="/parametres">
+          <Parameters />
         </Route>
       </Switch>
     </div>

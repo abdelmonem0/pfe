@@ -28,16 +28,17 @@ const useRowStyles = makeStyles({
 });
 
 function Teachers(props) {
-  const history = useHistory();
+  const calledFromSoutenances = props.calledFromSoutenances;
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
   var teachers = useSelector((state) => state.soutenance.teachers);
-  const tags = useSelector((state) => state.soutenance.tags);
-  const dates = useSelector((state) => state.soutenance.dates);
+  const values = useSelector((state) => state.soutenance.values);
   const [showTags, setShowTags] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
-  const [selectedTeachers, setSelectedTeachers] = useState([]);
+  const [selectedTeachers, setSelectedTeachers] = useState(
+    calledFromSoutenances ? values.selectedTeachers : []
+  );
 
   const classes = useRowStyles();
 
@@ -60,20 +61,60 @@ function Teachers(props) {
   const handleSelectTeacher = (id) => {
     if (selectedTeachers.indexOf(id) === -1) {
       setSelectedTeachers([...selectedTeachers, id]);
+      if (calledFromSoutenances)
+        dispatch({
+          type: "UPDATE_VALUES",
+          payload: {
+            prop: "selectedTeachers",
+            value: [...selectedTeachers, id],
+          },
+        });
     } else {
       setSelectedTeachers(selectedTeachers.filter((st) => st !== id));
+      if (calledFromSoutenances)
+        dispatch({
+          type: "UPDATE_VALUES",
+          payload: {
+            prop: "selectedTeachers",
+            value: selectedTeachers.filter((st) => st !== id),
+          },
+        });
     }
+  };
+
+  const handleSelectPresident = (id) => {
+    var selected = values.presidents;
+    if (selected.indexOf(id) < 0) selected.push(id);
+    else selected = selected.filter((s) => s !== id);
+
+    dispatch({
+      type: "UPDATE_VALUES",
+      payload: {
+        prop: "presidents",
+        value: selected,
+      },
+    });
   };
 
   const handleSelectAllTeachers = () => {
     if (selectedTeachers.length === teachers.length) {
       setSelectedTeachers([]);
+      if (calledFromSoutenances)
+        dispatch({
+          type: "UPDATE_VALUES",
+          payload: { prop: "selectedTeachers", value: [] },
+        });
       return;
     }
     var selected = [];
     for (let teacher of teachers) selected.push(teacher.id_utilisateur);
 
     setSelectedTeachers(selected);
+    if (calledFromSoutenances)
+      dispatch({
+        type: "UPDATE_VALUES",
+        payload: { prop: "selectedTeachers", value: selected },
+      });
   };
 
   const selectTeachersWithoutTags = () => {
@@ -113,12 +154,10 @@ function Teachers(props) {
   }
 
   return (
-    <div style={{ flex: "1" }}>
-      <Button component={Link} to="/enseignants/dialog">
-        Dialog
-      </Button>
+    <div className="table-container">
       <TableContainer component="div">
         <TableToolbar
+          calledFromSoutenances={calledFromSoutenances}
           notify={notify}
           selected={selectedTeachers}
           setShowTags={setShowTags}
@@ -144,7 +183,7 @@ function Teachers(props) {
                 />
               </TableCell>
               <TableCell>Nom</TableCell>
-              <TableCell>Grade</TableCell>
+              {calledFromSoutenances && <TableCell>Président</TableCell>}
               <TableCell># spécialités</TableCell>
               <TableCell>email</TableCell>
               <TableCell>Préférances</TableCell>
@@ -153,20 +192,35 @@ function Teachers(props) {
           <TableBody>
             {teachers.slice(sliceStart, sliceEnd).map((teacher) => (
               <React.Fragment>
-                <TableRow
-                  className={classes.root}
-                  role="checkbox"
-                  onClick={() => handleSelectTeacher(teacher.id_utilisateur)}
-                >
-                  <TableCell padding="checkbox">
+                <TableRow className={classes.root} role="checkbox">
+                  <TableCell
+                    onClick={() => handleSelectTeacher(teacher.id_utilisateur)}
+                    padding="checkbox"
+                  >
                     <Checkbox
                       checked={
                         selectedTeachers.indexOf(teacher.id_utilisateur) > -1
                       }
                     />
                   </TableCell>
-                  <TableCell>{teacher.nom}</TableCell>
-                  <TableCell></TableCell>
+                  <TableCell
+                    onClick={() => handleSelectTeacher(teacher.id_utilisateur)}
+                  >
+                    {teacher.nom}
+                  </TableCell>
+                  {calledFromSoutenances && (
+                    <TableCell
+                      onClick={() =>
+                        handleSelectPresident(teacher.id_utilisateur)
+                      }
+                    >
+                      <Checkbox
+                        checked={
+                          values.presidents.indexOf(teacher.id_utilisateur) > -1
+                        }
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>
                     {teacher.tags.length > 0 ? (
                       <Chip

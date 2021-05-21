@@ -4,6 +4,8 @@ import { Candidature_States, Project_States } from "../../Constants";
 export function canCandidate(project = undefined, user = undefined) {
   const state = store.getState();
   const current = typeof user !== "undefined" ? user : state.users.current;
+  var _canCandidate = true;
+  var raison = "";
 
   //user is not student
   if (current.role !== "etudiant") return false;
@@ -17,8 +19,10 @@ export function canCandidate(project = undefined, user = undefined) {
         (p.etat === Project_States.accepted ||
           p.etat === Project_States.waiting)
     ).length > 0
-  )
-    return false;
+  ) {
+    _canCandidate = false;
+    raison = "Vous avez proposé un sujet externe.";
+  }
 
   //user has 3 or more cands
   if (
@@ -28,26 +32,43 @@ export function canCandidate(project = undefined, user = undefined) {
         c.etat === Candidature_States.waiting_for_response ||
         c.etat === Candidature_States.waiting_for_student
     ).length >= 3
-  )
-    return false;
+  ) {
+    _canCandidate = false;
+    raison = "Vous avez 3 candidatures non active.";
+  }
 
   //user can generally candidate
-  if (!project) return true;
-  //user has affected project OR project is affected OR project is externe OR project is not accepted OR project is proposed
-  if (
-    current.sujet_affecte ||
-    project.affecte_a.length > 0 ||
-    !project.interne ||
-    project.etat !== Project_States.accepted
-  )
-    return false;
+  if (!project) return { canCandidate: true, raison: "" };
+  //user has affected
+  if (current.sujet_affecte) {
+    _canCandidate = false;
+    raison = "Vous avez déjà un sujet affecté.";
+  }
+  //project is affected
+  if (project.affecte_a.length > 0) {
+    _canCandidate = false;
+    raison = "Sujet affecté.";
+  }
+  //project is externe
+  if (!project.interne) {
+    _canCandidate = false;
+    raison = "Sujet externe.";
+  }
+  //project not accepted OR project is proposed
+  if (project.etat !== Project_States.accepted) {
+    _canCandidate = false;
+    raison = "En traitement par la commission.";
+  }
 
   //user already candidated OR invited to this specific project
   if (
     state.candidatures.filter((c) => c.id_sujet === project.id_sujet).length > 0
-  )
-    return false;
-  return true;
+  ) {
+    _canCandidate = false;
+    raison = "Vous êtes invité pour ce sujet.";
+  }
+
+  return { canCandidate: _canCandidate, raison };
 }
 
 export function leftCandidaturesText() {
@@ -69,7 +90,7 @@ export function getProjectStateForChip(project, theme) {
   if (currentRole === "etudiant" || currentRole === "enseignant") {
     if (project.etat === Project_States.accepted)
       temp = {
-        state: "En instance",
+        state: "Validé",
 
         colors: {
           color: "white",

@@ -61,3 +61,52 @@
 .mt-1 {
   padding-top: 1rem;
 }
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.no-selection {
+  user-select: none;
+}
+
+.table-container {
+  flex: 1;
+  justify-self: center;
+  max-width: 93vw;
+  overflow-x: auto;
+  flex-wrap: wrap;
+}
+
+.chart-animation {
+  animation: chart 200ms ease-in-out;
+}
+
+@keyframes chart {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.rotation {
+  animation: rotate 5s infinite linear;
+  transition-property: none;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(-360deg);
+  }
+}

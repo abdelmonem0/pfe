@@ -43,82 +43,85 @@ function TableView(props) {
   };
 
   return (
-    <div>
-      <TableContainer>
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  checked={selectedProjects.length > 0}
-                  indeterminate={
-                    selectedProjects.length > 0 &&
-                    selectedProjects.length < projects.length
-                  }
-                  onChange={() =>
-                    selectAllProjects(
-                      selectedProjects,
-                      setSelectedProjects,
-                      projects
-                    )
-                  }
-                />
-              </TableCell>
-              <TableCell>Projet</TableCell>
-              <TableCell align="left">Encadrant</TableCell>
-              <TableCell align="left">Affecté à</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {projects.slice(sliceStart, sliceEnd).map((project, idx) => (
-              <TableRow
-                key={project.id_sujet + "1"}
-                style={{
-                  backgroundColor:
-                    selectedRow === project.id_sujet
-                      ? selectedRowColor
-                      : "inherit",
-                }}
-                onClick={() => setSelectedRow(project.id_sujet)}
-              >
+    <div className="table-container">
+      {" "}
+      <div>
+        <TableContainer>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={isProjectSel(selectedProjects, project.id_sujet)}
+                    checked={selectedProjects.length > 0}
+                    indeterminate={
+                      selectedProjects.length > 0 &&
+                      selectedProjects.length < projects.length
+                    }
                     onChange={() =>
-                      projectCheckBox(
+                      selectAllProjects(
                         selectedProjects,
                         setSelectedProjects,
-                        project.id_sujet
+                        projects
                       )
                     }
                   />
                 </TableCell>
-                <TableCell>
-                  <ProjectDetail project={project}>
-                    {project.titre}
-                  </ProjectDetail>
-                </TableCell>
-                <TableCell align="left"></TableCell>
-                <TableCell align="left">
-                  {project.encadrants[0] ? project.encadrants[0].nom : ""}
-                  {project.encadrants[1]
-                    ? " / " + project.encadrants[1].nom
-                    : ""}
-                </TableCell>
+                <TableCell>Projet</TableCell>
+                <TableCell align="left">Encadrant</TableCell>
+                <TableCell align="left">Affecté à</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 20]}
-        component="div"
-        count={projects.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-      />
+            </TableHead>
+            <TableBody>
+              {projects.slice(sliceStart, sliceEnd).map((project, idx) => (
+                <TableRow
+                  key={project.id_sujet + "1"}
+                  style={{
+                    backgroundColor:
+                      selectedRow === project.id_sujet
+                        ? selectedRowColor
+                        : "inherit",
+                  }}
+                  onClick={() => setSelectedRow(project.id_sujet)}
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={isProjectSel(selectedProjects, project.id_sujet)}
+                      onChange={() =>
+                        projectCheckBox(
+                          selectedProjects,
+                          setSelectedProjects,
+                          project.id_sujet
+                        )
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <ProjectDetail project={project}>
+                      {project.titre}
+                    </ProjectDetail>
+                  </TableCell>
+                  <TableCell align="left"></TableCell>
+                  <TableCell align="left">
+                    {project.encadrants[0] ? project.encadrants[0].nom : ""}
+                    {project.encadrants[1]
+                      ? " / " + project.encadrants[1].nom
+                      : ""}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 20]}
+          component="div"
+          count={projects.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onChangePage={handleChangePage}
+          onChangeRowsPerPage={handleChangeRowsPerPage}
+        />
+      </div>
     </div>
   );
 }

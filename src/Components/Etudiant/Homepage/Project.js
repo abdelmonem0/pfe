@@ -15,6 +15,7 @@ import {
 } from "@material-ui/icons";
 import React from "react";
 import { useSelector } from "react-redux";
+import { File_States } from "../../../Constants";
 import AttachedFiles from "../../Commun/AttachedFiles";
 import ProjectDetail from "../../Commun/ProjectDetail";
 import UploadFile from "../../UploadFile";
@@ -25,10 +26,9 @@ function Projects(props) {
   const files = useSelector((state) => state.files);
   const users = useSelector((state) => state.users.all);
   const current = useSelector((state) => state.users.current);
-  const project =
-    useSelector((state) => state.projects.dataArray).filter(
-      (p) => p.id_sujet === current.sujet_affecte
-    )[0] || undefined;
+  const project = useSelector((state) => state.projects.dataArray).find(
+    (p) => p.id_sujet === current.sujet_affecte
+  );
 
   return project ? (
     <Paper
@@ -108,7 +108,7 @@ function Projects(props) {
           <Typography gutterBottom color="primary">
             Fichiers attachés
           </Typography>
-          <AttachedFiles fichiers={project.fichiers} />
+          <AttachedFiles showState project={project} />
         </Paper>
       )}
       <Paper style={{ padding: "0.5rem" }} variant="outlined">

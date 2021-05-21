@@ -10,6 +10,7 @@ import {
   Tooltip,
   Hidden,
   Chip,
+  Divider,
 } from "@material-ui/core";
 import { Person, CommentRounded, Settings } from "@material-ui/icons";
 import { useSelector } from "react-redux";
@@ -21,6 +22,9 @@ import { Candidature_States } from "../../../Constants";
 import CandidatButton from "./CandidatButton";
 import { useTheme } from "@material-ui/core/styles";
 import ProjectDetail from "../ProjectDetail";
+import AttachementButton from "./AttachementButton";
+import StateChip from "./StateChip";
+import CahierState from "./CahierState";
 
 function ProjectCard(props) {
   const { project } = props;
@@ -51,30 +55,22 @@ function ProjectCard(props) {
   }
 
   return (
-    <Card
-      key={project.id_sujet}
-      elevation={0}
-      variant="outlined"
-      style={{
-        borderColor:
-          project.affecte_a.length > 0
-            ? theme.palette.success.main
-            : theme.palette.grey[900],
-      }}
-    >
+    <Card key={project.id_sujet} elevation={0} variant="outlined">
       <ProjectDetail project={project}>
         <CardHeader
           title={<Typography variant="h6">{project.titre}</Typography>}
           subheader={
-            project.encadrants[0] && (
-              <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="horizontal-list wrap">
+              <StateChip project={project} />
+              <CahierState project={project} />
+              {project.encadrants[0] && (
                 <Typography variant="body2" color="textSecondary">
                   <Person size="small" /> {project.encadrants[0].nom}{" "}
                   {project.encadrants.length > 1 &&
                     " - " + project.encadrants[1].nom}
                 </Typography>
-              </div>
-            )
+              )}
+            </div>
           }
         />
         <Hidden xsDown>
@@ -88,13 +84,13 @@ function ProjectCard(props) {
               }}
             >
               <Settings color="primary" />
-              {project.tags.map((p) => (
-                <Chip
-                  label={p.id_tag}
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                />
+              {project.tags.map((tag, i) => (
+                <>
+                  <Typography color="primary">{tag.id_tag}</Typography>
+                  {i < project.tags.length - 1 && (
+                    <Divider orientation="vertical" flexItem />
+                  )}
+                </>
               ))}
             </div>
             <Typography variant="body1" color="primary">
@@ -112,6 +108,7 @@ function ProjectCard(props) {
           <CandidatButton project={project} />
           <PresidentProjectActions project={project} />
           <MembreProjectActions project={project} current={current} />
+          <AttachementButton project={project} />
           <div style={{ flex: 1 }} />
 
           {/* Comments button */}

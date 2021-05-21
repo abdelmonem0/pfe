@@ -1,14 +1,18 @@
 import {
   Button,
+  Checkbox,
   Chip,
   Collapse,
   IconButton,
   Paper,
+  TextField,
   Typography,
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore } from "@material-ui/icons";
 import React, { useEffect, useState } from "react";
-import { Project_States } from "../../../Constants";
+import { Project_States } from "../../../../Constants";
+import { sortByDate } from "../logic";
+import Filter from "./Filter";
 
 function FiltreProjects(props) {
   const [expand, setExpand] = useState(false);
@@ -95,8 +99,11 @@ function FiltreProjects(props) {
       </div>
       <Collapse in={expand}>
         <div style={{ padding: "0.5rem" }}>
-          <Typography gutterBottom>Par categories</Typography>
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <div className="horizontal-list">
+            <Typography gutterBottom>Par categories</Typography>
+            <TextField size="small" variant="outlined" />
+          </div>
+          <div className="horizontal-list wrap">
             {tags.map((tag) => (
               <Chip
                 color={tagIsSelected(tag) ? "primary" : "default"}
@@ -107,6 +114,12 @@ function FiltreProjects(props) {
                 key={tag}
               />
             ))}
+          </div>
+        </div>
+        <div>
+          <Typography gutterBottom>Filtrer</Typography>
+          <div className="vertical-list">
+            <Filter text="Par date de création" />
           </div>
         </div>
       </Collapse>

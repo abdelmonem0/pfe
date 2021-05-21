@@ -17,7 +17,7 @@ import { useSelector, useDispatch } from "react-redux";
 import Redirect from "./Components/Redirect";
 import { useHistory } from "react-router-dom";
 import NotificationBar from "./Components/Commun/Notification/NotificationBar";
-import { ExitToApp, Settings } from "@material-ui/icons";
+import { Brightness4, Brightness7, ExitToApp } from "@material-ui/icons";
 import MenuItems from "./Components/MenuItems";
 const drawerWidth = 240;
 
@@ -27,18 +27,10 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
   },
   appBarShift: {
     marginLeft: drawerWidth,
     width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(["width", "margin"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
     [theme.breakpoints.down("sm")]: {
       width: "100%",
     },
@@ -97,7 +89,7 @@ function MainDrawer(props) {
   const classes = useStyles();
   const theme = useTheme();
 
-  const currentUser = useSelector((state) => state.users.current);
+  const current = useSelector((state) => state.users.current);
   const pages = useSelector((state) => state.pages.pages);
   const dispatch = useDispatch();
 
@@ -112,7 +104,7 @@ function MainDrawer(props) {
   return (
     <div className={classes.root}>
       <CssBaseline />
-      {currentUser && (
+      {current && (
         <>
           <AppBar position="fixed" className={classes.appBar}>
             <Toolbar>
@@ -131,7 +123,7 @@ function MainDrawer(props) {
                 <MenuIcon />
               </IconButton>
               <Typography variant="h6" noWrap>
-                {currentUser.nom + " - " + currentUser.role}
+                {current.nom + " - " + current.role}
               </Typography>
               <div style={{ flex: 1 }} />
               <IconButton
@@ -139,23 +131,29 @@ function MainDrawer(props) {
                   setThemeType(themeType === "light" ? "dark" : "light")
                 }
               >
-                <Settings />
+                {themeType === "dark" ? (
+                  <Brightness7 />
+                ) : (
+                  <Brightness4 style={{ fill: "white" }} />
+                )}
               </IconButton>
               <NotificationBar />
-              <Button
-                variant="contained"
-                style={{
-                  backgroundColor: theme.palette.error.main,
-                  color: "white",
-                  textTransform: "none",
-                  fontWeight: "bold",
-                }}
-                disableElevation
-                onClick={() => dispatch({ type: "PURGE" })}
-                endIcon={<ExitToApp />}
-              >
-                Deconnexion
-              </Button>
+              <Hidden smDown>
+                <Button
+                  variant="contained"
+                  style={{
+                    backgroundColor: theme.palette.error.main,
+                    color: "white",
+                    textTransform: "none",
+                    fontWeight: "bold",
+                  }}
+                  disableElevation
+                  onClick={() => dispatch({ type: "PURGE" })}
+                  endIcon={<ExitToApp />}
+                >
+                  Deconnexion
+                </Button>
+              </Hidden>
             </Toolbar>
           </AppBar>
           <Hidden smDown>
@@ -204,7 +202,15 @@ function MainDrawer(props) {
               }}
               onClose={handleDrawerOpen}
             >
-              <div className={classes.toolbarMini}>
+              <div
+                className={
+                  "horizontal-list space-between " + classes.toolbarMini
+                }
+                style={{ paddingLeft: "1rem" }}
+              >
+                <Typography variant="h6" color="primary">
+                  {current.nom}
+                </Typography>
                 <IconButton onClick={handleDrawerOpen}>
                   {theme.direction === "rtl" ? (
                     <ChevronRightIcon />
@@ -224,7 +230,7 @@ function MainDrawer(props) {
         </>
       )}
 
-      <Main currentUser={currentUser} classes={classes} themeType={themeType} />
+      <Main current={current} classes={classes} themeType={themeType} />
     </div>
   );
 }
@@ -234,8 +240,9 @@ export default MainDrawer;
 const Main = React.memo((props) => {
   return (
     <div className={props.classes.content}>
-      <div className={props.currentUser ? props.classes.toolbar : ""} />
-      {props.currentUser ? <Redirect current={props.currentUser} /> : <Login />}
+      <div className={props.current ? props.classes.toolbar : ""} />
+
+      {props.current ? <Redirect current={props.current} /> : <Login />}
     </div>
   );
 });

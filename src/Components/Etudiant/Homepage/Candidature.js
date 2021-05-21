@@ -1,9 +1,7 @@
 import {
-  Button,
   ButtonBase,
   Divider,
   Paper,
-  Tooltip,
   Typography,
   useTheme,
 } from "@material-ui/core";
@@ -18,10 +16,7 @@ import { NewReleases } from "@material-ui/icons";
 
 function Candidature(props) {
   const theme = useTheme();
-  const history = useHistory();
   const projects = useSelector((state) => state.projects.dataArray);
-  const candidatures = useSelector((state) => state.candidatures);
-  const users = useSelector((state) => state.users.all);
   const current = useSelector((state) => state.users.current);
   const project =
     useSelector((state) => state.projects.dataArray).filter(

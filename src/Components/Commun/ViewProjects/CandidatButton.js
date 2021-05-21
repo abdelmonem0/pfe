@@ -9,14 +9,14 @@ function CandidatButton(props) {
   const { project, iconButton } = props;
   const [dialog, openDialog] = useState(false);
   const canCand = canCandidate(project);
-  const student =
-    useSelector((state) => state.users.current.role) === "etudiant";
-  const leftCandText = leftCandidaturesText();
+  const current = useSelector((state) => state.users.current);
+  const leftCandText =
+    canCand.raison !== "" ? canCand.raison : leftCandidaturesText();
 
   const candidatures = useSelector((state) => state.candidatures);
   return (
-    student &&
-    canCand && (
+    current.role === "etudiant" &&
+    !current.sujet_affecte && (
       <Tooltip title={leftCandText}>
         <div>
           <AddCandidature
@@ -27,6 +27,8 @@ function CandidatButton(props) {
           {iconButton ? (
             <IconButton
               size="small"
+              color="primary"
+              disabled={!canCand.canCandidate}
               onClick={() => {
                 openDialog(true);
               }}
@@ -36,8 +38,10 @@ function CandidatButton(props) {
           ) : (
             <Button
               variant="contained"
+              size="small"
               color="primary"
               disableElevation
+              disabled={!canCand.canCandidate}
               onClick={() => {
                 openDialog(true);
               }}

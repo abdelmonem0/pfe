@@ -47,7 +47,7 @@ function Infos(props) {
           .replace(" ", "")
           .split(",")
           .map((s) => (
-            <Typography variant="h6" color="primary">
+            <Typography key={s} variant="h6" color="primary">
               {s}
             </Typography>
           ))}

@@ -14,12 +14,14 @@ import soutenanceReducer from "./soutenance";
 import notificationsReducer from "./notifications";
 import datesReducer from "./dates";
 import avisReducer from "./avis";
+import parametersReducer from "./parameters";
 
 const persistConfig = {
   key: "root",
   storage,
   whiteliste: [
     "users",
+    "parameters",
     "projects",
     "candidatures",
     "soutenance",
@@ -42,6 +44,7 @@ const allReducers = combineReducers({
   soutenance: soutenanceReducer,
   notifications: notificationsReducer,
   dates: datesReducer,
+  parameters: parametersReducer,
 });
 
 export default persistReducer(persistConfig, allReducers);

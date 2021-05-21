@@ -11,23 +11,33 @@ import React from "react";
 const GetIcon = React.memo((props) => {
   switch (props.iconName.toLowerCase()) {
     case "profile":
-      return <AccountCircle />;
+      return <AccountCircle style={{ fill: props.selected ? "white" : "" }} />;
     case "sujets":
-      return <AccountTreeIcon />;
+      return (
+        <AccountTreeIcon style={{ fill: props.selected ? "white" : "" }} />
+      );
     case "ajouter":
-      return <LibraryAddIcon />;
+      return <LibraryAddIcon style={{ fill: props.selected ? "white" : "" }} />;
     case "préférences":
-      return <TuneIcon />;
+      return <TuneIcon style={{ fill: props.selected ? "white" : "" }} />;
     case "candidatures":
-      return <MoveToInboxIcon />;
+      return (
+        <MoveToInboxIcon style={{ fill: props.selected ? "white" : "" }} />
+      );
     case "soutenances":
-      return <MeetingRoomIcon />;
+      return (
+        <MeetingRoomIcon style={{ fill: props.selected ? "white" : "" }} />
+      );
     case "enseignants":
-      return <SupervisorAccountIcon />;
+      return (
+        <SupervisorAccountIcon
+          style={{ fill: props.selected ? "white" : "" }}
+        />
+      );
     case "accueil":
-      return <HomeIcon />;
+      return <HomeIcon style={{ fill: props.selected ? "white" : "" }} />;
     default:
-      return <DoneOutlined />;
+      return <DoneOutlined style={{ fill: props.selected ? "white" : "" }} />;
   }
 });
 

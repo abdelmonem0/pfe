@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { Switch, Route } from "react-router-dom";
 import axios from "axios";
 
-import AddProject from "./AddProject";
+import AddProject from "./ProjectForm/AddProject";
+import EditProject from "./ProjectForm/EditProject";
 import ViewProjects from "../Commun/ViewProjects";
 import EditProfile from "../Commun/EditProfile";
 import Preferences from "./Preferences/index";
@@ -24,19 +25,22 @@ function Enseignant(props) {
   return (
     <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
       <Switch>
-        <Route path="/ajouter">
+        <Route exact path="/ajouter">
           <AddProject />
         </Route>
-        <Route path="/sujets">
+        <Route exact path="/modifier">
+          <EditProject />
+        </Route>
+        <Route exact path="/sujets">
           <ViewProjects />
         </Route>
-        <Route path="/candidatures">
+        <Route exact path="/candidatures">
           <Candidatures />
         </Route>
-        <Route path="/preferences">
+        <Route exact path="/preferences">
           <Preferences />
         </Route>
-        <Route path="/profile">
+        <Route exact path="/profile">
           <EditProfile />
         </Route>
       </Switch>

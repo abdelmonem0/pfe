@@ -1,5 +1,7 @@
 import {
   Button,
+  Hidden,
+  MobileStepper,
   Step,
   StepLabel,
   Stepper,
@@ -14,7 +16,7 @@ import { getStepToShow } from "./SoutenanceLogic";
 import Soutenances from "./Soutenances";
 import DateSale from "./Steps/DateSale";
 import TableView from "./Steps/Projects/TableView";
-import Teachers from "./Steps/Teachers/Teachers";
+import Teachers from "./Teachers/Teachers";
 
 const constants = {
   startDate: new Date().toISOString(),
@@ -107,6 +109,7 @@ function Preferences(props) {
       case 2:
         return (
           <Teachers
+            calledFromSoutenances={true}
             selectedTeachers={selectedTeachers}
             setSelectedTeachers={setSelectedTeachers}
             presidents={presidents}
@@ -135,74 +138,109 @@ function Preferences(props) {
     const st = getStepToShow(step);
     if (calculatedStep === -1) setStep(st.step);
     setCalculatedStep(st);
+    console.log("here is the prob");
   }, [values, step]);
 
   return (
     (values && projects && teachers && (
       <div>
-        <Stepper activeStep={step} style={{ backgroundColor: "transparent" }}>
-          <Step>
-            <StepLabel
-              optional={
-                <Typography variant="subtitle2" color="textSecondary">
-                  Dates, sales et crénaux
-                </Typography>
-              }
+        <Hidden smDown>
+          <Stepper activeStep={step} style={{ backgroundColor: "transparent" }}>
+            <Step>
+              <StepLabel
+                optional={
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Dates, sales et crénaux
+                  </Typography>
+                }
+              >
+                <Typography>Paramètres générales</Typography>
+              </StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>
+                <Typography>Choisir les sujets</Typography>
+              </StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>
+                <Typography>Choisir les enseignants</Typography>
+              </StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>
+                <Typography>Soutenances générées</Typography>
+              </StepLabel>
+            </Step>
+          </Stepper>
+          <div className="horizontal-list wrap">
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={step <= 0}
+              onClick={() => handleStep(false)}
             >
-              <Typography>Paramètres générales</Typography>
-            </StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>
-              <Typography>Choisir les sujets</Typography>
-            </StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>
-              <Typography>Choisir les enseignants</Typography>
-            </StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>
-              <Typography>Soutenances générées</Typography>
-            </StepLabel>
-          </Step>
-        </Stepper>
-        <div className="horizontal-list mh-2" style={{ flexWrap: "wrap" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={step <= 0}
-            onClick={() => handleStep(false)}
-          >
-            Précédant
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={calculatedStep.step <= step || step >= 3}
-            onClick={() => handleStep(true)}
-          >
-            Suivant
-          </Button>
-          <ResetValues setStep={setStep} values={values} dispatch={dispatch} />
-          {calculatedStep.raison !== "success" ? (
-            <Tooltip
-              style={{ color: theme.palette.warning.main }}
-              title={calculatedStep.raison}
+              Précédant
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={calculatedStep.step <= step || step >= 3}
+              onClick={() => handleStep(true)}
             >
-              <Info />
-            </Tooltip>
-          ) : (
-            <Tooltip
-              title="Términé"
-              style={{ color: theme.palette.success.main }}
-            >
-              <CheckCircle />
-            </Tooltip>
-          )}
-        </div>
-        <div className="mh-2 mt-1">{choosePage()}</div>
+              Suivant
+            </Button>
+            <ResetValues
+              setStep={setStep}
+              values={values}
+              dispatch={dispatch}
+            />
+            {calculatedStep.raison !== "success" ? (
+              <Tooltip
+                style={{ color: theme.palette.warning.main }}
+                title={calculatedStep.raison || ""}
+              >
+                <Info />
+              </Tooltip>
+            ) : (
+              <Tooltip
+                title="Términé"
+                style={{ color: theme.palette.success.main }}
+              >
+                <CheckCircle />
+              </Tooltip>
+            )}
+          </div>
+        </Hidden>
+
+        <div>{choosePage()}</div>
+        <Hidden mdUp>
+          <MobileStepper
+            activeStep={step}
+            steps={4}
+            position="bottom"
+            backButton={
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={step <= 0}
+                onClick={() => handleStep(false)}
+              >
+                Précédant
+              </Button>
+            }
+            nextButton={
+              <Button
+                variant="outlined"
+                size="small"
+                disabled={calculatedStep.step <= step || step >= 3}
+                onClick={() => handleStep(true)}
+              >
+                Suivant
+              </Button>
+            }
+          />
+        </Hidden>
       </div>
     )) || <div>Soutenances - Preferences.js</div>
   );

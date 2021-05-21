@@ -20,6 +20,7 @@ import {
   ExpandMore,
 } from "@material-ui/icons";
 import React from "react";
+import { useDispatch } from "react-redux";
 import { useHistory } from "react-router";
 import GetIcon from "./GetIcon";
 
@@ -28,6 +29,7 @@ function getChildren(pages, page) {
 }
 
 function MenuItems(props) {
+  const dispatch = useDispatch();
   const { pages, drawerOpen, closeDrawer } = props;
   const history = useHistory();
   const [drawerLink, setDrawerLink] = React.useState(history.location.pathname);
@@ -36,6 +38,7 @@ function MenuItems(props) {
 
   const handleLogout = () => {
     if (!drawerOpen) setLogoutDialog(true);
+    else dispatch({ type: "PURGE" });
   };
 
   return (
@@ -45,6 +48,7 @@ function MenuItems(props) {
           !page.parent && (
             <Item
               page={page}
+              key={page.text}
               children={getChildren(pages, page)}
               drawerOpen={drawerOpen}
               setDrawerLink={setDrawerLink}
@@ -69,7 +73,7 @@ function MenuItems(props) {
         open={logoutDialog}
         setOpen={setLogoutDialog}
         theme={theme}
-        logout={() => {}}
+        logout={() => dispatch({ type: "PURGE" })}
       />
     </List>
   );
@@ -91,14 +95,8 @@ function childSelected(child, current) {
 }
 
 const Item = (props) => {
-  const {
-    page,
-    drawerOpen,
-    children,
-    setDrawerLink,
-    drawerLink,
-    closeDrawer,
-  } = props;
+  const { page, drawerOpen, children, setDrawerLink, drawerLink, closeDrawer } =
+    props;
   const history = useHistory();
   const theme = useTheme();
 
@@ -107,13 +105,15 @@ const Item = (props) => {
   const isCurrentLink = thisSelected(page, children, drawerLink);
 
   const handleDrawerLinkChange = (link) => {
+    if (window.innerWidth <= theme.breakpoints.values.sm) closeDrawer();
+
     if (link === drawerLink) {
-      alert("link: " + link + "drawerlink:" + drawerLink);
+      history.replace(link);
+      setDrawerLink(link);
       return;
     }
-    if (window.innerWidth <= theme.breakpoints.values.sm) closeDrawer();
-    setDrawerLink(link);
 
+    setDrawerLink(link);
     history.push(link);
   };
 
@@ -130,9 +130,10 @@ const Item = (props) => {
   return (
     <>
       <ListItem
+        key={props.key}
         style={{
           backgroundColor: isCurrentLink
-            ? theme.palette.primary.light
+            ? theme.palette.primary.main
             : "inherit",
         }}
         button
@@ -140,7 +141,7 @@ const Item = (props) => {
         onClick={() => handleDrawerLinkChange(page.link)}
       >
         <ListItemIcon>
-          <GetIcon iconName={page.text} />
+          <GetIcon iconName={page.text} selected={isCurrentLink} />
         </ListItemIcon>
 
         <ListItemText

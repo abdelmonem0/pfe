@@ -2,18 +2,18 @@ import React, { useState } from "react";
 import {
   Typography,
   Button,
-  Tooltip,
   Dialog,
   DialogActions,
   Paper,
   useTheme,
   useMediaQuery,
   Hidden,
-  Chip,
   CardHeader,
   Card,
   CardContent,
+  Divider,
 } from "@material-ui/core";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import {
   Schedule,
   Settings,
@@ -22,59 +22,47 @@ import {
   Apartment,
 } from "@material-ui/icons";
 import { useSelector } from "react-redux";
-import ViewComments from "./ViewComments";
+import ViewComments from "../ViewComments";
 import Slide from "@material-ui/core/Slide";
-import PresidentProjectActions from "../President/PresidentProjectActions";
-import MembreProjectActions from "../Membre/MembreProjectActions";
-import AttachedFiles from "./AttachedFiles";
-import CandidatButton from "./ViewProjects/CandidatButton";
-import LikeButton from "./LikeButton";
+import PresidentProjectActions from "../../President/PresidentProjectActions";
+import MembreProjectActions from "../../Membre/MembreProjectActions";
+import AttachedFiles from "../AttachedFiles";
+import CandidatButton from "../ViewProjects/CandidatButton";
+import LikeButton from "../LikeButton";
+import { canEditProject } from "../ViewProjects/logic";
+import { getNextQuery } from "../ProjectDetail/logic";
+import StateChip from "../ViewProjects/StateChip";
+import CahierState from "../ViewProjects/CahierState";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-
 function ProjectDetail(props) {
-  const { project } = props;
+  const project = props.project;
   const current = useSelector((state) => state.users.current);
-  const candidatures = useSelector((state) => state.candidatures);
-  const [dialog, openDialog] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const canViewComments =
-    current.role === "enseignant"
-      ? project.enc_prim === current.id_utilisateur ||
-        project.enc_sec === current.id_utilisateur
-        ? true
-        : false
-      : true;
+    current.role === "membre" || current.role === "president";
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("xs"));
 
-  function alreadyCandidat() {
-    for (var el of candidatures) {
-      if (project.id_sujet === el.id_sujet) {
-        if (el.id_etudiant === current.id_utilisateur) return 1;
-        if (el.id_etudiant_2 === current.id_utilisateur) {
-          if (el.etat === "attente de reponse") return 1;
-          else return 2;
-        }
-      }
-    }
-    return 0;
-  }
+  const handleClose = () => {
+    setOpen(!open);
+  };
 
   return (
     <>
-      <div style={{ cursor: "pointer" }} onClick={() => openDialog(true)}>
+      <div style={{ cursor: "pointer" }} onClick={handleClose}>
         {props.children}
       </div>
       <Dialog
-        open={dialog}
+        open={open}
         TransitionComponent={Transition}
         fullWidth
-        maxWidth={"md"}
-        onClose={() => openDialog(false)}
+        maxWidth={canViewComments ? "lg" : "md"}
+        onClose={handleClose}
         fullScreen={fullScreen}
       >
         <Paper elevation={0} style={{ display: "flex", overflowY: "hidden" }}>
@@ -83,7 +71,9 @@ function ProjectDetail(props) {
               <CardHeader
                 title={project.titre}
                 subheader={
-                  <div style={{ display: "flex", gap: "1rem" }}>
+                  <div className="horizontal-list">
+                    <StateChip project={project} />
+                    <CahierState project={project} />
                     {project.encadrants.length > 0 && (
                       <Typography variant="body2" color="textSecondary">
                         <Person /> {project.encadrants[0].nom}{" "}
@@ -102,51 +92,42 @@ function ProjectDetail(props) {
                 }
               />
               <CardContent>
-                <Paper
-                  elevation={0}
-                  style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}
+                <div
+                  className="horizontal-list wrap"
+                  style={{ columnGap: "2rem" }}
                 >
-                  <Settings color="primary" />
-                  {project.tags.map((p) => (
-                    <Chip
-                      key={p.id_tag}
-                      label={p.id_tag}
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                    />
-                  ))}
-                </Paper>
-                <Paper
-                  elevation={0}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    margin: "0.5rem 0",
-                  }}
-                >
-                  <Paper elevation={0} style={{ display: "flex" }}>
+                  <div className="horizontal-list">
                     <LocationOn color="primary" />
                     <Typography variant="body1">
                       {project.interne ? "Interne" : "Externe"}
                     </Typography>
-                  </Paper>
+                  </div>
                   {!project.interne && (
-                    <Paper elevation={0} style={{ display: "flex" }}>
+                    <div className="horizontal-list">
                       <Apartment color="primary" />
                       <Typography variant="body1">{project.lieu}</Typography>
-                    </Paper>
+                    </div>
                   )}
                   {!project.interne && (
-                    <Paper elevation={0} style={{ display: "flex" }}>
+                    <div>
                       <Typography variant="subtitle2">
                         Encadrant externe: {project.enc_ext}
                       </Typography>
-                    </Paper>
+                    </div>
                   )}
-                </Paper>
-                <AttachedFiles fichiers={project.fichiers} />
+                  <div className="horizontal-list wrap">
+                    <Settings color="primary" />
+                    {project.tags.map((tag, i) => (
+                      <>
+                        <Typography color="primary">{tag.id_tag}</Typography>
+                        {i < project.tags.length - 1 && (
+                          <Divider orientation="vertical" flexItem />
+                        )}
+                      </>
+                    ))}
+                  </div>
+                </div>
+                <AttachedFiles project={project} />
                 <Typography variant="h6" color="primary">
                   Description
                 </Typography>
@@ -200,11 +181,15 @@ function ProjectDetail(props) {
           <MembreProjectActions project={project} />
 
           <div style={{ flex: 1 }} />
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => openDialog(false)}
-          >
+          {canEditProject(project) && (
+            <Button
+              component={Link}
+              to={getNextQuery("modifier", "id", project.id_sujet)}
+            >
+              Modifier
+            </Button>
+          )}
+          <Button variant="outlined" color="secondary" onClick={handleClose}>
             Fermer
           </Button>
         </DialogActions>

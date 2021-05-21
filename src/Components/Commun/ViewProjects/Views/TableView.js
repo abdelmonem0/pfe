@@ -3,10 +3,7 @@ import {
   Box,
   Button,
   Collapse,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
+  Hidden,
   IconButton,
   makeStyles,
   Paper,
@@ -17,22 +14,19 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Tooltip,
   Typography,
   useTheme,
 } from "@material-ui/core";
 import LikeButton from "../../LikeButton";
-import { Attachment, ExpandLess, ExpandMore } from "@material-ui/icons";
+import { ExpandLess, ExpandMore } from "@material-ui/icons";
 import "../style.css";
-import AttachedFiles from "../../AttachedFiles";
-import { useSelector } from "react-redux";
 import AddCandidature from "../../../Etudiant/AddCandidature";
 import CandidatButton from "../CandidatButton";
 import ProjectDetail from "../../ProjectDetail";
 import StateChip from "../StateChip";
 import MembreProjectActions from "../../../Membre/MembreProjectActions";
-import { canViewAttachement } from "../../Constraints";
 import PresidentProjectActions from "../../../President/PresidentProjectActions";
+import AttachementButton from "../AttachementButton";
 
 const useRowStyles = makeStyles({
   root: {
@@ -43,7 +37,7 @@ const useRowStyles = makeStyles({
 });
 
 function TableView(props) {
-  const { projects, openProject, current } = props;
+  const { projects, current } = props;
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selectedProject, setSelectedProject] = useState([]);
@@ -83,133 +77,151 @@ function TableView(props) {
   };
 
   return (
-    <Paper>
-      <Button
-        variant="outlined"
-        color="primary"
-        onClick={() => setExpandAll(!expandAll)}
-        style={{ textTransform: "none" }}
-      >
-        {!expandAll
-          ? "Ouvrir tout les descriptions"
-          : "Fermer tout les descriptions"}
-      </Button>
-      <TableContainer>
-        <Table stickyHeader size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox"></TableCell>
-              <TableCell padding="checkbox">Etat</TableCell>
-              <TableCell>Projet</TableCell>
-              <TableCell align="left">Actions</TableCell>
-              <TableCell align="left">Lieu</TableCell>
-              <TableCell align="left">Encadrant interne</TableCell>
-              <TableCell align="left">Encadrant externe</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {projects.slice(sliceStart, sliceEnd).map((project, idx) => (
-              <React.Fragment>
-                <TableRow
-                  key={project.id_sujet + "1"}
-                  className={classes.root}
-                  style={{
-                    backgroundColor:
-                      selectedRow === project.id_sujet
-                        ? selectedRowColor
-                        : "inherit",
-                  }}
-                  onClick={() => setSelectedRow(project.id_sujet)}
-                >
-                  <TableCell padding="checkbox">
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleExpandMore(project.id_sujet)}
-                      >
-                        {selectedProject.indexOf(project.id_sujet) !== -1 ? (
-                          <ExpandLess />
-                        ) : (
-                          <ExpandMore />
-                        )}
-                      </IconButton>
-                      {project.affecte_a.length === 0 && (
-                        <LikeButton project={project} current={current} />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell padding="checkbox">
-                    <StateChip project={project} />
-                  </TableCell>
-                  <TableCell onClick={() => openProject(project)}>
-                    <ProjectDetail project={project}>
-                      {project.titre}
-                    </ProjectDetail>
-                  </TableCell>
-                  <TableCell align="left">
-                    <Actions project={project} />
-                  </TableCell>
-                  <TableCell align="left">{project.lieu}</TableCell>
-                  <TableCell align="left">
-                    {project.encadrants[0] ? project.encadrants[0].nom : ""}
-                    {project.encadrants[1]
-                      ? " / " + project.encadrants[1].nom
-                      : ""}
-                  </TableCell>
-                  <TableCell align="left">{project.enc_ext || ""}</TableCell>
-                </TableRow>
-                <TableRow
-                  key={project.id_sujet + "2"}
-                  style={{
-                    backgroundColor:
-                      selectedRow === project.id_sujet
-                        ? selectedRowColor
-                        : "inherit",
-                  }}
-                  onClick={() => setSelectedRow(project.id_sujet)}
-                >
-                  <TableCell
-                    style={{ paddingBottom: 0, paddingTop: 0 }}
-                    colSpan={7}
+    <div className="table-container">
+      <Paper>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => setExpandAll(!expandAll)}
+          style={{ textTransform: "none" }}
+        >
+          {!expandAll
+            ? "Ouvrir tout les descriptions"
+            : "Fermer tout les descriptions"}
+        </Button>
+        <TableContainer>
+          <Table stickyHeader size="small">
+            <TableHead>
+              <TableRow>
+                <Hidden smDown>
+                  <TableCell padding="checkbox"></TableCell>
+                </Hidden>
+                <Hidden smDown>
+                  <TableCell padding="checkbox">Etat</TableCell>
+                </Hidden>
+                <TableCell>Projet</TableCell>
+                <TableCell align="left">Actions</TableCell>
+                <TableCell align="left">Lieu</TableCell>
+                <TableCell align="left">Encadrant interne</TableCell>
+                <Hidden smDown>
+                  {" "}
+                  <TableCell align="left">Encadrant externe</TableCell>
+                </Hidden>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {projects.slice(sliceStart, sliceEnd).map((project, idx) => (
+                <React.Fragment>
+                  <TableRow
+                    key={project.id_sujet + "1"}
+                    className={classes.root}
+                    style={{
+                      backgroundColor:
+                        selectedRow === project.id_sujet
+                          ? selectedRowColor
+                          : "inherit",
+                    }}
+                    onClick={() => setSelectedRow(project.id_sujet)}
                   >
-                    <Collapse
-                      in={
-                        selectedProject.indexOf(project.id_sujet) !== -1 ||
-                        expandAll
-                      }
+                    <Hidden smDown>
+                      <TableCell padding="checkbox">
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleExpandMore(project.id_sujet)}
+                          >
+                            {selectedProject.indexOf(project.id_sujet) !==
+                            -1 ? (
+                              <ExpandLess />
+                            ) : (
+                              <ExpandMore />
+                            )}
+                          </IconButton>
+                          {project.affecte_a.length === 0 && (
+                            <LikeButton project={project} current={current} />
+                          )}
+                        </div>
+                      </TableCell>
+                    </Hidden>
+                    <Hidden smDown>
+                      <TableCell padding="checkbox">
+                        <StateChip miniText={true} project={project} />
+                      </TableCell>
+                    </Hidden>
+                    <TableCell>
+                      <ProjectDetail project={project}>
+                        {project.titre}
+                      </ProjectDetail>
+                    </TableCell>
+                    <TableCell align="left">
+                      <Actions project={project} />
+                    </TableCell>
+                    <TableCell align="left">{project.lieu}</TableCell>
+                    <TableCell align="left">
+                      {project.encadrants[0] ? project.encadrants[0].nom : ""}
+                      {project.encadrants[1]
+                        ? " / " + project.encadrants[1].nom
+                        : ""}
+                    </TableCell>
+                    <Hidden smDown>
+                      <TableCell align="left">
+                        {project.enc_ext || ""}
+                      </TableCell>
+                    </Hidden>
+                  </TableRow>
+                  <TableRow
+                    key={project.id_sujet + "2"}
+                    style={{
+                      backgroundColor:
+                        selectedRow === project.id_sujet
+                          ? selectedRowColor
+                          : "inherit",
+                    }}
+                    onClick={() => setSelectedRow(project.id_sujet)}
+                  >
+                    <TableCell
+                      style={{ paddingBottom: 0, paddingTop: 0 }}
+                      colSpan={7}
                     >
-                      <Box padding={1}>
-                        <Typography variant="body1" color="primary">
-                          Decription
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          {project.description}
-                        </Typography>
-                        <Typography variant="body1" color="primary">
-                          Travail
-                        </Typography>
-                        <Typography variant="body2" paragraph>
-                          {project.travail}
-                        </Typography>
-                      </Box>
-                    </Collapse>
-                  </TableCell>
-                </TableRow>
-              </React.Fragment>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 20]}
-        component="div"
-        count={projects.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-      />
-    </Paper>
+                      <Collapse
+                        in={
+                          selectedProject.indexOf(project.id_sujet) !== -1 ||
+                          expandAll
+                        }
+                      >
+                        <Box padding={1}>
+                          <Typography variant="body1" color="primary">
+                            Decription
+                          </Typography>
+                          <Typography variant="body2" paragraph>
+                            {project.description}
+                          </Typography>
+                          <Typography variant="body1" color="primary">
+                            Travail
+                          </Typography>
+                          <Typography variant="body2" paragraph>
+                            {project.travail}
+                          </Typography>
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 20]}
+          component="div"
+          count={projects.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onChangePage={handleChangePage}
+          onChangeRowsPerPage={handleChangeRowsPerPage}
+        />
+      </Paper>
+    </div>
   );
 }
 
@@ -217,8 +229,6 @@ export default TableView;
 
 const Actions = (props) => {
   const { project } = props;
-  const current = useSelector((state) => state.users.current);
-  const [dialog, openDialog] = useState(false);
   const [candidature, openCandidature] = useState(false);
   return (
     <>
@@ -233,31 +243,7 @@ const Actions = (props) => {
 
         <MembreProjectActions project={project} iconButton />
         <PresidentProjectActions project={project} iconButton />
-        {canViewAttachement(project) && (
-          <Tooltip title="Contient des fichiers">
-            <IconButton onClick={() => openDialog(true)} size="small">
-              <Attachment />
-            </IconButton>
-          </Tooltip>
-        )}
-        {/* files dialog */}
-        <Dialog
-          open={dialog}
-          onClose={() => openDialog(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>Attachement</DialogTitle>
-          <DialogContent>
-            <Typography paragraph>{project.titre}</Typography>
-            <AttachedFiles fichiers={project.fichiers} />
-          </DialogContent>
-          <DialogActions>
-            <Button color="secondary" onClick={() => openDialog(false)}>
-              Fermer
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <AttachementButton project={project} icon />
       </div>
     </>
   );

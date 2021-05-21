@@ -6,20 +6,14 @@ import {
   CardActions,
   Typography,
   Button,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Paper,
 } from "@material-ui/core";
-import { Person, Schedule } from "@material-ui/icons";
 import { useDispatch, useSelector } from "react-redux";
 
-import {
-  acceptCandidatureEnseignant,
-  getCandidatures,
-} from "../../../functions";
 import AttachedFiles from "../../Commun/AttachedFiles";
 import { Candidature_States } from "../../../Constants";
 
@@ -43,50 +37,6 @@ const Candidature = (props) => {
     setDecision(_decision);
     setDialog(true);
   };
-
-  function acceptCand(isAccepted) {
-    const etat = isAccepted
-      ? otherEnc
-        ? candidature.etat === Candidature_States.waiting_for_response
-          ? Candidature_States.accepted_by_teacher_partner
-          : Candidature_States.accepted
-        : Candidature_States.accepted
-      : Candidature_States.refused;
-
-    acceptCandidatureEnseignant(
-      users.current.id_utilisateur,
-      candidature.id_candidature,
-      etat
-    )
-      .then((result) => {
-        if (result.status === 200) {
-          dispatch({
-            type: "OPEN_SNACK",
-            payload: {
-              open: true,
-              message: result.data,
-              type: "success",
-            },
-          });
-        } else throw new Error(result.data);
-      })
-      .then(() =>
-        getCandidatures(users.current.id_utilisateur).then((result) => {
-          dispatch({ type: "SET_CANDIDATURES", payload: result.data });
-        })
-      )
-      .catch((err) =>
-        dispatch({
-          type: "OPEN_SNACK",
-          payload: {
-            open: true,
-            message: err.toString(),
-            type: "error",
-          },
-        })
-      )
-      .finally(() => setDialog(false));
-  }
 
   return (
     <>

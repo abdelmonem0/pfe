@@ -53,12 +53,11 @@ export function calculateProjectsStatistics(theme) {
   const data = labels.map((p) => projectsStats[p].count);
 
   const _state = {
-    title: "Statistiques des etats des sujets",
+    title: "Sujets",
     data: {
       labels,
       datasets: [
         {
-          label: "Projets",
           backgroundColor,
           hoverBackgroundColor,
           data,
@@ -113,6 +112,7 @@ export function calculateGeneral(theme) {
   };
 
   const _state = {
+    title: "Statistiques générales",
     labels: Object.keys(all),
     datasets: [
       {
@@ -131,4 +131,138 @@ export function calculateGeneral(theme) {
   };
 
   return _state;
+}
+
+export function calculateStudentsStatistics(theme) {
+  const state = store.getState();
+  const users = state.users.all;
+  var data = [];
+  data = [
+    users.filter((u) => u.role === "etudiant" && u.sujet_affecte).length,
+    users.filter((u) => u.role === "etudiant" && !u.sujet_affecte).length,
+  ];
+
+  const _state = {
+    title: "Etudiants sujets",
+    data: {
+      labels: ["Avec des sujets affectés", "Sans des sujets affectés"],
+      datasets: [
+        {
+          backgroundColor: [
+            theme.palette.success.main,
+            theme.palette.error.main,
+          ],
+          hoverBackgroundColor: [
+            theme.palette.success.light,
+            theme.palette.error.light,
+          ],
+          data,
+        },
+      ],
+    },
+  };
+
+  return _state;
+}
+
+export function calculateTeachersStatistics(theme) {
+  const state = store.getState();
+  const projects = state.projects.dataArray;
+  var contributedTeachers = [];
+  for (let project of projects) {
+    if (project.enc_prim) contributedTeachers.push(project.enc_prim.toString());
+    if (project.enc_sec) contributedTeachers.push(project.enc_sec.toString());
+  }
+  const teachers = state.users.all.filter(
+    (u) => u.role === "membre" || u.role === "enseignant"
+  );
+  console.log(contributedTeachers);
+  var data = {};
+  data = {
+    encadrants: [
+      teachers.filter(
+        (t) => contributedTeachers.indexOf(t.id_utilisateur.toString()) > -1
+      ).length,
+      teachers.filter(
+        (t) => contributedTeachers.indexOf(t.id_utilisateur.toString()) < 0
+      ).length,
+    ],
+  };
+
+  if (state.soutenance.teachers)
+    data.tags = [
+      state.soutenance.teachers.filter((t) => t.tags.length > 0).length,
+      state.soutenance.teachers.filter((t) => t.tags.length === 0).length,
+    ];
+
+  if (state.soutenance.teachers)
+    data.dates = [
+      state.soutenance.teachers.filter((t) => t.dates.length > 0).length,
+      state.soutenance.teachers.filter((t) => t.dates.length === 0).length,
+    ];
+
+  const encadrants = {
+    title: "Enseignants encadrants",
+    data: {
+      labels: [
+        "Sont des encadrants dans un sujet",
+        "Ne sont pas encadrants dans aucun sujet",
+      ],
+      datasets: [
+        {
+          backgroundColor: [
+            theme.palette.success.main,
+            theme.palette.warning.main,
+          ],
+          hoverBackgroundColor: [
+            theme.palette.success.light,
+            theme.palette.warning.light,
+          ],
+          data: data.encadrants,
+        },
+      ],
+    },
+  };
+
+  const tags = {
+    title: "Enseignants tags",
+    data: {
+      labels: ["Ont ajouté des tags", "N'ont pas ajouté des tags"],
+      datasets: [
+        {
+          backgroundColor: [
+            theme.palette.success.main,
+            theme.palette.error.main,
+          ],
+          hoverBackgroundColor: [
+            theme.palette.success.light,
+            theme.palette.error.light,
+          ],
+          data: data.tags,
+        },
+      ],
+    },
+  };
+
+  const dates = {
+    title: "Enseignants dates",
+    data: {
+      labels: ["Ont ajouté des dates", "N'ont pas ajouté des dates"],
+      datasets: [
+        {
+          backgroundColor: [
+            theme.palette.primary.main,
+            theme.palette.secondary.main,
+          ],
+          hoverBackgroundColor: [
+            theme.palette.primary.light,
+            theme.palette.secondary.light,
+          ],
+          data: data.dates,
+        },
+      ],
+    },
+  };
+
+  return { encadrants, tags, dates };
 }

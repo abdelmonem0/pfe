@@ -44,15 +44,11 @@ function MembreProjectActions(props) {
         : userAvis === -1 && !isPositive
         ? true
         : false;
-    addAvis(
-      current.id_utilisateur,
-      project.id_sujet,
-      isPositive,
-      _delete
-    ).then(() =>
-      getAvis().then((result) =>
-        dispatch({ type: "SET_AVIS", payload: result.data })
-      )
+    addAvis(current.id_utilisateur, project.id_sujet, isPositive, _delete).then(
+      () =>
+        getAvis().then((result) =>
+          dispatch({ type: "SET_AVIS", payload: result.data })
+        )
     );
   };
 
@@ -114,7 +110,7 @@ function MembreProjectActions(props) {
           </Tooltip>
         ) : (
           <ButtonGroup
-            size={props?.size || "medium"}
+            size="small"
             color="primary"
             disabled={project.etat === Project_States.accepted}
           >

@@ -17,7 +17,9 @@ export const Project_States = {
 
 export const File_States = {
   candidature: "candidature",
-  cahier_de_charge: "cahier de charge",
+  cahier_de_charge_en_instance: "Cahier de charge en instance",
+  cahier_de_charge_refuse: "Cahier de charge réfusé",
+  cahier_de_charge_accepte: "Cahier de charge accepté",
 };
 
 export const Notifications_Types = {
@@ -30,5 +32,7 @@ export const Notifications_Types = {
   candidature_accepted_by_student: "partenaire a accepté collaboration",
   candidature_accepted_by_first_teacher: "partenaire a accepté une candidature",
   candidature_accepted_by_teachers: "candidature accepté",
-  candidature_refused_by_teachers: "candidature réfusé",
+  candidature_inactive: "candidature non active",
+  cahier_de_charge_refuse: "Cahier de charge réfusé",
+  cahier_de_charge_accepte: "Cahier de charge accepté",
 };

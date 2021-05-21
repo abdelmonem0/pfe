@@ -12,6 +12,7 @@ import {
   getProjects,
   getTeacherDates,
   getUsers,
+  getSoutenances,
 } from "../functions";
 import { useDispatch, useSelector } from "react-redux";
 import President from "./President";
@@ -21,7 +22,7 @@ import {
   assignDatesToTeachers,
   willInitSoutenanceValues,
 } from "./President/Soutenances/SoutenanceLogic";
-import { setPages } from "./redirectLogic";
+import { setPages, setupSoutenances } from "./redirectLogic";
 
 function Redirect(props) {
   const current = props.current;
@@ -73,6 +74,9 @@ function Redirect(props) {
                     dispatch({ type: "SET_TEACHERS", payload: teachers });
                   }
                 })
+            )
+            .then(() =>
+              getSoutenances().then((result) => setupSoutenances(result.data))
             );
         }
       })

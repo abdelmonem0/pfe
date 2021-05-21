@@ -228,10 +228,13 @@ export function getAllTeachersDates() {
   );
 }
 
-export function addProject(project) {
+export function addProject(project, update) {
   return axios.post(
     "https://pfe-abdelmonem.herokuapp.com/api/project/add-project",
-    project
+    {
+      project,
+      update,
+    }
   );
 }
 
@@ -267,6 +270,40 @@ export function send2ndCandidatureComment(id_candidature, commentaire) {
       id_candidature,
       commentaire,
     }
+  );
+}
+
+export function sendEmail(emails) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/send-email", emails);
+}
+
+export function saveParameter(params) {
+  return axios.post(
+    "https://pfe-abdelmonem.herokuapp.com/api/parameters/save",
+    params
+  );
+}
+
+export function updateFile(id_fichier, type) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/update-file", {
+    id_fichier,
+    type,
+  });
+}
+
+export function saveSoutenances(soutenances, invite) {
+  return axios.post(
+    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/save-soutenances",
+    {
+      soutenances,
+      invite,
+    }
+  );
+}
+
+export function getSoutenances() {
+  return axios.get(
+    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-soutenances"
   );
 }
 

@@ -1,4 +1,100 @@
 import { store } from "../../../index";
+import { getUserByID } from "../../Commun/Candidature.js/CandidatureLogic";
+import { v4 as uuid } from "uuid";
+import { getProjectByID } from "../../Enseignant/Candidatures/logic";
+import { saveSoutenances as saveToDatabase } from "../../../functions";
+
+//
+//
+//Steps logic
+
+export function getStepToShow(current) {
+  const state = store.getState();
+  const values = state.soutenance.values;
+  var step = 0;
+  var raison = "success";
+
+  if (
+    new Date(values.endDate).getDate() !== new Date().getDate() &&
+    values.sales !== "" &&
+    values.crenaux !== 1
+  )
+    step = 1;
+  else {
+    raison =
+      "Il faut que la date de fin des soutenances soit supérieure à celle de début, les sales soient remplis et le nombre de crenaux maximale soit superieur à 0.";
+    return { step, raison };
+  }
+
+  if (values.selectedProjects.length > 0) step = 2;
+  else {
+    raison = "Il faut choisir des projets.";
+    return { step, raison };
+  }
+
+  if (values.selectedTeachers.length > 0 && values.presidents.length > 0)
+    step = 3;
+  else {
+    raison = "Il faut choisir des enseignants et au des présidents.";
+    return { step, raison };
+  }
+
+  return { step, raison: "success" };
+}
+
+export function willInitSoutenanceValues() {
+  const state = store.getState();
+  if (
+    (state.soutenance && Object.keys(state.soutenance).length === 0) ||
+    (state.soutenance.values &&
+      Object.keys(state.soutenance.values).length === 0)
+  )
+    return true;
+  return false;
+}
+
+//
+//
+//Steps logic
+
+//Important
+//
+//
+export function assignDatesToTeachers() {
+  const state = store.getState();
+  var teachers = state.users.all.filter(
+    (t) => t.role === "enseignant" || t.role === "membre"
+  );
+  const dates = state.soutenance.dates;
+  for (let teacher of teachers) {
+    var _dates = [];
+    for (let date of dates) {
+      if (date.id_utilisateur === teacher.id_utilisateur)
+        _dates.push({ date: date.jour, crenaux: date.crenaux });
+    }
+    teacher.dates = _dates;
+  }
+  return teachers;
+}
+
+export function assignTagsToTeachers() {
+  const state = store.getState();
+  var teachers = state.users.all.filter(
+    (t) => t.role === "enseignant" || t.role === "membre"
+  );
+  const tags = state.soutenance.tags;
+  for (let teacher of teachers) {
+    var _tags = [];
+    for (let tag of tags) {
+      if (tag.associe_a === teacher.id_utilisateur) _tags.push(tag);
+    }
+    teacher.tags = _tags;
+  }
+  return teachers;
+}
+//
+//
+//Important
 
 export function presidentCheckBox(selected, setSelected, id) {
   var _selected = [...selected];
@@ -37,166 +133,28 @@ function getAssignedProjects() {
   return assigned;
 }
 
-export function assignTagsToTeachers() {
-  const state = store.getState();
-  var teachers = state.users.all.filter(
-    (t) => t.role === "enseignant" || t.role === "membre"
-  );
-  const tags = state.soutenance.tags;
-  for (let teacher of teachers) {
-    var _tags = [];
-    for (let tag of tags) {
-      if (tag.associe_a === teacher.id_utilisateur) _tags.push(tag);
-    }
-    teacher.tags = _tags;
-  }
-  return teachers;
-}
-
-export function assignDatesToTeachers() {
-  const state = store.getState();
-  var teachers = state.users.all.filter(
-    (t) => t.role === "enseignant" || t.role === "membre"
-  );
-  const dates = state.soutenance.dates;
-  for (let teacher of teachers) {
-    var _dates = [];
-    for (let date of dates) {
-      if (date.id_utilisateur === teacher.id_utilisateur)
-        _dates.push({ date: date.id_date, crenaux: date.crenaux });
-    }
-    teacher.dates = _dates;
-  }
-  return teachers;
-}
-
-export function assignTeachersToProjects(data, strictMatch) {
-  console.log(data);
-  var projects = [...data.projects];
-  var teachers = [...data.teachers];
-
-  var combined = [];
-  for (let proj of projects) {
-    proj.potential = [];
-    var encadrants = [proj.enc_prim];
-    if (proj.enc_sec) encadrants.push(proj.enc_sec);
-
-    for (let teach of teachers) {
-      var matched = [];
-      for (let tagP of proj.tags) {
-        const pTag = tagP.id_tag.toLowerCase().replace(" ", "");
-        for (let tagT of teach.tags) {
-          const tTag = tagT.id_tag.toLowerCase().replace(" ", "");
-          // get matched tags by index of
-          if (!strictMatch) {
-            if (
-              (pTag.indexOf(tTag) > -1 || tTag.indexOf(pTag)) > -1 &&
-              matched.indexOf(pTag) < 0
-            )
-              matched.push(pTag);
-          } // get matched tags by STRICT equality
-          else {
-            if (pTag === tTag && matched.indexOf(pTag) < 0) matched.push(pTag);
-          }
-        }
-      }
-      if (matched.length > 0) {
-        proj = {
-          ...proj,
-          potential: [
-            ...proj.potential,
-            { id_utilisateur: teach.id_utilisateur, tags: matched },
-          ],
-        };
-      }
-    }
-    // if (proj.potential.length > 0)
-    combined.push({
-      id_sujet: proj.id_sujet,
-      encadrants,
-      potential: proj.potential,
-    });
-  }
-
-  return combined;
-}
-
-export function assignTeachersToCrenaux(teachers) {
-  const state = store.getState();
-  const dates = state.soutenance.dates;
-
-  for (let teach of teachers) {
-    teach.dates = [];
-    for (let date of dates) {
-      if (date.id_utilisateur === teach.id_utilisateur)
-        teach.dates = [...teach.dates, date];
-    }
-  }
-
-  var combined = [];
-  for (let teach1 of teachers) {
-    var matched = [];
-    teach1.matched = [];
-
-    for (let teach2 of teachers) {
-      var days = [];
-      if (teach1.id_utilisateur !== teach2.id_utilisateur) {
-        // check matched date
-        for (let date1 of teach1.dates) {
-          var crenaux = [];
-          for (let date2 of teach2.dates) {
-            if (date1.jour === date2.jour) {
-              //check matched crenaux
-
-              for (let c1 of date1.crenaux.split(",")) {
-                for (let c2 of date2.crenaux.split(",")) {
-                  if (c1 === c2 && c1 !== "" && crenaux.indexOf(c1) < 0) {
-                    crenaux.push(c1);
-                  }
-                }
-              }
-            }
-          }
-          if (crenaux.length > 0) {
-            days.push({ day: date1.jour, crenaux });
-          }
-        }
-        if (days.length > 0) {
-          matched.push({ id_utilisateur: teach2.id_utilisateur, days });
-        }
-      }
-    }
-    if (matched.length > 0) {
-      teach1 = { ...teach1, matched: matched };
-      combined.push(teach1);
-    }
-  }
-
-  console.log(combined);
-  return combined;
-}
-
 export function createSoutenances(data) {
-  var teachers = [...data.selectedTeachers];
+  console.log("soutenancesLogic" + "createSoutenances");
   var projects = [...data.selectedProjects];
   const { startDate, endDate, maxCrenaux, sales, presidents } = data;
   var soutenances = [];
 
   //Creating soutenances
   for (let p of projects) {
+    const project = getProject(p);
+    var invite = [{ ...getUserByID(project.enc_prim), role: "encadrant" }];
+    if (project.enc_sec)
+      invite.push({ ...getUserByID(project.enc_sec), role: "encadrant" });
+
     const sout = {
-      sujet: p,
+      id_soutenance: uuid(),
+      id_sujet: p,
       date: "",
       crenau: 0,
-      invite: p.encadrants.map((enc) => {
-        return { id_utilisateur: enc, role: "encadrant" };
-      }),
+      invite,
     };
     soutenances.push(sout);
   }
-  alert(
-    "projects: " + projects.length + " - soutenances: " + soutenances.length
-  );
 
   soutenances = assignSalesToSoutenances(
     soutenances,
@@ -205,12 +163,7 @@ export function createSoutenances(data) {
     startDate,
     endDate
   );
-  soutenances = assignePresidentsToSoutenance(
-    soutenances,
-    teachers,
-    presidents
-  );
-
+  // soutenances = assignTeachers(soutenances);
   return soutenances;
 }
 
@@ -221,6 +174,8 @@ function assignSalesToSoutenances(
   startDate,
   endDate
 ) {
+  console.log("soutenancesLogic" + "assignSalesToTechaers");
+
   const _sales = sales.replace(" ", "").split(",");
   var currentDate = new Date(startDate);
   var _endDate = new Date(endDate);
@@ -239,7 +194,6 @@ function assignSalesToSoutenances(
       if (currentCrenau > maxCrenaux) {
         currentCrenau = 1;
         currentDate.setDate(currentDate.getDate() + 1);
-        alert(currentDate.toLocaleDateString());
         if (currentDate.getDate() > _endDate.getDate()) {
           alert("Dates insuffisants");
           return soutenances;
@@ -248,207 +202,8 @@ function assignSalesToSoutenances(
     }
   }
 
-  console.log(soutenances);
+  alert("sales assigned");
   return soutenances;
-}
-
-function assignePresidentsToSoutenance(soutenances, teachers, presidents) {
-  var _teachers = teachers.map((id) => {
-    return { id_utilisateur: id, soutenances: [] };
-  });
-  var _soutenances = [...soutenances];
-
-  for (let s of _soutenances) {
-    // assign the soutenance to encadrants
-    for (let t of _teachers) {
-      if (s.sujet.encadrants.indexOf(t.id_utilisateur) > -1)
-        t.soutenances = [...t.soutenances, s];
-    }
-    assignPresident(s, _teachers, presidents);
-    assignRapporteur(s, _teachers, presidents);
-  }
-
-  console.log(_teachers);
-  console.log(_soutenances.map((s) => s.invite));
-  return { soutenances: _soutenances, teachers: _teachers };
-}
-
-// function assignSoutToTeacher(id, teachers) {
-//   var teacher = teachers.find((t) => t.id_utilisateur === id);
-//   teacher.soutenances = teacher.soutenances + 1 || 1;
-// }
-
-//function choosePresident(teachers, presidents) {}
-
-function canBeAssigned(teacher, soutenance) {
-  // teacher is not encadrant
-  for (let invite of soutenance.invite)
-    if (invite && invite.id_utilisateur === teacher.id_utilisateur)
-      return false;
-
-  //teacher is assigned in the same date and crenau
-  const currentCrenau = soutenance.crenau;
-  const currentDate = soutenance.date;
-  for (let s of teacher.soutenances) {
-    if (
-      new Date(s.date).getDate() === new Date(currentDate).getDate() &&
-      s.crenau === currentCrenau
-    )
-      return false;
-  }
-  return true;
-}
-
-function canBeAssignedAsPresident(teacher, presidents) {
-  return presidents.indexOf(teacher.id_utilisateur) > -1;
-}
-
-function canBeAssignedAsRapporteur(teacher, presidents = []) {
-  if (presidents.length > 0)
-    return presidents.indexOf(teacher.id_utilisateur) < 0;
-
-  return true;
-}
-
-function assignPresident(soutenance, teachers, presidents) {
-  var president = undefined;
-  for (let teach of soutenance.sujet.potential) {
-    var _teacher = teachers.find(
-      (t) => t.id_utilisateur === teach.id_utilisateur
-    );
-    if (
-      canBeAssigned(_teacher, soutenance) &&
-      canBeAssignedAsPresident(_teacher, presidents)
-    ) {
-      soutenance.invite = [
-        ...soutenance.invite,
-        { id_utilisateur: teach.id_utilisateur, role: "président" },
-      ];
-      president = teachers.find(
-        (t) => t.id_utilisateur === teach.id_utilisateur
-      );
-      president.soutenances = [...president.soutenances, soutenance];
-      return;
-    }
-  }
-  var soutNumber = teachers[0].soutenances.length;
-  for (let teach of teachers) {
-    var _teacher = teachers.find(
-      (t) => t.id_utilisateur === teach.id_utilisateur
-    );
-    if (teach.soutenances.length <= soutNumber)
-      if (
-        canBeAssigned(_teacher, soutenance) &&
-        canBeAssignedAsPresident(_teacher, presidents)
-      ) {
-        president = teach;
-        soutNumber = _teacher.soutenances.length;
-      }
-  }
-  if (president) {
-    soutenance.invite = [
-      ...soutenance.invite,
-      { id_utilisateur: president.id_utilisateur, role: "président" },
-    ];
-    president = teachers.find(
-      (t) => t.id_utilisateur === president.id_utilisateur
-    );
-    president.soutenances = [...president.soutenances, soutenance];
-  } else alert("nombre des enseignants insuffisant (president)");
-}
-
-function assignRapporteur(soutenance, teachers, presidents) {
-  var president = undefined;
-  for (let teach of soutenance.sujet.potential) {
-    var _teacher = teachers.find(
-      (t) => t.id_utilisateur === teach.id_utilisateur
-    );
-    if (
-      canBeAssigned(_teacher, soutenance) &&
-      canBeAssignedAsRapporteur(_teacher, presidents)
-    ) {
-      soutenance.invite = [
-        ...soutenance.invite,
-        { id_utilisateur: teach.id_utilisateur, role: "rapporteur" },
-      ];
-      president = teachers.find(
-        (t) => t.id_utilisateur === teach.id_utilisateur
-      );
-      president.soutenances = [...president.soutenances, soutenance];
-      return;
-    }
-  }
-  var soutNumber = teachers[0].soutenances.length;
-  for (let teach of teachers) {
-    var _teacher = teachers.find(
-      (t) => t.id_utilisateur === teach.id_utilisateur
-    );
-    if (teach.soutenances.length <= soutNumber)
-      if (
-        canBeAssigned(_teacher, soutenance) &&
-        canBeAssignedAsRapporteur(_teacher)
-      ) {
-        president = teach;
-        soutNumber = _teacher.soutenances.length;
-      }
-  }
-  if (president) {
-    soutenance.invite = [
-      ...soutenance.invite,
-      { id_utilisateur: president.id_utilisateur, role: "rapporteur" },
-    ];
-    president = teachers.find(
-      (t) => t.id_utilisateur === president.id_utilisateur
-    );
-    president.soutenances = [...president.soutenances, soutenance];
-  } else alert("nombre des enseignants insuffisant (rapporteur)");
-}
-
-export function getStepToShow(current) {
-  const state = store.getState();
-  const values = state.soutenance.values;
-  var step = 0;
-  var raison = "success";
-
-  if (
-    new Date(values.endDate).getDate() !== new Date().getDate() &&
-    values.sales !== "" &&
-    values.crenaux !== 1
-  )
-    step = 1;
-  else {
-    raison =
-      "Il faut que la date de fin des soutenances soit supérieure à celle de début, les sales soient remplis et le nombre de crenaux maximale soit superieur à 0.";
-    return { step, raison };
-  }
-  if (step > current) return { step, raison: "success" };
-
-  if (values.selectedProjects.length > 0) step = 2;
-  else {
-    raison = "Il faut choisir des projets.";
-    return { step, raison };
-  }
-  if (step > current) return { step, raison: "success" };
-
-  if (values.selectedTeachers.length > 0 && values.presidents.length > 0)
-    step = 3;
-  else {
-    raison = "Il faut choisir des enseignants et au des présidents.";
-    return { step, raison };
-  }
-
-  return { step, raison: "success" };
-}
-
-export function willInitSoutenanceValues() {
-  const state = store.getState();
-  if (
-    (state.soutenance && Object.keys(state.soutenance).length === 0) ||
-    (state.soutenance.values &&
-      Object.keys(state.soutenance.values).length === 0)
-  )
-    return true;
-  return false;
 }
 
 export function getUser(id) {
@@ -461,4 +216,381 @@ export function getProject(id) {
   const state = store.getState();
   const project = state.projects.dataArray.find((p) => p.id_sujet === id);
   return project;
+}
+
+export function getDays(soutenances) {
+  const state = store.getState();
+  const { startDate, maxCrenaux } = state.soutenance.values;
+
+  var days = [];
+  for (var i = 0; i < soutenances.length / maxCrenaux; i++) {
+    var date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    days.push(date.toLocaleDateString());
+  }
+  return days;
+}
+
+export function getCrenaux(soutenances) {
+  var crenaux = [];
+  for (let s of soutenances)
+    if (crenaux.indexOf(s.crenau) < 0) crenaux.push(s.crenau);
+
+  return crenaux;
+}
+
+export function getSoutenanceAvailable(soutenance) {
+  console.log("soutenancesLogic" + " getSoutenanceAvailable");
+  const state = store.getState();
+  var soutenances = [...state.soutenance.soutenances];
+  var teachers = state.soutenance.teachers;
+  const selected = state.soutenance.values.selectedTeachers;
+  const presidents = state.soutenance.values.presidents;
+  teachers = teachers.filter((t) => selected.indexOf(t.id_utilisateur) > -1);
+
+  var notAvailable = [];
+  var _teachers = [];
+
+  for (let s of soutenances) {
+    if (s.date === soutenance.date && s.crenau === soutenance.crenau)
+      for (let i of s.invite)
+        if (notAvailable.indexOf(i.id_utilisateur) < 0)
+          notAvailable.push(i.id_utilisateur);
+  }
+  for (let t of teachers) {
+    //check if teacher has matched tags
+    t = { ...t, matched: getMatchedTags(soutenance.id_sujet, t) };
+    //check if teacher has matched date
+    t = { ...t, matchedDate: getMatchedDates(soutenance, t) };
+    //check if teacher can be president
+    if (presidents.indexOf(t.id_utilisateur) > -1)
+      t = { ...t, president: true };
+    if (notAvailable.indexOf(t.id_utilisateur) > -1)
+      _teachers.push({ ...t, isAvailable: false });
+    else {
+      _teachers.push({ ...t, isAvailable: true });
+    }
+  }
+
+  return _teachers;
+}
+
+function getMatchedTags(projectId, teacher) {
+  const project = getProjectByID(projectId);
+  var matched = [];
+
+  for (let tTag of teacher.tags)
+    for (let pTag of project.tags)
+      if (
+        matched.indexOf(tTag.id_tag) < 0 &&
+        (tTag.id_tag.toLowerCase().indexOf(pTag.id_tag.toLowerCase()) > -1 ||
+          pTag.id_tag.toLowerCase().indexOf(tTag.id_tag.toLowerCase()) > -1)
+      )
+        matched.push(tTag.id_tag);
+
+  return matched;
+}
+
+function getMatchedDates(soutenance, teacher) {
+  var matchedDate = false;
+  for (let i = 0; i < teacher.dates.length; i++) {
+    const dates = teacher.dates;
+    const tDate = new Date(dates[i].date).toLocaleDateString();
+    const sDate = new Date(soutenance.date).toLocaleDateString();
+    const crenaux = dates[i].crenaux
+      ? dates[i].crenaux.split(",").map((c) => Number(c))
+      : [];
+    console.log("----------");
+    console.log(tDate);
+    console.log(sDate);
+    console.log(crenaux);
+    if (tDate === sDate && crenaux.indexOf(soutenance.crenau) > -1) {
+      matchedDate = true;
+      console.log(soutenance.date + " -- " + soutenance.crenau);
+      break;
+    }
+  }
+  return matchedDate;
+}
+
+export const assignTeachers = (strictTags, strictDates) => {
+  console.log("soutenancesLogic" + " assignTeachers");
+  const state = store.getState();
+  var soutenances = [...state.soutenance.soutenances];
+  var teachers = state.soutenance.teachers;
+  const presidents = state.soutenance.values.presidents;
+  const selected = state.soutenance.values.selectedTeachers;
+  teachers = teachers.filter((t) => selected.indexOf(t.id_utilisateur) > -1);
+
+  var feedback = [];
+  for (let s of soutenances) {
+    //for feedback
+    var missing = [];
+
+    //assign president
+    if (!s.invite.find((invite) => invite.role === "président")) {
+      var available = getSoutenanceAvailable(s);
+      // apply filters here
+      if (strictTags)
+        available = available.filter((av) => av.matched.length > 0);
+      if (strictDates) available = available.filter((av) => av.matchedDate);
+      // end filters
+      for (let i = 0; i < available.length; i++) {
+        if (
+          available[i].isAvailable &&
+          presidents.indexOf(available[i].id_utilisateur) > -1
+        ) {
+          s.invite.push({ ...available[i], role: "président" });
+          break;
+        } else {
+          if (i === available.length - 1) missing.push(1);
+        }
+      }
+    }
+    //assign rapporteur
+    if (!s.invite.find((invite) => invite.role === "rapporteur")) {
+      var available = getSoutenanceAvailable(s);
+      // apply filters here
+      if (strictTags)
+        available = available.filter((av) => av.matched.length > 0);
+      if (strictDates) available = available.filter((av) => av.matchedDate);
+      // end filters
+      for (let i = 0; i < available.length; i++) {
+        if (available[i].isAvailable) {
+          s.invite.push({ ...available[i], role: "rapporteur" });
+          break;
+        } else {
+          if (i === available.length - 1) missing.push(2);
+        }
+      }
+    }
+
+    //feedback
+    if (missing.length > 0) {
+      feedback.push({ soutenance: s, missing });
+    }
+  }
+
+  store.dispatch({ type: "SET_SOUTENANCES", payload: soutenances });
+  return feedback;
+};
+
+export function assignSingleTeacher(
+  soutenance,
+  teacher,
+  role,
+  calledByUser = true
+) {
+  console.log("soutenancesLogic" + "assignSingleTeacher");
+  if (calledByUser) {
+    var sout = { ...soutenance };
+    sout.invite = sout.invite.filter((u) => u.role !== role);
+    sout.invite = [...sout.invite, { ...teacher, role }];
+    store.dispatch({ type: "UPDATE_SOUTENANCE", payload: sout });
+  }
+}
+
+export function equalizeCrenaux() {
+  const state = store.getState();
+  var soutenances = state.soutenance.soutenances;
+  var lastCrenau = 0;
+  var days = {};
+
+  for (let s of soutenances)
+    days = { ...days, [s.date]: days[s.date] + 1 || 1 };
+
+  for (let i = 0; i < Object.keys(days).length; i++)
+    console.log("soutenancesLogic" + days);
+}
+
+export function filterByDates(byDaysOnly = false) {
+  const state = store.getState();
+  var soutenances = [...state.soutenance.soutenances];
+  var dates = state.soutenance.dates;
+
+  for (let soutenance of soutenances) {
+    if (byDaysOnly)
+      soutenance = {
+        ...soutenance,
+        available: soutenance.available.map(
+          (el) =>
+            (el = {
+              ...el,
+              isAvailable:
+                dates.filter(
+                  (date) =>
+                    el.id_utilisateur === date.id_utilisateur &&
+                    new Date(date.jour).toLocaleDateString() ===
+                      new Date(soutenance.date).toLocaleDateString()
+                ).length > 0,
+            })
+        ),
+      };
+    else
+      soutenance = {
+        ...soutenance,
+        available: soutenance.available.map(
+          (el) =>
+            (el = {
+              ...el,
+              isAvailable:
+                dates.filter(
+                  (date) =>
+                    el.id_utilisateur === date.id_utilisateur &&
+                    new Date(date.jour).toLocaleDateString() ===
+                      new Date(soutenance.date).toLocaleDateString() &&
+                    date.crenaux
+                      .replace(" ", "")
+                      .split(",")
+                      .indexOf(soutenance.crenau.toString()) > -1
+                ).length > 0,
+            })
+        ),
+      };
+    store.dispatch({ type: "UPDATE_SOUTENANCE", payload: soutenance });
+  }
+}
+
+export function filterByTagsDates(byDaysOnly = false) {
+  const state = store.getState();
+  var soutenances = [...state.soutenance.soutenances];
+  var tags = state.soutenance.tags;
+
+  for (let soutenance of soutenances) {
+    if (byDaysOnly)
+      soutenance = {
+        ...soutenance,
+        available: soutenance.available.map(
+          (el) =>
+            (el = {
+              ...el,
+              isAvailable:
+                tags.filter(
+                  (tag) =>
+                    el.id_utilisateur === tag.associe_a &&
+                    getProject(soutenance.id_sujet).tags.filter((t) =>
+                      t.id_tag.toLowerCase().indexOf(tag.toLowerCase())
+                    ).length > 0
+                ).length > 0,
+            })
+        ),
+      };
+    store.dispatch({ type: "UPDATE_SOUTENANCE", payload: soutenance });
+  }
+}
+
+export function checkSoutenanceValid(soutenance) {
+  return (
+    soutenance.invite.filter(
+      (i) => i.role === "président" || i.role === "rapporteur"
+    ).length > 1
+  );
+}
+
+export function checkMultipleSoutenanceValid(soutenances) {
+  for (let s of soutenances) {
+    var length =
+      s.invite.filter((i) => i.role === "président" || i.role === "rapporteur")
+        .length > 1;
+    if (!length) return false;
+  }
+  return true;
+}
+
+export function setSoutenanceInvited(soutenance) {
+  const project = getProject(soutenance.id_sujet);
+  var temp = soutenance;
+  if (project.enc_prim)
+    temp.invite = [
+      ...temp.invite,
+      { ...getUserByID(project.enc_prim), role: "encadrant" },
+    ];
+  if (project.enc_sec)
+    temp.invite = [
+      ...temp.invite,
+      { ...getUserByID(project.enc_sec), role: "encadrant" },
+    ];
+  if (project.id_etudiant)
+    temp.invite = [
+      ...temp.invite,
+      { ...getUserByID(project.entudiant), role: "etudiant" },
+    ];
+  if (project.id_etudiant_2)
+    temp.invite = [
+      ...temp.invite,
+      { ...getUserByID(project.etudiant_2), role: "etudiant" },
+    ];
+  for (let aff of project.affecte_a)
+    temp.invite = [
+      ...temp.invite,
+      { ...getUserByID(aff.id_utilisateur), role: "etudiant" },
+    ];
+
+  store.dispatch({ type: "UPDATE_SOUTENANCE", payload: temp });
+}
+
+export function setSoutenanceSale(soutenance, sale = null) {
+  const state = store.getState();
+  var soutenances = state.soutenance.soutenances;
+  var sales = state.soutenance.values.sales.replace(" ", "").split(",");
+  var temp = soutenance;
+
+  if (sale) {
+    var neighbors = soutenances.filter(
+      (s) => s.date === temp.date && s.crenau === temp.crenau
+    );
+    for (let s of neighbors) {
+      if (s.sale === sale) s.sale = "";
+      store.dispatch({ type: "UPDATE_SOUTENANCE", payload: s });
+    }
+
+    temp.sale = sale;
+    store.dispatch({ type: "UPDATE_SOUTENANCE", payload: temp });
+  }
+}
+
+export const teachersStatistics = () => {
+  const state = store.getState();
+  const soutenances = state.soutenance.soutenances;
+  var teachers = {};
+
+  for (let s of soutenances)
+    for (let i of s.invite)
+      teachers = { ...teachers, [i.nom]: teachers[i.nom] + 1 || 1 };
+
+  console.log(teachers);
+};
+
+export function saveSoutenances() {
+  store.dispatch({ type: "OPEN_BACKDROP" });
+  const state = store.getState();
+  const soutenances = state.soutenance.soutenances;
+  var inviteForDB = [];
+  var soutenanceForDB = [];
+  for (let s of soutenances) {
+    for (let i of s.invite)
+      inviteForDB.push({
+        id_utilisateur: i.id_utilisateur,
+        id_soutenance: s.id_soutenance,
+        role: i.role,
+      });
+    soutenanceForDB.push({
+      id_soutenance: s.id_soutenance,
+      id_sujet: s.id_sujet,
+      date: s.date,
+      crenau: s.crenau,
+      sale: s.sale,
+    });
+  }
+
+  saveToDatabase(soutenanceForDB, inviteForDB)
+    .then((res) => {
+      if (res.status === 200) {
+        store.dispatch({
+          type: "OPEN_SNACK",
+          payload: { message: "Soutenances enrégistrées", type: "success" },
+        });
+      }
+    })
+    .catch((err) => console.error(err));
 }

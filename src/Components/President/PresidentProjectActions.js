@@ -116,7 +116,7 @@ function PresidentProjectActions(props) {
           ) : (
             <>
               <Hidden xsDown>
-                <ButtonGroup size={props?.size || "medium"}>
+                <ButtonGroup size="small">
                   <Button
                     color="primary"
                     onClick={() => {
@@ -161,12 +161,13 @@ function PresidentProjectActions(props) {
           </Tooltip>
         ) : (
           <Button
+            style={{ textTransform: "none" }}
             size="small"
             variant="outlined"
             color="primary"
             onClick={() => setDecisionDialog(true)}
           >
-            Modifier
+            Modifier décision
           </Button>
         )}
       </>

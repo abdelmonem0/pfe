@@ -19,6 +19,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Notifications_Types } from "../../../Constants";
 import { checkNotification, getNotifications } from "../../../functions";
+import { getNotificationText } from "./logic";
 
 export default function NotificationBar(props) {
   const [anchor, setAnchor] = useState(null);
@@ -42,7 +43,7 @@ export default function NotificationBar(props) {
           {checkedNots.length > 0 ? (
             <NotificationsActive color="secondary" />
           ) : (
-            <Notifications color="default" />
+            <Notifications style={{ fill: "white" }} />
           )}
         </Badge>
       </IconButton>
@@ -97,47 +98,11 @@ const NotificationsMenu = (props) => {
   );
 };
 
-function getNotificationText(notification, users) {
-  function getUser(id) {
-    return users.filter((us) => us.id_utilisateur === id)[0];
-  }
-  var suffixe = "",
-    prefixe = "";
-
-  switch (notification.type) {
-    case Notifications_Types.comment:
-      suffixe = " a ajouté un commentaire dans un sujet que vous suivez.";
-      prefixe = getUser(notification.id_source).nom;
-      break;
-    case Notifications_Types.president_set_dates:
-      prefixe = "Le president de la commission ";
-      suffixe = "a mis les dates des soutenances.";
-      break;
-    case Notifications_Types.president_update_dates:
-      prefixe = "Le president de la commission ";
-      suffixe = "a modifié les dates des soutenances.";
-      break;
-    case Notifications_Types.president_notify_teachers_for_tags:
-      prefixe = "Le president de la commission ";
-      suffixe = "vous invite pour spécifier vos spécialités.";
-      break;
-    case Notifications_Types.president_notify_teachers_for_dates:
-      prefixe = "Le president de la commission ";
-      suffixe = "vous invite pour spécifier les dates de disponibilité.";
-      break;
-    default:
-      prefixe = "not handlet yet, check it";
-      break;
-  }
-
-  return prefixe + suffixe;
-}
-
 const Notification = (props) => {
   const { notification, key, divider } = props;
   const users = useSelector((state) => state.users.all);
 
-  const text = getNotificationText(notification, users);
+  const text = getNotificationText(notification);
 
   useEffect(() => {
     if (!notification.check)

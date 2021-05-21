@@ -1,4 +1,4 @@
-import { React, useEffect, useState } from "react";
+import { React, useState } from "react";
 import {
   Button,
   TextField,
@@ -12,15 +12,17 @@ import { Autocomplete } from "@material-ui/lab";
 import moment from "moment";
 import "moment/locale/fr";
 import { useSelector, useDispatch } from "react-redux";
-import { addFileToDatabase, addProject, getProjects } from "../../functions";
-import UploadFile from "../UploadFile";
-import { v4 as uuid } from "uuid";
+import UploadFile from "../../UploadFile";
+import {
+  initialErrors,
+  initialForm,
+  validate,
+  addProjectToDatabase,
+} from "./logic";
 
 moment.locale("fr");
 
 function AddProject(props) {
-  const dispatch = useDispatch();
-  const files = useSelector((state) => state.files);
   const current = useSelector((state) => state.users.current);
   const users = useSelector((state) => state.users.all)
     .filter(
@@ -29,33 +31,15 @@ function AddProject(props) {
         object.id_utilisateur !== current.id_utilisateur
     )
     .sort((a, b) => a.nom.localeCompare(b.nom));
-
-  const [techs, setTechs] = useState("");
   const [values, setValues] = useState({
     encSec: false,
   });
-  const [errors, setErrors] = useState({
-    titre: "",
-    description: "",
-    travail: "",
-    techs: "",
-    enc_sec: "",
-    lieu: "",
-    enc_ext: "",
-  });
-  const [form, setForm] = useState({
-    titre: "",
-    description: "",
-    travail: "",
-    interne: current.role === "etudiant" ? false : true,
-    enc_prim: current.role === "enseignant" ? current.id_utilisateur : null,
-    enc_sec: null,
-    interne: current.role === "etudiant" ? false : true,
-    date: new Date(),
-  });
+  const [errors, setErrors] = useState(initialErrors);
+  const [form, setForm] = useState(initialForm);
 
   const onTextChange = (e) => {
     setForm({ ...form, [e.target.id]: e.target.value });
+    setErrors({ ...errors, [e.target.id]: "" });
   };
 
   const onAutocompleteChange = (e, option) => {
@@ -64,108 +48,12 @@ function AddProject(props) {
   };
 
   const sendData = () => {
-    const id_sujet = uuid();
-    if (!validate()) return;
-
-    const object = { sujet: { ...form, id_sujet }, tags: techs };
-    dispatch({ type: "OPEN_BACKDROP" });
-    addProject(object)
-      .then((res) => {
-        if (!form.interne) {
-          const file = [
-            files[0].path,
-            current.id_utilisateur,
-            id_sujet,
-            "fiche externe",
-          ];
-          addFileToDatabase([file]);
-        }
-        dispatch({ type: "CLOSE_BACKDROP" });
-        dispatch({
-          type: "OPEN_SNACK",
-          payload: {
-            open: true,
-            message: "Projet ajouté avec succès.",
-            type: "success",
-          },
-        });
-      })
-      .catch((err) => console.error(err));
-  };
-
-  const validate = () => {
-    var temp = {};
-    temp.titre =
-      form.titre.length > 0
-        ? form.titre.length < 255
-          ? ""
-          : "Le titre ne doit pas depasser 255 charactères."
-        : "Ce champs est obligatoire.";
-    temp.description =
-      form.description.length > 0
-        ? form.description.length < 21844
-          ? ""
-          : "Ce n'est qu'une description, vous n'êtes pas censé écrire un livre ici!"
-        : "Ce champs est obligatoire.";
-    temp.travail =
-      form.travail.length > 0
-        ? form.travail.length < 21844
-          ? ""
-          : "Ce n'est qu'une description, vous n'êtes pas censé écrire un livre ici!"
-        : "Ce champs est obligatoire.";
-    temp.enc_sec = values.encSec
-      ? !form.enc_sec || form.enc_sec.length === 0
-        ? "Vous avez coucher l'option deuxieme encadrant, vous devez le specifier!"
-        : ""
-      : "";
-    temp.techs =
-      techs.length > 0
-        ? techs.length > 20
-          ? "Ce champs ne peut pas contenir plus que 20 technologies."
-          : techs.filter((el) => el.length > 100).length > 0
-          ? "Chaque technologie ne doit pas comporter plus que 100 charactères."
-          : ""
-        : "Ce champs est obligatoir.";
-    temp.lieu = !form.interne
-      ? !form.lieu || form.lieu.length === 0
-        ? "Tant que le projet est externe, ce champs est obligatoir."
-        : form.lieu.length > 100
-        ? "Ce champs ne peut pas comporter plus que 100 charactères."
-        : ""
-      : "";
-    temp.enc_ext = !form.interne
-      ? !form.enc_ext || form.enc_ext.length === 0
-        ? "Tant que le projet est externe, ce champs est obligatoir."
-        : form.enc_ext.length > 36
-        ? "Ce champs ne peut pas comporter plus que 36 charactères."
-        : ""
-      : "";
-
-    setErrors(temp);
-    if (Object.values(temp).every((el) => el.length === 0)) {
-      if (!form.interne && files.length === 0) {
-        dispatch({
-          type: "OPEN_SNACK",
-          payload: {
-            type: "error",
-            message: "Ajouter une fiche externe!",
-            open: true,
-          },
-        });
-        return false;
-      }
-      return true;
-    } else {
-      dispatch({
-        type: "OPEN_SNACK",
-        payload: {
-          type: "error",
-          message: "Remplire tout les champs",
-          open: true,
-        },
-      });
-      return false;
+    const { isValidated, errors } = validate(form, values);
+    if (!isValidated) {
+      setErrors(errors);
+      return;
     }
+    addProjectToDatabase(form);
   };
 
   const toggleEncSec = () => {
@@ -175,12 +63,6 @@ function AddProject(props) {
       setForm({ ...form, enc_sec: null });
     }
   };
-
-  useEffect(() => {
-    return getProjects().then((result) => {
-      dispatch({ type: "SET_PROJECTS", payload: result.data });
-    });
-  }, []);
 
   return (
     <div
@@ -311,11 +193,14 @@ function AddProject(props) {
           color="primary"
           label="Technologies/outils"
           multiline
-          error={errors.techs.length > 0}
-          helperText={errors.techs}
+          error={errors.tags.length > 0}
+          helperText={errors.tags}
           placeholder='Separer les elements par un virgule. ex: "NodeJS, ReactJS, mySQL"'
           onChange={(e) => {
-            setTechs(e.target.value.replace(/\s/g, "").split(","));
+            setForm({
+              ...form,
+              tags: e.target.value.replace(/\s/g, "").split(","),
+            });
           }}
           style={{ flex: "1 1 100%" }}
         />

@@ -1,12 +1,15 @@
-import { Button, Typography } from "@material-ui/core";
+import { Button, Checkbox, Paper, Typography } from "@material-ui/core";
 import React, { useState } from "react";
 import Infos from "./Infos";
 import {
-  assignTeachersToProjects,
+  assignTeachers,
   createSoutenances,
-  getProject,
-  getUser,
+  saveSoutenances,
+  teachersStatistics,
 } from "./SoutenanceLogic";
+import SoutenanceHolder from "./SoutenanceHolder";
+import { useDispatch, useSelector } from "react-redux";
+import Feedback from "./Feedback";
 
 function Soutenances(props) {
   const {
@@ -20,24 +23,37 @@ function Soutenances(props) {
     projects,
     teachers,
   } = props;
-  const [data, setData] = useState({ soutenances: [], teachers: [] });
+  const soutenances = useSelector((state) => state.soutenance.soutenances);
+  const dispatch = useDispatch();
 
-  const _projects = projects.filter(
-    (p) => selectedProjects.indexOf(p.id_sujet) > -1
-  );
-  const _teachers = teachers.filter(
-    (u) => selectedTeachers.indexOf(u.id_utilisateur) > -1
-  );
+  const [parameters, setParameters] = useState({ fullTeachers: false });
+  const [feedback, setFeedback] = useState({});
+  const [showFeedback, setShowFeedback] = useState(false);
 
-  const combinedProjectsTeachers = assignTeachersToProjects(
-    { projects: _projects, teachers: _teachers },
-    false
-  );
+  const create = () => {
+    const ss = createSoutenances({
+      selectedTeachers,
+      selectedProjects,
+      startDate,
+      endDate,
+      maxCrenaux,
+      sales,
+      presidents,
+    });
+    dispatch({ type: "SET_SOUTENANCES", payload: ss });
+  };
 
-  console.log(combinedProjectsTeachers);
+  const handleAssignTeachers = () => {
+    const fBack = assignTeachers(
+      parameters.tags || false,
+      parameters.dates || false
+    );
+    setFeedback({ ...feedback, assignedTeachers: fBack });
+    setShowFeedback(true);
+  };
 
   return (
-    <div>
+    <div style={{ paddingBottom: "10rem" }}>
       <Infos
         startDate={startDate}
         endDate={endDate}
@@ -49,67 +65,70 @@ function Soutenances(props) {
         projects={projects}
         teachers={teachers}
       />
-      <Button
-        onClick={() =>
-          setData(
-            createSoutenances({
-              selectedTeachers,
-              selectedProjects: combinedProjectsTeachers,
-              startDate,
-              endDate,
-              maxCrenaux,
-              sales,
-              presidents,
-            })
-          )
-        }
-      >
-        Test
-      </Button>
-      <div
-        className="horizontal-list"
-        style={{ flexWrap: "wrap", alignItems: "flex-start" }}
-      >
-        {data.soutenances.map((sout) => (
-          <div
-            style={{
-              flex: "1 1 45%",
-              padding: "1rem",
-              border: "1px solid gray",
-            }}
-          >
-            <Typography gutterBottom variant="h6">
-              {getProject(sout.sujet.id_sujet).titre}
-            </Typography>
-            <div calssName="horizontal-list">
-              <Typography>Date: {sout.date}</Typography>
-              <Typography>Sale: {sout.sale}</Typography>
-              <Typography>Crenau: {sout.crenau}</Typography>
-            </div>
-            <div className="horizontal-list" style={{ flexWrap: "wrap" }}>
-              {sout.invite.map((invite) => (
-                <div
-                  className="horizontal-list"
-                  style={{
-                    padding: "0.5rem",
-                    border: "1px solid lightgay",
-                  }}
-                >
-                  <Typography>{getUser(invite.id_utilisateur).nom}</Typography>
-                  <Typography>{invite.role}</Typography>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-        {data.teachers.map((teach) => (
-          <div className="horizontal-list">
-            <Typography>{teach.soutenances.length}</Typography>
-          </div>
-        ))}
-      </div>
+      <Paper variant="outlined" className="horizontal-list wrap">
+        <Typography variant="h6" color="primary" style={{ flex: "1 1 100%" }}>
+          Paramètres des soutenances
+        </Typography>
+        <Parameter
+          text="Affecter rapporteurs et présidents"
+          parameters={parameters}
+          currentParameter="fullTeachers"
+          setParameters={setParameters}
+        />
+        <Parameter
+          text="Strict tags"
+          parameters={parameters}
+          currentParameter="tags"
+          setParameters={setParameters}
+        />
+        <Parameter
+          text="Strict dates"
+          parameters={parameters}
+          currentParameter="dates"
+          setParameters={setParameters}
+        />
+
+        <div style={{ flex: "1 1 100%" }} />
+        <Button onClick={create}>Générer</Button>
+        <Button onClick={handleAssignTeachers}>Assign teachers</Button>
+        <Button onClick={teachersStatistics}>Teachers stats</Button>
+        {showFeedback && (
+          <Feedback
+            showFeedback={showFeedback}
+            setShowFeedback={setShowFeedback}
+            assignedTeachers={feedback.assignedTeachers}
+          />
+        )}
+      </Paper>
+      <Button onClick={() => saveSoutenances()}>save</Button>
+      {soutenances && <SoutenanceHolder soutenances={soutenances} />}
     </div>
   );
 }
 
 export default Soutenances;
+
+const Parameter = (props) => {
+  const { text, setParameters, parameters, currentParameter } = props;
+
+  return (
+    <div
+      className="horizontal-list"
+      style={{ alignItems: "center" }}
+      onClick={() =>
+        setParameters({
+          ...parameters,
+          [currentParameter]: !parameters[currentParameter],
+        })
+      }
+      style={{ cursor: "pointer" }}
+    >
+      <Checkbox style={{ padding: 0 }} checked={parameters[currentParameter]} />
+      <Typography
+        color={parameters[currentParameter] ? "secondary" : "textPrimary"}
+      >
+        {text}
+      </Typography>
+    </div>
+  );
+};

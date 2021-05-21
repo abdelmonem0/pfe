@@ -72,14 +72,7 @@ function DateSale(props) {
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="horizontal-list wrap">
           <KeyboardDatePicker
             margin="normal"
             id="date-picker-dialog"
@@ -120,7 +113,7 @@ function DateSale(props) {
             Enrégistrer
           </Button>
         </div>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div className="horizontal-list wrap">
           <Autocomplete
             options={["1", "2", "3", "4", "5"]}
             getOptionLabel={(option) => option}
@@ -144,9 +137,7 @@ function DateSale(props) {
             style={{ minWidth: "16rem" }}
           />
         </div>
-        <div
-          style={{ display: "flex", gap: "1rem", alignItems: "center" }}
-        ></div>
+        <div className="horizontal-list wrap"></div>
         <div></div>
       </div>
     </MuiPickersUtilsProvider>

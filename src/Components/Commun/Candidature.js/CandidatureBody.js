@@ -1,14 +1,6 @@
-import {
-  CardContent,
-  Collapse,
-  Paper,
-  Typography,
-  Tooltip,
-  Button,
-  useTheme,
-} from "@material-ui/core";
-import { DateRange } from "@material-ui/icons";
+import { Paper, Typography, useTheme } from "@material-ui/core";
 import React, { useState } from "react";
+import { getProjectByID } from "../../Enseignant/Candidatures/logic";
 import AttachedFiles from "../AttachedFiles";
 import ProjectDetail from "../ProjectDetail";
 import { getProject, getUserByID, withAttachments } from "./CandidatureLogic";
@@ -33,9 +25,8 @@ function CandidatureBody(props) {
 export default CandidatureBody;
 
 const Attachments = (props) => {
-  const theme = useTheme();
   const { candidature } = props;
-  const [open, setOpen] = useState(false);
+  const project = getProjectByID(candidature.id_sujet);
 
   const student1Files = candidature.fichiers.filter(
     (f) => f.id_utilisateur === candidature.id_etudiant
@@ -45,8 +36,6 @@ const Attachments = (props) => {
   );
   const comment1 = candidature.commentaires;
   const comment2 = candidature.commentaire_2;
-
-  console.log(student1Files);
 
   return (
     <Paper
@@ -67,7 +56,7 @@ const Attachments = (props) => {
                 Commentaire:{" " + candidature.commentaires}
               </Typography>
             )}
-            <AttachedFiles fichiers={student1Files} />
+            <AttachedFiles project={project} />
           </Paper>
         )}
         {(comment2 || student2Files.length > 0) && (
@@ -83,7 +72,7 @@ const Attachments = (props) => {
                 Commentaire:{" " + candidature.commentaire_2}
               </Typography>
             )}
-            <AttachedFiles fichiers={student2Files} />
+            <AttachedFiles project={project} />
           </Paper>
         )}
       </div>
