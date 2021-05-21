@@ -259,7 +259,7 @@ export function getSoutenanceAvailable(soutenance) {
   }
   for (let t of teachers) {
     //check if teacher has matched tags
-    t = { ...t, matched: getMatchedTags(soutenance.id_sujet, t) };
+    t = { ...t, matched: getMatchedTags(soutenance, t) };
     //check if teacher has matched date
     t = { ...t, matchedDate: getMatchedDates(soutenance, t) };
     //check if teacher can be president
@@ -275,8 +275,12 @@ export function getSoutenanceAvailable(soutenance) {
   return _teachers;
 }
 
-function getMatchedTags(projectId, teacher) {
-  const project = getProjectByID(projectId);
+function getMatchedTags(soutenance, teacher) {
+  const project = getProjectByID(soutenance.id_sujet);
+  if (!project) {
+    console.log(soutenance);
+    return;
+  }
   var matched = [];
 
   for (let tTag of teacher.tags)
