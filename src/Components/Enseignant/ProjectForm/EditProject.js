@@ -314,6 +314,7 @@ function EditProject(props) {
         <ConfirmDialog
           title="Supprimer le sujet"
           body="Confimer la suppression du sujet"
+          onConfirm={() => alert("Pas encore implementé")}
         >
           <Button
             style={{

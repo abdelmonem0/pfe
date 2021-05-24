@@ -3,10 +3,8 @@ import { Candidature_States, Notifications_Types } from "../../../Constants";
 import {
   acceptCandidatureEnseignant,
   getCandidatures,
-  sendEmail,
   sendNotifications,
 } from "../../../functions";
-import { getUserByID } from "../../Commun/Candidature.js/CandidatureLogic";
 
 export function teacherCandidatureDecision(candidature, isAccepted) {
   const state = store.getState();
@@ -45,10 +43,6 @@ export function teacherCandidatureDecision(candidature, isAccepted) {
       })
     )
     .then(() => {
-      sendCandidatureEmail(etat, [
-        candidature.id_etudiant,
-        candidature.id_etudiant_2,
-      ]);
       sendCandidatureNotification(etat, candidature, [
         candidature.id_etudiant,
         candidature.id_etudiant_2,
@@ -65,24 +59,6 @@ export function teacherCandidatureDecision(candidature, isAccepted) {
         },
       })
     );
-}
-
-function sendCandidatureEmail(etatCandidature, studentsIDs) {
-  var emails = [];
-  if (etatCandidature === Candidature_States.accepted) {
-    for (let studentID of studentsIDs)
-      if (studentID) {
-        const student = getUserByID(studentID);
-        const subject = "Réponse pour une candidature";
-        const text = `Bonjour ${student.nom}.\n
-            Vous avez eu une acceptation pour votre candidature. Veuillez consulter la platforme pour la vérifier.\n
-            Cordialement."`;
-        const to = "mon3omlevrai@gmail.com";
-
-        emails.push({ subject, text, to });
-      }
-  }
-  if (emails.length > 0) sendEmail(emails).catch((err) => console.error(err));
 }
 
 function sendCandidatureNotification(

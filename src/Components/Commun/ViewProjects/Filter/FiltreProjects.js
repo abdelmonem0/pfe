@@ -10,117 +10,101 @@ import {
 } from "@material-ui/core";
 import { ExpandLess, ExpandMore } from "@material-ui/icons";
 import React, { useEffect, useState } from "react";
+import { store } from "../../../..";
 import { Project_States } from "../../../../Constants";
 import { sortByDate } from "../logic";
 import Filter from "./Filter";
 
 function FiltreProjects(props) {
   const [expand, setExpand] = useState(false);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [currentFilter, setCurrentFilter] = useState([]);
+  const [multiFilters, setMultiFilters] = useState(false);
   const { projects, setProjects, fetchedProjects } = props;
 
-  function resetAll() {
-    setSelectedTags([]);
-  }
+  const filters = getFilters();
+  function resetAll() {}
 
-  function getTags() {
-    var tagsArray = [];
-    fetchedProjects.forEach((proj) => {
-      var projTags = [];
-      proj.tags.forEach((t) => projTags.push(t.id_tag.replace(" ", "")));
-      tagsArray = tagsArray.concat(projTags);
-    });
+  const handleFilterButton = (event) => {
+    const filter = event.target.innerHTML;
+    var filtered = fetchedProjects;
+    var _filters = [...currentFilter];
+    if (_filters.indexOf(filter) < 0) _filters = [...currentFilter, filter];
+    else _filters = currentFilter.filter((f) => f !== filter);
+    setCurrentFilter(_filters);
 
-    tagsArray = tagsArray.filter((el, idx) => tagsArray.indexOf(el) === idx);
-    tagsArray = tagsArray.sort((a, b) =>
-      a.toLowerCase().localeCompare(b.toLowerCase())
-    );
-    return tagsArray;
-  }
-  const tags = getTags();
+    if (_filters.indexOf(filters.with_cahier) > -1)
+      filtered = filtered.filter(
+        (project) =>
+          project.fichiers.length > 0 &&
+          project.fichiers.filter(
+            (f) => f.type.toLowerCase().indexOf("cahier") > -1
+          ).length > 0
+      );
 
-  function handleTagClick(tag) {
-    var sTags = selectedTags;
-    if (selectedTags.indexOf(tag) === -1) sTags = [...sTags, tag];
-    else sTags = sTags.filter((el) => el !== tag);
+    if (_filters.indexOf(filters.affected) > -1)
+      filtered = filtered.filter((project) => project.affecte_a.length > 0);
 
-    setSelectedTags(sTags);
-  }
+    if (_filters.indexOf(filters.not_affected) > -1)
+      filtered = filtered.filter((project) => project.affecte_a.length === 0);
 
-  function tagIsSelected(tag) {
-    return selectedTags.indexOf(tag) !== -1;
-  }
+    if (_filters.indexOf(filters.accepted) > -1)
+      filtered = filtered.filter(
+        (project) => project.etat === Project_States.accepted
+      );
 
-  function filterByTag(p) {
-    var filtered = p.filter(
-      (el) =>
-        el.tags.filter((el1) => selectedTags.indexOf(el1.id_tag) !== -1)
-          .length > 0
-    );
-    if (selectedTags.length === 0) filtered = fetchedProjects;
+    if (_filters.indexOf(filters.refused) > -1)
+      filtered = filtered.filter(
+        (project) => project.etat === Project_States.refused
+      );
 
-    return filtered;
-  }
+    if (_filters.indexOf(filters.waiting) > -1)
+      filtered = filtered.filter(
+        (project) => project.etat === Project_States.waiting
+      );
 
-  function sort(p) {
-    p.sort((a, b) => {
-      return a.etat > b.etat;
-    });
-    p.sort((a, b) => {
-      return a.affecte_a.length > b.affecte_a.length;
-    });
-    for (let pr of p) console.log(pr.etat, pr.affecte_a.length > 0);
-  }
-
-  useEffect(() => {
-    var temp = filterByTag(fetchedProjects);
-
-    if (temp.length < 1) temp = fetchedProjects;
-    sort(temp);
-    setProjects(temp);
-  }, [selectedTags]);
+    setProjects(filtered);
+  };
 
   return (
     <Paper style={{ padding: "0.5rem" }}>
-      <div
-        style={{
-          display: "flex",
-          gap: "1rem",
-          alignItems: "center",
-        }}
-      >
+      <div className="horizontal-list">
         <Typography variant="h6">Filtrer les sujets</Typography>
         <IconButton onClick={() => setExpand(!expand)}>
           {expand ? <ExpandLess /> : <ExpandMore />}
         </IconButton>
-        <Button size="small" onClick={() => resetAll()}>
-          Reset
-        </Button>
+        <Button size="small">Reset</Button>
       </div>
       <Collapse in={expand}>
-        <div style={{ padding: "0.5rem" }}>
-          <div className="horizontal-list">
-            <Typography gutterBottom>Par categories</Typography>
-            <TextField size="small" variant="outlined" />
-          </div>
-          <div className="horizontal-list wrap">
-            {tags.map((tag) => (
-              <Chip
-                color={tagIsSelected(tag) ? "primary" : "default"}
-                variant={tagIsSelected(tag) ? "default" : "outlined"}
-                onClick={() => handleTagClick(tag)}
-                size="small"
-                label={tag}
-                key={tag}
-              />
-            ))}
-          </div>
+        <div
+          className="horizontal-list pointer"
+          onClick={() => setMultiFilters(!multiFilters)}
+        >
+          <Checkbox checked={multiFilters} />
+          <Typography color={multiFilters ? "secondary" : "textPrimary"}>
+            Filtres multiples
+          </Typography>
         </div>
-        <div>
-          <Typography gutterBottom>Filtrer</Typography>
-          <div className="vertical-list">
-            <Filter text="Par date de création" />
-          </div>
+        <div className="horizontal-list wrap">
+          {Object.keys(filters).map((key) => {
+            return (
+              (filters[key].length > 0 && (
+                <Button
+                  onClick={handleFilterButton}
+                  color={
+                    currentFilter.indexOf(filters[key]) > -1
+                      ? "primary"
+                      : "default"
+                  }
+                  size="small"
+                  style={{ textTransform: "none" }}
+                  variant="outlined"
+                >
+                  {filters[key]}
+                </Button>
+              )) ||
+              null
+            );
+          })}
         </div>
       </Collapse>
     </Paper>
@@ -128,3 +112,18 @@ function FiltreProjects(props) {
 }
 
 export default FiltreProjects;
+
+const getFilters = () => {
+  const state = store.getState();
+  const role = state.users.current.role;
+  return {
+    liked: role === "etudiant" ? "Sujets aimés" : "",
+    personal: role === "etudiant" || role === "enseignant" ? "Mes sujets" : "",
+    with_cahier: role === "president" ? "Sujets avec cahier de charge" : "",
+    affected: "Sujets affectés",
+    not_affected: "Sujets non affectés",
+    accepted: "Sujets acceptés",
+    refused: role === "president" ? "Sujets réfusées" : "",
+    waiting: "Sujets en instance",
+  };
+};

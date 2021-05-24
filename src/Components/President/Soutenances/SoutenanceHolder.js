@@ -1,12 +1,11 @@
 import { Button } from "@material-ui/core";
 import React from "react";
-import { useSelector } from "react-redux";
 import SoutenanceDay from "./SoutenanceDay";
 import { equalizeCrenaux, getDays, filterByDates } from "./SoutenanceLogic";
 
-function SoutenanceHolder() {
-  const soutenances = useSelector((state) => state.soutenance.soutenances);
-  const days = getDays(soutenances);
+function SoutenanceHolder(props) {
+  const { soutenances, values, saved } = props;
+  const days = getDays(soutenances, values);
 
   return (
     <div>
@@ -21,7 +20,7 @@ function SoutenanceHolder() {
         style={{ alignItems: "flex-start" }}
       >
         {days.map((day, index) => (
-          <SoutenanceDay key={index} date={day} />
+          <SoutenanceDay saved={saved} key={index} date={day} />
         ))}
       </div>
     </div>

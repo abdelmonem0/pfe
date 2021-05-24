@@ -143,11 +143,11 @@ function Teachers(props) {
     )
       .then(() => {
         var message = isForTags
-          ? "Notifications pour spécialités envoyés"
+          ? "Notifications pour tags envoyés"
           : "Notifications pour dates envoyés";
         dispatch({
           type: "OPEN_SNACK",
-          payload: { open: true, message, type: "success" },
+          payload: { message, type: "success" },
         });
       })
       .catch((err) => console.error(err));

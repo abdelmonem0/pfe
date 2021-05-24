@@ -15,6 +15,7 @@ import notificationsReducer from "./notifications";
 import datesReducer from "./dates";
 import avisReducer from "./avis";
 import parametersReducer from "./parameters";
+import savedSoutenanceReducer from "./savedSoutenance";
 
 const persistConfig = {
   key: "root",
@@ -42,6 +43,7 @@ const allReducers = combineReducers({
   likes: likesReducer,
   tags: tagsReducer,
   soutenance: soutenanceReducer,
+  savedSoutenance: savedSoutenanceReducer,
   notifications: notificationsReducer,
   dates: datesReducer,
   parameters: parametersReducer,

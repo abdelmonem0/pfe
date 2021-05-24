@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addTeacherTags,
   deleteTeacherTag,
+  getAllTags,
   getTeacherTags,
 } from "../../../functions";
 
@@ -17,13 +18,50 @@ function Tags(props) {
     setTags(e.target.value);
   };
 
-  function sendTags() {
-    addTeacherTags(current.id_utilisateur, tagsValue.split(",")).then(() =>
-      getTeacherTags(current.id_utilisateur).then((result) =>
-        dispatch({ type: "SET_TAGS", payload: result.data })
-      )
+  const sendTags = () => {
+    var tags_ = tagsValue
+      .split(",")
+      .map((t) => t.trim().replace(/\s/g, " "))
+      .filter((t) => t.length > 0);
+
+    for (let st of tags) {
+      for (let nt of tags_)
+        if (
+          st.id_tag.toLowerCase().replace(/\s/g, "") ===
+          nt.toLowerCase().replace(/\s/g, "")
+        )
+          tags_ = tags_.filter(
+            (t) =>
+              t.toLowerCase().replace(/\s/g, "") !==
+              st.id_tag.toLowerCase().replace(/\s/g, "")
+          );
+    }
+    if (tags_.length === 0) {
+      dispatch({
+        type: "OPEN_SNACK",
+        payload: {
+          message: "Pas de nouveaux tags à ajouter.",
+          type: "warning",
+        },
+      });
+      setTags("");
+      return;
+    }
+
+    addTeacherTags(current.id_utilisateur, tags_).then(() =>
+      getTeacherTags(current.id_utilisateur).then((result) => {
+        dispatch({ type: "SET_TAGS", payload: result.data });
+        dispatch({
+          type: "OPEN_SNACK",
+          payload: {
+            message: tags_.length + " tags enrégistrés avec succès.",
+            type: "success",
+          },
+        });
+      })
     );
-  }
+    setTags("");
+  };
 
   useEffect(
     () =>
@@ -35,33 +73,59 @@ function Tags(props) {
 
   function deleteTag(tag) {
     deleteTeacherTag(current.id_utilisateur, tag).then(() =>
-      getTeacherTags(current.id_utilisateur).then((result) =>
-        dispatch({ type: "SET_TAGS", payload: result.data })
-      )
+      getTeacherTags(current.id_utilisateur).then((result) => {
+        dispatch({ type: "SET_TAGS", payload: result.data });
+        dispatch({
+          type: "OPEN_SNACK",
+          payload: { message: "Tag supprimé", type: "success" },
+        });
+      })
     );
   }
 
   return (
-    <div style={{ display: "flex", flex: "1 1 100%" }}>
-      <div style={{ flex: "1 1 50%" }}>
-        <Typography>Ajouter des tags</Typography>
-        <TextField
-          fullWidth
-          variant="outlined"
-          label="tags"
-          placeholder=""
-          onChange={(e) => handletagsChange(e)}
-        />
-        <Typography>{tagsValue}</Typography>
-        <Button variant="outlined" color="primary" onClick={() => sendTags()}>
-          Ajouter
-        </Button>
+    <>
+      <div className="vertical-list">
+        <div>
+          <Typography>Ajouter des tags</Typography>
+          <div className="horizontal-list" style={{ alignItems: "flex-start" }}>
+            <TextField
+              fullWidth
+              size="small"
+              variant="outlined"
+              label="Tags"
+              value={tagsValue}
+              placeholder="Séparez chaque tag par un virgule. Un tag ne peut pas dépasser 100 characères."
+              onChange={(e) => handletagsChange(e)}
+              helperText={
+                (tagsValue.length > 0 &&
+                  tagsValue
+                    .replace(/\s/g, "")
+                    .split(",")
+                    .filter((t) => t.length > 0).length + " tag") ||
+                ""
+              }
+            />
+            <Button variant="outlined" color="primary" onClick={sendTags}>
+              Ajouter
+            </Button>
+          </div>
+        </div>
+        {(tags.length > 0 && (
+          <>
+            <Typography>Vos spacialités</Typography>
+            <div className="horizontal-list wrap">
+              <ViewTags tags={tags} deleteTag={deleteTag} />
+            </div>
+          </>
+        )) || (
+          <Typography color="textSecondary">
+            Vous n'avez pas des tags enrégistrés.
+          </Typography>
+        )}
       </div>
-      <div style={{ flex: "1 1 50%" }}>
-        <Typography>Vos spacialités</Typography>
-        <ViewTags tags={tags} deleteTag={deleteTag} />
-      </div>
-    </div>
+      {/* <TagsScroll /> */}
+    </>
   );
 }
 
@@ -73,6 +137,22 @@ const ViewTags = (props) => {
     <div style={{ display: "flex", gap: "0.5rem" }}>
       {tags.map((tag) => (
         <Chip label={tag.id_tag} onDelete={() => deleteTag(tag.id_tag)} />
+      ))}
+    </div>
+  );
+};
+
+const TagsScroll = () => {
+  const [tags, setTags] = useState([]);
+
+  useEffect(() => {
+    getAllTags().then((result) => setTags(result.data));
+  });
+
+  return (
+    <div className="horizontal-list scrolling-tag">
+      {tags.map((tag, index) => (
+        <Chip label={tag.id_tag} key={index} />
       ))}
     </div>
   );

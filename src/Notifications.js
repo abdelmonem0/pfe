@@ -1,4 +1,4 @@
-import { Notifications_Types } from "./Constants";
+import { Notifications_Types, Project_States } from "./Constants";
 import { sendNotifications } from "./functions";
 
 export function sendCommentNotifications(current, project) {
@@ -68,5 +68,29 @@ export function sendReminderForTeachersNotifications(
     notifications.push(n);
   }
 
+  return sendNotifications(notifications);
+}
+
+export function send_project_action_notification(project, accepted) {
+  var destinations = [];
+  destinations.push(project.enc_prim);
+  destinations.push(project.enc_sec);
+  destinations.push(project.id_etudiant);
+  destinations.push(project.id_etudiant_2);
+  destinations = destinations.filter((d) => d != null);
+
+  var notifications = [];
+  for (let not of destinations) {
+    var n = {
+      id_source: null,
+      id_destination: not,
+      id_objet: project.id_sujet,
+      type: accepted
+        ? Notifications_Types.project_accepted
+        : Notifications_Types.project_refused,
+    };
+    notifications.push(n);
+  }
+  console.log(notifications);
   return sendNotifications(notifications);
 }

@@ -8,18 +8,20 @@ import {
   Typography,
   Button,
 } from "@material-ui/core";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import axios from "axios";
+import { updatePassword } from "../../functions";
 
 function EditProfile() {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.users.current);
   const [values, setValues] = useState({
     visible: false,
     ok: false,
-    ancient: "",
-    newPassword: "",
-    repeatPassword: "",
+    current_password: "",
+    new_password: "",
+    repeated_new_password: "",
   });
 
   const onChange = (event) => {
@@ -30,20 +32,30 @@ function EditProfile() {
     console.log([event.target.id] + " -- " + event.target.value);
   };
 
-  const onClick = () => {
-    axios.post("http://localhost:5000/api/public/change-password", {
-      user: user.id_utilisateur,
-      password: values.newPassword,
-    });
+  const update = () => {
+    updatePassword({
+      id_utilisateur: user.id_utilisateur,
+      current_password: values.current_password,
+      new_password: values.new_password,
+    })
+      .then((result) => {
+        dispatch({
+          type: "OPEN_SNACK",
+          payload: {
+            message: result.data,
+            type: result.status === 200 ? "success" : "error",
+          },
+        });
+      })
+      .catch((err) => console.error(err));
   };
 
   useEffect(() => {
-    console.log("updating");
-    values.newPassword.length > 0 &&
-    values.repeatPassword === values.newPassword
+    values.new_password.length > 0 &&
+    values.repeated_new_password === values.new_password
       ? setValues((values) => ({ ...values, ok: true }))
       : setValues((values) => ({ ...values, ok: false }));
-  }, [values.newPassword, values.repeatPassword]);
+  }, [values.new_password, values.repeated_new_password]);
 
   return (
     <div className="vertical-list" style={{ flex: "1" }}>
@@ -69,9 +81,9 @@ function EditProfile() {
         fullWidth
         label="Ancient mot de passe"
         type={values.visible ? "text" : "password"}
-        id="ancient"
+        id="current_password"
         InputProps={{
-          endAdornment: values.ancient.length > 0 && (
+          endAdornment: values.current_password.length > 0 && (
             <InputAdornment>
               <IconButton
                 onClick={() =>
@@ -88,11 +100,11 @@ function EditProfile() {
         onChange={onChange}
         variant="outlined"
         fullWidth
-        id="newPassword"
+        id="new_password"
         label="Nouveau mot de passe"
         type={values.visible ? "text" : "password"}
         InputProps={{
-          endAdornment: values.newPassword.length > 0 && (
+          endAdornment: values.new_password.length > 0 && (
             <InputAdornment>
               <IconButton
                 onClick={() =>
@@ -109,12 +121,12 @@ function EditProfile() {
         onChange={onChange}
         variant="outlined"
         fullWidth
-        id="repeatPassword"
+        id="repeated_new_password"
         label="Repeter mot de passe"
         type="password"
         type={values.visible ? "text" : "password"}
         InputProps={{
-          endAdornment: values.repeatPassword.length > 0 && (
+          endAdornment: values.repeated_new_password.length > 0 && (
             <InputAdornment>
               <IconButton
                 onClick={() =>
@@ -131,7 +143,7 @@ function EditProfile() {
         disabled={values.ok ? false : true}
         variant="contained"
         color="primary"
-        onClick={() => {}}
+        onClick={update}
       >
         Enregistrer
       </Button>

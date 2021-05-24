@@ -172,130 +172,137 @@ function Dates(props) {
   }, []);
 
   return dates.length > 0 ? (
-    <Paper style={{ flex: "1" }}>
-      {datesSaved && (
-        <Typography variant="h6" color="primary">
-          Vous avez des préférences enregistrés, vous pouvez les modifier en
-          modifiant le tableau suivant.
-        </Typography>
-      )}
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          columnGap: "2rem",
-        }}
-      >
-        <Typography variant="h6">Début: {dates[0].day}</Typography>
-        <Typography variant="h6">Fin: {dates[dates.length - 1].day}</Typography>
-      </div>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  indeterminate={
-                    selectedDates.length > 0 &&
-                    selectedDates.length < dates.length
-                  }
-                  checked={
-                    dates.length > 0 && selectedDates.length === dates.length
-                  }
-                  onChange={() => handleSelectAllDates()}
-                />
-              </TableCell>
-              <TableCell>Jour</TableCell>
-              <TableCell>Crénaux 1</TableCell>
-              <TableCell>Crénaux 2</TableCell>
-              <TableCell>Crénaux 3</TableCell>
-              <TableCell>Crénaux 4</TableCell>
-              <TableCell>Crénaux 5</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {dates.slice(sliceStart, sliceEnd).map((el) => (
-              <TableRow key={el.iso}>
+    <div style={{ flex: "1" }}>
+      <Paper>
+        {datesSaved && (
+          <Typography variant="h6" color="primary">
+            Vous avez des préférences enregistrés, vous pouvez les modifier en
+            modifiant le tableau suivant.
+          </Typography>
+        )}
+        <div className="horizontal-list space-between">
+          <Typography>Début: {dates[0].day}</Typography>
+          <div style={{ height: "1px", backgroundColor: "gray", flex: 1 }} />
+          <Typography>Fin: {dates[dates.length - 1].day}</Typography>
+        </div>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
                 <TableCell padding="checkbox">
-                  {!el.isWeekend && (
-                    <Checkbox
-                      checked={isDateSelected(el.iso)}
-                      onChange={() => handleSelectDate(el.iso)}
-                    />
-                  )}
+                  <Checkbox
+                    indeterminate={
+                      selectedDates.length > 0 &&
+                      selectedDates.length < dates.length
+                    }
+                    checked={
+                      dates.length > 0 && selectedDates.length === dates.length
+                    }
+                    onChange={() => handleSelectAllDates()}
+                  />
                 </TableCell>
-                <TableCell
-                  colSpan={isDateSelected(el.iso) ? 1 : 6}
-                  onClick={() =>
-                    el.isWeekend ? undefined : handleSelectDate(el.iso)
-                  }
-                >
-                  {el.day}
-                </TableCell>
-                {isDateSelected(el.iso) && (
-                  <TableCell>
-                    <Checkbox
-                      onChange={() => handleCrenauxChecked(el.iso, 1)}
-                      checked={isCrenauxSelected(el.iso, 1)}
-                      style={{ padding: "0" }}
-                    />
-                  </TableCell>
-                )}
-                {isDateSelected(el.iso) && (
-                  <TableCell>
-                    <Checkbox
-                      onChange={() => handleCrenauxChecked(el.iso, 2)}
-                      checked={isCrenauxSelected(el.iso, 2)}
-                      style={{ padding: "0" }}
-                    />
-                  </TableCell>
-                )}
-                {isDateSelected(el.iso) && (
-                  <TableCell>
-                    <Checkbox
-                      onChange={() => handleCrenauxChecked(el.iso, 3)}
-                      checked={isCrenauxSelected(el.iso, 3)}
-                      style={{ padding: "0" }}
-                    />
-                  </TableCell>
-                )}
-                {isDateSelected(el.iso) && (
-                  <TableCell>
-                    <Checkbox
-                      onChange={() => handleCrenauxChecked(el.iso, 4)}
-                      checked={isCrenauxSelected(el.iso, 4)}
-                      style={{ padding: "0" }}
-                    />
-                  </TableCell>
-                )}
-                {isDateSelected(el.iso) && (
-                  <TableCell>
-                    <Checkbox
-                      onChange={() => handleCrenauxChecked(el.iso, 5)}
-                      checked={isCrenauxSelected(el.iso, 5)}
-                      style={{ padding: "0" }}
-                    />
-                  </TableCell>
-                )}
+                <TableCell>Jour</TableCell>
+                <TableCell>Crénaux 1</TableCell>
+                <TableCell>Crénaux 2</TableCell>
+                <TableCell>Crénaux 3</TableCell>
+                <TableCell>Crénaux 4</TableCell>
+                <TableCell>Crénaux 5</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[7, dates.length]}
-        component="div"
-        count={dates.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-      />
-      <Button variant="contained" color="primary" onClick={() => saveDates()}>
+            </TableHead>
+            <TableBody>
+              {dates.slice(sliceStart, sliceEnd).map((el) => (
+                <TableRow key={el.iso}>
+                  <TableCell padding="checkbox">
+                    {!el.isWeekend && (
+                      <Checkbox
+                        checked={isDateSelected(el.iso)}
+                        onChange={() => handleSelectDate(el.iso)}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell
+                    colSpan={isDateSelected(el.iso) ? 1 : 6}
+                    onClick={() =>
+                      el.isWeekend ? undefined : handleSelectDate(el.iso)
+                    }
+                  >
+                    {el.day}
+                  </TableCell>
+                  {isDateSelected(el.iso) && (
+                    <TableCell>
+                      <Checkbox
+                        onChange={() => handleCrenauxChecked(el.iso, 1)}
+                        checked={isCrenauxSelected(el.iso, 1)}
+                        style={{ padding: "0" }}
+                      />
+                    </TableCell>
+                  )}
+                  {isDateSelected(el.iso) && (
+                    <TableCell>
+                      <Checkbox
+                        onChange={() => handleCrenauxChecked(el.iso, 2)}
+                        checked={isCrenauxSelected(el.iso, 2)}
+                        style={{ padding: "0" }}
+                      />
+                    </TableCell>
+                  )}
+                  {isDateSelected(el.iso) && (
+                    <TableCell>
+                      <Checkbox
+                        onChange={() => handleCrenauxChecked(el.iso, 3)}
+                        checked={isCrenauxSelected(el.iso, 3)}
+                        style={{ padding: "0" }}
+                      />
+                    </TableCell>
+                  )}
+                  {isDateSelected(el.iso) && (
+                    <TableCell>
+                      <Checkbox
+                        onChange={() => handleCrenauxChecked(el.iso, 4)}
+                        checked={isCrenauxSelected(el.iso, 4)}
+                        style={{ padding: "0" }}
+                      />
+                    </TableCell>
+                  )}
+                  {isDateSelected(el.iso) && (
+                    <TableCell>
+                      <Checkbox
+                        onChange={() => handleCrenauxChecked(el.iso, 5)}
+                        checked={isCrenauxSelected(el.iso, 5)}
+                        style={{ padding: "0" }}
+                      />
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[7, dates.length]}
+          component="div"
+          count={dates.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onChangePage={handleChangePage}
+          onChangeRowsPerPage={handleChangeRowsPerPage}
+        />
+      </Paper>
+      <Button
+        style={{ marginTop: "0.5rem" }}
+        variant="contained"
+        color="primary"
+        onClick={() => saveDates()}
+      >
         Enregistrer
       </Button>
-    </Paper>
-  ) : null;
+    </div>
+  ) : (
+    <Typography variant="h5">
+      Les dates ne sont pas mises par le président de la commission. Vous serez
+      notifier une fois ces dates sont mises.
+    </Typography>
+  );
 }
 
 export default Dates;

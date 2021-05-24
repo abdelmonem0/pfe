@@ -10,6 +10,7 @@ import { Dialog, Typography } from "@material-ui/core";
 import Homepage from "./Homepage";
 import Parameters from "./Parameters";
 import EditProject from "../Enseignant/ProjectForm/EditProject";
+import SavedSoutenances from "./SavedSoutenances";
 
 function President() {
   return (
@@ -23,6 +24,9 @@ function President() {
         </Route>
         <Route exact path="/soutenances">
           <Soutenances />
+        </Route>
+        <Route exact path="/soutenances/enregistres">
+          <SavedSoutenances />
         </Route>
         <Route exact path="/profile">
           <EditProfile />

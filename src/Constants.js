@@ -35,4 +35,6 @@ export const Notifications_Types = {
   candidature_inactive: "candidature non active",
   cahier_de_charge_refuse: "Cahier de charge réfusé",
   cahier_de_charge_accepte: "Cahier de charge accepté",
+  project_accepted: "project accepted",
+  project_refused: "project refused",
 };

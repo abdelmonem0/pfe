@@ -119,12 +119,7 @@ function Preferences(props) {
       case 3:
         return (
           <Soutenances
-            startDate={startDate}
-            endDate={endDate}
-            sales={sales}
-            maxCrenaux={maxCrenaux}
-            selectedTeachers={selectedTeachers}
-            selectedProjects={selectedProjects}
+            values={values}
             presidents={presidents}
             projects={projects}
             teachers={teachers}

@@ -82,7 +82,6 @@ export const addProjectToDatabase = (form, projectId = null, newFiles = []) => {
   const state = store.getState();
   const current = state.users.current;
   const id_sujet = projectId || uuid();
-
   const files = [];
   const fileSource = newFiles.length > 0 ? newFiles : state.files;
   for (let f of fileSource)
@@ -124,6 +123,7 @@ export const initialForm = () => {
     description: "",
     travail: "",
     interne: current.role === "etudiant" ? false : true,
+    id_etudiant: current.id_utilisateur,
     tags: "",
     lieu: "",
     enc_ext: "",

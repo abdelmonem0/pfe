@@ -1,8 +1,12 @@
 import { canAddProject } from "./Commun/Constraints";
 import { store } from "../index";
 import { getUserByID } from "./Commun/Candidature.js/CandidatureLogic";
+import { load_saved_soutenances } from "./President/Soutenances/SoutenanceLogic";
 
 export const setPages = (role) => {
+  const state = store.getState();
+  const soutenances = state.savedSoutenance.soutenances;
+
   var pages = [];
   pages.push(makePage("Accueil", ""));
   switch (role) {
@@ -30,6 +34,14 @@ export const setPages = (role) => {
     case "president":
       pages.push(makePage("Sujets", "/sujets"));
       pages.push(makePage("Soutenances", "/soutenances"));
+      if (soutenances && soutenances.length > 0)
+        pages.push(
+          makeNestedPage(
+            "Enregistrés",
+            "/soutenances/enregistres",
+            "/soutenances"
+          )
+        );
       pages.push(makePage("Enseignants", "/enseignants"));
       // pages.push(makePage("Paramètres", "/parametres"));
 
@@ -70,5 +82,6 @@ export function setupSoutenances(data) {
     };
   }
 
-  store.dispatch({ type: "SET_SOUTENANCES", payload: soutenances });
+  store.dispatch({ type: "SET_SAVED_SOUTENANCES", payload: soutenances });
+  load_saved_soutenances(soutenances);
 }

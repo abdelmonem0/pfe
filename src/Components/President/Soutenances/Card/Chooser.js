@@ -4,7 +4,8 @@ import { Autocomplete } from "@material-ui/lab";
 import React from "react";
 
 function Chooser(props) {
-  const { available, assigne, president, rapporteur, teacherStats } = props;
+  const { saved, available, assigne, president, rapporteur, teacherStats } =
+    props;
   const theme = useTheme();
   var teachers = [...available, { id_utilisateur: "0", nom: "" }];
 
@@ -22,16 +23,19 @@ function Chooser(props) {
     <div style={{ flex: "1 1 49%" }}>
       <div className="horizontal-list">
         <div style={{ flex: 1 }} />
-        <Typography
-          variant="subtitle2"
-          color="textSecondary"
-          style={{ fontSize: "12px" }}
-        >{`Disponibles ${teachers.filter((av) => av.isAvailable).length}/${
-          teachers.length - 1
-        }`}</Typography>
+        {!saved && (
+          <Typography
+            variant="subtitle2"
+            color="textSecondary"
+            style={{ fontSize: "12px" }}
+          >{`Disponibles ${teachers.filter((av) => av.isAvailable).length}/${
+            teachers.length - 1
+          }`}</Typography>
+        )}
       </div>
       <Autocomplete
         options={teachers}
+        disabled={saved}
         getOptionLabel={(option) => option.nom || ""}
         renderOption={(option) => (
           <>

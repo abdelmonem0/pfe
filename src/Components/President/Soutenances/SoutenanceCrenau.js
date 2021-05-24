@@ -23,7 +23,7 @@ import { v4 as uuid } from "uuid";
 import ConfirmDialog from "../../Commun/ConfirmDialog";
 
 function SoutenanceCrenau(props) {
-  const { crenau, date, deleteCrenau } = props;
+  const { crenau, saved, date, deleteCrenau } = props;
   const dispatch = useDispatch();
   const soutenances = useSelector(
     (state) => state.soutenance.soutenances
@@ -83,27 +83,31 @@ function SoutenanceCrenau(props) {
         }`}</Typography>
         <div style={{ flex: 1 }} />
 
-        <ConfirmDialog
-          title="Supprimer"
-          body="Voulez-vous vraiment supprimer tout les soutenances de ce crénau?"
-          onConfirm={handleDeleteAllSoutenance}
-        >
-          <Tooltip title="Supprimer ce crénau">
-            <IconButton size="small">
-              <DeleteSweep style={{ color: theme.palette.error.main }} />
+        {!saved && (
+          <ConfirmDialog
+            title="Supprimer"
+            body="Voulez-vous vraiment supprimer tout les soutenances de ce crénau?"
+            onConfirm={handleDeleteAllSoutenance}
+          >
+            <Tooltip title="Supprimer ce crénau">
+              <IconButton disabled={saved} size="small">
+                <DeleteSweep style={{ color: theme.palette.error.main }} />
+              </IconButton>
+            </Tooltip>
+          </ConfirmDialog>
+        )}
+        {!saved && (
+          <Tooltip title="Ajouter une soutenance">
+            <IconButton
+              disabled={soutenances.length >= sales.length}
+              size="small"
+              color="primary"
+              onClick={handleAddSoutenance}
+            >
+              <AddCircle />
             </IconButton>
           </Tooltip>
-        </ConfirmDialog>
-        <Tooltip title="Ajouter une soutenance">
-          <IconButton
-            disabled={soutenances.length >= sales.length}
-            size="small"
-            color="primary"
-            onClick={handleAddSoutenance}
-          >
-            <AddCircle />
-          </IconButton>
-        </Tooltip>
+        )}
 
         {checkMultipleSoutenanceValid(soutenances) ? (
           <DoneAll style={{ color: theme.palette.success.main }} />
@@ -122,7 +126,11 @@ function SoutenanceCrenau(props) {
         <div className="vertical-list" style={{ flex: 1 }}>
           {soutenances.map((s, i) => (
             <>
-              <SoutenanceCard key={s.id_sujet + i} soutenance={s} />
+              <SoutenanceCard
+                saved={saved}
+                key={s.id_sujet + i}
+                soutenance={s}
+              />
               {i < soutenances.length && <Divider key={s.id_sujet} light />}
             </>
           ))}

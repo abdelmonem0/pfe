@@ -218,9 +218,8 @@ export function getProject(id) {
   return project;
 }
 
-export function getDays(soutenances) {
-  const state = store.getState();
-  const { startDate, maxCrenaux } = state.soutenance.values;
+export function getDays(soutenances, values) {
+  const { startDate, maxCrenaux } = values;
 
   var days = [];
   for (var i = 0; i < soutenances.length / maxCrenaux; i++) {
@@ -597,4 +596,56 @@ export function saveSoutenances() {
       }
     })
     .catch((err) => console.error(err));
+}
+
+export function load_saved_soutenances(soutenances) {
+  var sales = [],
+    maxCrenaux = 0,
+    dates = [],
+    selectedTeachers = [],
+    selectedProjects = [],
+    presidents = [];
+  for (let s of soutenances) {
+    if (sales.indexOf(s.sale) < 0) sales.push(s.sale);
+    if (s.crenau > maxCrenaux) maxCrenaux = s.crenau;
+    if (dates.indexOf(s.date) < 0) dates.push(new Date(s.date));
+    for (let i of s.invite) {
+      if (
+        i.role === "rapporteur" &&
+        selectedTeachers.indexOf(i.id_utilisateur) < 0
+      )
+        selectedTeachers.push(i.id_utilisateur);
+      if (i.role === "président") {
+        console.log("president found");
+        if (selectedTeachers.indexOf(i.id_utilisateur) < 0)
+          selectedTeachers.push(i.id_utilisateur);
+        if (presidents.indexOf(i.id_utilisateur) < 0)
+          presidents.push(i.id_utilisateur);
+      }
+    }
+    if (selectedProjects.indexOf(s.id_sujet) < 0)
+      selectedProjects.push(s.id_sujet);
+  }
+  var startDate = new Date();
+  for (let d of dates) if (d < startDate) startDate = d;
+
+  var endDate = startDate;
+  for (let d of dates) if (d > endDate) endDate = d;
+
+  startDate = startDate.toLocaleDateString();
+  endDate = endDate.toLocaleDateString();
+  console.log(startDate);
+  console.log(endDate);
+  return;
+  const savedValues = {
+    startDate,
+    endDate,
+    sales,
+    maxCrenaux,
+    selectedTeachers,
+    presidents,
+    selectedProjects,
+  };
+
+  store.dispatch({ type: "SET_SAVED_VALUES", payload: savedValues });
 }

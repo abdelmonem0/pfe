@@ -110,3 +110,17 @@
     transform: rotate(-360deg);
   }
 }
+
+.scrolling-tag {
+  overflow: hidden;
+  animation: tag infinite linear 50s;
+}
+
+@keyframes tag {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

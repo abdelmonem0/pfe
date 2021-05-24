@@ -31,7 +31,7 @@ function ViewProjects() {
 
   return (
     projects && (
-      <div className="vertical-list">
+      <div className="vertical-list" style={{ flex: 1 }}>
         <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <Typography variant="h4" paragraph>
             List des sujets
@@ -39,13 +39,25 @@ function ViewProjects() {
           <SwitchView cardView={cardView} setCardView={setCardView} />
         </div>
         {/* <FiltreProjects /> */}
-        <FiltreProjects
-          projects={projects}
-          setProjects={setProjects}
-          fetchedProjects={fetchedProjects}
-        />
+        {fetchedProjects.length > 0 && (
+          <FiltreProjects
+            projects={projects}
+            setProjects={setProjects}
+            fetchedProjects={fetchedProjects}
+          />
+        )}
 
-        {cardView ? (
+        {projects.length === 0 ? (
+          fetchedProjects.length > 0 ? (
+            <Typography variant="h4" color="secondary">
+              Aucun sujet ne correspond aux filtres appliqués
+            </Typography>
+          ) : (
+            <Typography variant="h4" color="primary">
+              Pas des sujets encore
+            </Typography>
+          )
+        ) : cardView ? (
           <CardView projects={projects} />
         ) : (
           <TableView projects={projects} current={current} />

@@ -16,10 +16,14 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Project_States } from "../../Constants";
 import { acceptProject, getProjects } from "../../functions";
+import { send_project_action_notification } from "../../Notifications";
 
 function PresidentProjectActions(props) {
   const { project, iconButton } = props;
   const current = useSelector((state) => state.users.current);
+  const _project = useSelector((state) =>
+    state.projects.dataArray.find((p) => p.id_sujet === project.id_sujet)
+  );
   const dispatch = useDispatch();
 
   const [dialog, setDialog] = useState(false);
@@ -28,17 +32,22 @@ function PresidentProjectActions(props) {
 
   function takeDecision(isAccepted) {
     acceptProject(
-      project.id_sujet,
+      _project.id_sujet,
       isAccepted ? Project_States.accepted : Project_States.refused
-    ).then(() =>
+    ).then(() => {
+      dispatch({
+        type: "OPEN_SNACK",
+        payload: { type: "success", message: "Decision effectée avec succès" },
+      });
+      send_project_action_notification(project, isAccepted);
       getProjects().then((result) =>
         dispatch({ type: "SET_PROJECTS", payload: result.data })
-      )
-    );
+      );
+    });
   }
 
   return (
-    project.etat !== Project_States.accepted &&
+    _project.etat !== Project_States.accepted &&
     current.role === "president" && (
       <>
         <Dialog
@@ -49,7 +58,7 @@ function PresidentProjectActions(props) {
         >
           <DialogTitle>Prendre une decision pour ce sujet</DialogTitle>
           <DialogContent>
-            <DialogContentText>{project.titre}</DialogContentText>
+            <DialogContentText>{_project.titre}</DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button
@@ -61,7 +70,7 @@ function PresidentProjectActions(props) {
             >
               Accepter
             </Button>
-            {project.etat !== Project_States.refused && (
+            {_project.etat !== Project_States.refused && (
               <Button
                 color="secondary"
                 onClick={() => {
@@ -106,7 +115,7 @@ function PresidentProjectActions(props) {
           </DialogActions>
         </Dialog>
 
-        {project.etat !== Project_States.refused ? (
+        {_project.etat !== Project_States.refused ? (
           iconButton ? (
             <Tooltip title="Prendre decision">
               <IconButton size="small" onClick={() => setDecisionDialog(true)}>

@@ -15,20 +15,25 @@ import {
   Notifications,
   NotificationsActive,
 } from "@material-ui/icons";
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { Notifications_Types } from "../../../Constants";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { checkNotification, getNotifications } from "../../../functions";
 import { getNotificationText } from "./logic";
 
 export default function NotificationBar(props) {
   const [anchor, setAnchor] = useState(null);
+  const dispatch = useDispatch();
   const notifications = useSelector((state) => state.notifications);
-  const checkedNots = notifications.filter((not) => !not.checked);
+  const uncheckedNots = notifications.filter((not) => !not.checked);
 
   const handleOpenMenu = (event) => {
-    if (anchor === null) setAnchor(event.currentTarget);
-    else setAnchor(null);
+    if (anchor === null) {
+      setAnchor(event.currentTarget);
+      if (uncheckedNots.length > 0) {
+        dispatch({ type: "CHECK_NOTIFICATIONS" });
+        checkNotification(notifications).catch((err) => console.error(err));
+      }
+    } else setAnchor(null);
   };
 
   return (
@@ -39,9 +44,9 @@ export default function NotificationBar(props) {
         notifications={notifications}
       />
       <IconButton onClick={(event) => handleOpenMenu(event)}>
-        <Badge color="secondary" badgeContent={checkedNots.length}>
-          {checkedNots.length > 0 ? (
-            <NotificationsActive color="secondary" />
+        <Badge color="secondary" badgeContent={uncheckedNots.length}>
+          {uncheckedNots.length > 0 ? (
+            <NotificationsActive style={{ fill: "white" }} />
           ) : (
             <Notifications style={{ fill: "white" }} />
           )}
@@ -75,7 +80,7 @@ const NotificationsMenu = (props) => {
         {notifications.slice(0, shownNots).map((el, idx) => (
           <Notification
             notification={el}
-            key={idx}
+            index={idx}
             divider={idx + 1 < notifications.length}
           />
         ))}
@@ -99,21 +104,14 @@ const NotificationsMenu = (props) => {
 };
 
 const Notification = (props) => {
-  const { notification, key, divider } = props;
+  const { notification, index, divider } = props;
   const users = useSelector((state) => state.users.all);
 
   const text = getNotificationText(notification);
 
-  useEffect(() => {
-    if (!notification.check)
-      checkNotification(notification.id_notification).catch((err) =>
-        console.error(err)
-      );
-  }, []);
-
   return (
     <>
-      <MenuItem key={key} style={{ whiteSpace: "normal", maxWidth: "20rem" }}>
+      <MenuItem key={index} style={{ whiteSpace: "normal", maxWidth: "20rem" }}>
         <Box>
           <Typography variant="subtitle1">{text}</Typography>
           <Typography variant="subtitle2" color="textSecondary">

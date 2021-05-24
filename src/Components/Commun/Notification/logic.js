@@ -39,7 +39,7 @@ export function getNotificationText(notification) {
       prefixe = `Votre candidature pour le sujet "${
         getProjectByID(notification.id_object)
           ? getProjectByID(notification.id_object).titre.slice(0, 15) + "..."
-          : "sujet supprimé"
+          : "@sujet non disponible@"
       }" est désormais non active.`;
       break;
     case Notifications_Types.candidature_accepted_by_first_teacher:
@@ -59,6 +59,23 @@ export function getNotificationText(notification) {
       suffixe =
         Notifications_Types.cahier_de_charge_refuse +
         ", veuillez ajouter un autre cahier.";
+      break;
+    case Notifications_Types.project_accepted:
+      prefixe =
+        "Félicitation, le sujet que vous avez proposé est accepté par la commission.";
+      suffixe = ` Sujet: ${
+        getProjectByID(notification.id_object)
+          ? getProjectByID(notification.id_object).titre.slice(0, 15) + "..."
+          : "@sujet non disponible@"
+      }`;
+      break;
+    case Notifications_Types.project_refused:
+      prefixe = "Le sujet que vous avez proposé est réfusé par la commission.";
+      suffixe = ` Sujet: ${
+        getProjectByID(notification.id_object)
+          ? getProjectByID(notification.id_object).titre.slice(0, 15) + "..."
+          : "@sujet non disponible@"
+      }`;
       break;
     default:
       prefixe = "not handlet yet, check it";

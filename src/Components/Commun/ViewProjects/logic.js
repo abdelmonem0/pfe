@@ -28,19 +28,21 @@ export const sortByDate = (projects, setProjects, asc) => {
 export function canSeeCahierState(project) {
   const state = store.getState();
   const current = state.users.current;
+  var canSee = false;
+
+  if (project.enc_prim === current.id_utilisateur) canSee = true;
+  if (project.enc_sec === current.id_utilisateur) canSee = true;
+  if (project.id_etudiant === current.id_utilisateur) canSee = true;
+  if (project.id_etudiant_2 === current.id_utilisateu) canSee = true;
   if (
-    project.enc_prim === current.id_utilisateur ||
-    project.enc_sec === current.id_utilisateur ||
-    project.id_etudiant === current.id_utilisateur ||
-    project.id_etudiant_2 === current.id_utilisateur ||
-    project.affecte_a.find(
-      (p) => p.id_utilisateur === current.id_utilisateur
-    ) ||
-    current.role === "president" ||
-    current.role === "membre"
+    project.affecte_a.filter((p) => p.id_utilisateur === current.id_utilisateur)
+      .length > 0
   )
-    return true;
-  return false;
+    canSee = true;
+  if (current.role === "president") canSee = true;
+  if (current.role === "membre") canSee = true;
+
+  return canSee;
 }
 
 export function getCahierState(project, theme) {

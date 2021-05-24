@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 import ProjectChooser from "./ProjectChooser";
 
 function SoutenanceCard(props) {
-  const { soutenance } = props;
+  const { soutenance, saved } = props;
   const [showStudents, setShowStudents] = useState(false);
   const soutenances = useSelector((state) => state.soutenance.soutenances);
   const [available, setAvailable] = useState(null);
@@ -45,7 +45,9 @@ function SoutenanceCard(props) {
   return (
     <div
       style={{ padding: "0.25rem", paddingLeft: "0.5rem" }}
-      onMouseEnter={() => setButtonsVisible(true)}
+      onMouseEnter={() => {
+        if (!saved) setButtonsVisible(true);
+      }}
       onMouseLeave={() => setButtonsVisible(false)}
     >
       <Header
@@ -67,12 +69,14 @@ function SoutenanceCard(props) {
                 <div className="horizontal-list wrap">
                   <Chooser
                     available={available}
+                    saved={saved}
                     assigne={assigne}
                     president={president}
                     rapporteur={false}
                   />
                   <Chooser
                     available={available}
+                    saved={saved}
                     assigne={assigne}
                     rapporteur={rapporteur}
                     president={false}

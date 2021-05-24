@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import { LibraryAdd } from "@material-ui/icons";
 
 function SoutenanceDay(props) {
-  const { date } = props;
+  const { date, saved } = props;
   const soutenances = useSelector(
     (state) => state.soutenance.soutenances
   ).filter((s) => s.date === date);
@@ -41,16 +41,18 @@ function SoutenanceDay(props) {
         <Typography style={{ padding: "0.25rem" }} variant="h5">
           {date}
         </Typography>
-        <Tooltip title="Ajouter un crénau">
-          <IconButton
-            disabled={crenaux.length >= maxCrenaux}
-            color="primary"
-            size="small"
-            onClick={() => setCrenaux([...crenaux, crenaux.length + 1])}
-          >
-            <LibraryAdd />
-          </IconButton>
-        </Tooltip>
+        {!saved && (
+          <Tooltip title="Ajouter un crénau">
+            <IconButton
+              disabled={crenaux.length >= maxCrenaux}
+              color="primary"
+              size="small"
+              onClick={() => setCrenaux([...crenaux, crenaux.length + 1])}
+            >
+              <LibraryAdd />
+            </IconButton>
+          </Tooltip>
+        )}
       </div>
       <Divider />
       <div
@@ -67,6 +69,7 @@ function SoutenanceDay(props) {
               key={index}
               date={date}
               crenau={crenau}
+              saved={saved}
               deleteCrenau={deleteCrenau}
             />
           ))}
