@@ -7,14 +7,14 @@ import {
   Button,
 } from "@material-ui/core";
 import { Visibility, VisibilityOff, EmailOutlined } from "@material-ui/icons";
-import axios from "axios";
-import { useHistory, BrowserRouter as Router } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setCurrentUser } from "../actions";
 import { loginUser } from "../functions";
+import { useHistory } from "react-router";
 
 export function Home() {
   const dispatch = useDispatch();
+  const history = useHistory();
   const [values, setValues] = useState({
     showPassword: false,
     forgotPassword: false,
@@ -38,7 +38,7 @@ export function Home() {
   };
 
   const login = () => {
-    dispatch({ type: "OPEN_BACKDROP" });
+    history.replace("/");
     loginUser(values.userId, values.password)
       .then((result) => {
         if (result.data) {
@@ -50,42 +50,40 @@ export function Home() {
   };
 
   return (
-    <Router>
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          justifyContent: "center",
-          marginTop: "10%",
-        }}
-      >
-        <div class="col-sm-10 col-md-6">
-          <Paper
-            elevation={10}
-            style={{
-              flex: "1 1 100%",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              padding: "1rem",
-              gap: "1rem",
-            }}
-          >
-            {!values.forgotPassword ? (
-              <LoginForm
-                values={values}
-                handleClickShowPassword={handleClickShowPassword}
-                login={login}
-                onChange={onChange}
-                handleForgotPassword={handleForgotPassword}
-              />
-            ) : (
-              <ForgotPassword handleForgotPassword={handleForgotPassword} />
-            )}
-          </Paper>
-        </div>
+    <div
+      style={{
+        display: "flex",
+        width: "100%",
+        justifyContent: "center",
+        marginTop: "10%",
+      }}
+    >
+      <div className="col-sm-10 col-md-6">
+        <Paper
+          elevation={10}
+          style={{
+            flex: "1 1 100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "1rem",
+            gap: "1rem",
+          }}
+        >
+          {!values.forgotPassword ? (
+            <LoginForm
+              values={values}
+              handleClickShowPassword={handleClickShowPassword}
+              login={login}
+              onChange={onChange}
+              handleForgotPassword={handleForgotPassword}
+            />
+          ) : (
+            <ForgotPassword handleForgotPassword={handleForgotPassword} />
+          )}
+        </Paper>
       </div>
-    </Router>
+    </div>
   );
 }
 

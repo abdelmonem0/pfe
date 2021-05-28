@@ -12,6 +12,7 @@ import {
   Card,
   CardContent,
   Divider,
+  Tooltip,
 } from "@material-ui/core";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import {
@@ -20,6 +21,7 @@ import {
   Person,
   LocationOn,
   Apartment,
+  School,
 } from "@material-ui/icons";
 import { useSelector } from "react-redux";
 import ViewComments from "../ViewComments";
@@ -33,6 +35,7 @@ import { canEditProject } from "../ViewProjects/logic";
 import { getNextQuery } from "../ProjectDetail/logic";
 import StateChip from "../ViewProjects/StateChip";
 import CahierState from "../ViewProjects/CahierState";
+import { getUserByID } from "../Candidature.js/CandidatureLogic";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -42,8 +45,7 @@ function ProjectDetail(props) {
   const current = useSelector((state) => state.users.current);
   const [open, setOpen] = useState(false);
 
-  const canViewComments =
-    current.role === "membre" || current.role === "president";
+  const canViewComments = can_view_comments(project, current);
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("xs"));
@@ -71,23 +73,37 @@ function ProjectDetail(props) {
               <CardHeader
                 title={project.titre}
                 subheader={
-                  <div className="horizontal-list">
+                  <div className="horizontal-list wrap">
                     <StateChip project={project} />
                     <CahierState project={project} />
-                    {project.encadrants.length > 0 && (
-                      <Typography variant="body2" color="textSecondary">
-                        <Person /> {project.encadrants[0].nom}{" "}
-                        {project.encadrants.length > 1 &&
-                          " - " + project.encadrants[1].nom}
-                      </Typography>
+                    {project.encadrants[0] && (
+                      <Tooltip title="Encadrant">
+                        <Typography variant="body2" color="textSecondary">
+                          <School size="small" /> {project.encadrants[0].nom}{" "}
+                          {project.encadrants.length > 1 &&
+                            " - " + project.encadrants[1].nom}
+                        </Typography>
+                      </Tooltip>
                     )}
-                    <Typography variant="body2" color="textSecondary">
-                      <Schedule />
-                      {" " +
-                        new Date(project.date_creation).toLocaleDateString(
-                          "fr-FR"
-                        )}
-                    </Typography>
+                    {project.id_etudiant && (
+                      <Tooltip title="Etudiant">
+                        <Typography variant="body2" color="textSecondary">
+                          <Person size="small" />{" "}
+                          {getUserByID(project.id_etudiant).nom}{" "}
+                          {project.id_etudiant_2 &&
+                            " - " + getUserByID(project.id_etudiant_2).nom}
+                        </Typography>
+                      </Tooltip>
+                    )}
+                    <Tooltip title="Date d'ajout">
+                      <Typography variant="body2" color="textSecondary">
+                        <Schedule />
+                        {" " +
+                          new Date(project.date_creation).toLocaleDateString(
+                            "fr-FR"
+                          )}
+                      </Typography>
+                    </Tooltip>
                   </div>
                 }
               />
@@ -115,17 +131,23 @@ function ProjectDetail(props) {
                       </Typography>
                     </div>
                   )}
-                  <div className="horizontal-list wrap">
-                    <Settings color="primary" />
-                    {project.tags.map((tag, i) => (
-                      <>
-                        <Typography color="primary">{tag.id_tag}</Typography>
-                        {i < project.tags.length - 1 && (
-                          <Divider orientation="vertical" flexItem />
-                        )}
-                      </>
-                    ))}
-                  </div>
+                  {project.tags && project.tags.length > 0 && (
+                    <Tooltip title="Technologies">
+                      <div className="horizontal-list">
+                        <Settings color="primary" />
+                        {project.tags.map((tag, i) => (
+                          <React.Fragment key={tag.id_tag}>
+                            <Typography color="primary">
+                              {tag.id_tag}
+                            </Typography>
+                            {i < project.tags.length - 1 && (
+                              <Divider orientation="vertical" flexItem />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </Tooltip>
+                  )}
                 </div>
                 <AttachedFiles project={project} />
                 <Typography variant="h6" color="primary">
@@ -183,6 +205,8 @@ function ProjectDetail(props) {
           <div style={{ flex: 1 }} />
           {canEditProject(project) && (
             <Button
+              size="small"
+              variant="outlined"
               component={Link}
               to={getNextQuery("modifier", "id", project.id_sujet)}
             >
@@ -199,3 +223,14 @@ function ProjectDetail(props) {
 }
 
 export default ProjectDetail;
+
+function can_view_comments(project, current) {
+  return (
+    project.id_etudiant === current.id_utilisateur ||
+    project.id_etudiant_2 === current.id_utilisateur ||
+    project.enc_prim === current.id_utilisateur ||
+    project.enc_sec === current.id_utilisateur ||
+    current.role === "president" ||
+    current.role === "membre"
+  );
+}

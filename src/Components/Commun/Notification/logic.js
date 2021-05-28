@@ -84,3 +84,14 @@ export function getNotificationText(notification) {
 
   return prefixe + suffixe;
 }
+
+export function sort_notifications(notifications) {
+  var temp = [...notifications];
+  temp.sort((a, b) => {
+    if (a.checked === b.checked) return new Date(b.date) - new Date(a.date);
+    else if (a.checked) return -1;
+    else return 1;
+  });
+
+  return temp;
+}

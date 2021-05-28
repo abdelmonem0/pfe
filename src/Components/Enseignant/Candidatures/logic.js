@@ -114,7 +114,11 @@ export function getProjectPartner(project, isTeacher = true) {
 
 export function getProjectByID(id) {
   const state = store.getState();
-  return state.projects.dataArray.find((p) => p.id_sujet === id);
+  const { dataArray, self, proposed } = state.projects;
+  return dataArray
+    .concat(self || [])
+    .concat(proposed || [])
+    .find((p) => p.id_sujet === id);
 }
 
 export function getCandidatureByID(id) {

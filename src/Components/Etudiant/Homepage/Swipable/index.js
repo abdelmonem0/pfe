@@ -1,7 +1,15 @@
-import { Button, makeStyles, Paper, Typography } from "@material-ui/core";
+import {
+  Button,
+  makeStyles,
+  Paper,
+  Divider,
+  Typography,
+} from "@material-ui/core";
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import clsx from "clsx";
+import { getUserByID } from "../../../Commun/Candidature.js/CandidatureLogic";
+import { Person, School } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   enterFromLeft: {
@@ -164,8 +172,8 @@ function Swipable(props) {
             width: "100%",
           }}
         >
-          <Typography>
-            {
+          <Project
+            project={
               projects[
                 Math.abs(
                   index % 2 === 0
@@ -180,9 +188,9 @@ function Swipable(props) {
                     ? projects.length - 1
                     : index - 1
                 ) % projects.length
-              ].description
+              ]
             }
-          </Typography>
+          />
         </div>
         <div
           className={clsx({
@@ -199,8 +207,8 @@ function Swipable(props) {
             width: "100%",
           }}
         >
-          <Typography>
-            {
+          <Project
+            project={
               projects[
                 Math.abs(
                   index % 2 === 1
@@ -215,9 +223,9 @@ function Swipable(props) {
                     ? projects.length - 1
                     : index - 1
                 ) % projects.length
-              ].description
+              ]
             }
-          </Typography>
+          />
         </div>
       </div>
       <div className="horizontal-list space-between">
@@ -252,3 +260,35 @@ function Swipable(props) {
 }
 
 export default Swipable;
+
+const Project = ({ project }) => {
+  return (
+    <div className="vertical-list">
+      <Typography variant="h6" color="primary">
+        {project.titre}
+      </Typography>
+      <Divider />
+      <div className="horizontal-list wrap">
+        {(project.encadrants[0] && (
+          <Typography variant="body2" color="textSecondary">
+            <Person size="small" /> {project.encadrants[0].nom}{" "}
+            {project.encadrants.length > 1 && " - " + project.encadrants[1].nom}
+          </Typography>
+        )) ||
+          (project.id_etudiant && (
+            <Typography variant="body2" color="textSecondary">
+              <School size="small" /> {getUserByID(project.id_etudiant).nom}{" "}
+              {project.id_etudiant_2 &&
+                " - " + getUserByID(project.id_etudiant_2).nom}
+            </Typography>
+          ))}
+      </div>
+      <div>
+        <Typography variant="h6" color="primary">
+          Description
+        </Typography>
+        <Typography>{project.description}</Typography>
+      </div>
+    </div>
+  );
+};

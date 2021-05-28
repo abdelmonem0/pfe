@@ -14,26 +14,14 @@ export function getStepToShow(current) {
   var step = 0;
   var raison = "success";
 
-  if (
-    new Date(values.endDate).getDate() !== new Date().getDate() &&
-    values.sales !== "" &&
-    values.crenaux !== 1
-  )
-    step = 1;
-  else {
-    raison =
-      "Il faut que la date de fin des soutenances soit supérieure à celle de début, les sales soient remplis et le nombre de crenaux maximale soit superieur à 0.";
-    return { step, raison };
-  }
-
-  if (values.selectedProjects.length > 0) step = 2;
+  if (values.selectedProjects.length > 0) step = 1;
   else {
     raison = "Il faut choisir des projets.";
     return { step, raison };
   }
 
   if (values.selectedTeachers.length > 0 && values.presidents.length > 0)
-    step = 3;
+    step = 2;
   else {
     raison = "Il faut choisir des enseignants et au des présidents.";
     return { step, raison };
@@ -134,54 +122,66 @@ function getAssignedProjects() {
 }
 
 export function createSoutenances(data) {
-  console.log("soutenancesLogic" + "createSoutenances");
+  // console.log("soutenancesLogic" + "createSoutenances");
   var projects = [...data.selectedProjects];
-  const { startDate, endDate, maxCrenaux, sales, presidents } = data;
+  const { maxCrenaux, sales, presidents } = data;
+  const state = store.getState();
   var soutenances = [];
 
   //Creating soutenances
   for (let p of projects) {
-    const project = getProject(p);
-    var invite = [{ ...getUserByID(project.enc_prim), role: "encadrant" }];
-    if (project.enc_sec)
-      invite.push({ ...getUserByID(project.enc_sec), role: "encadrant" });
+    const project = getProjectByID(p);
+    if (project) {
+      var invite = [{ ...getUserByID(project.enc_prim), role: "encadrant" }];
+      if (project.enc_sec)
+        invite.push({ ...getUserByID(project.enc_sec), role: "encadrant" });
 
-    const sout = {
-      id_soutenance: uuid(),
-      id_sujet: p,
-      date: "",
-      crenau: 0,
-      invite,
-    };
-    soutenances.push(sout);
+      const sout = {
+        id_soutenance: uuid(),
+        id_sujet: p,
+        date: "",
+        crenau: 0,
+        invite,
+      };
+      soutenances.push(sout);
+    }
   }
 
-  soutenances = assignSalesToSoutenances(
+  var res = assignSalesToSoutenances(
     soutenances,
     sales,
     maxCrenaux,
-    startDate,
-    endDate
+    data.saturday
   );
   // soutenances = assignTeachers(soutenances);
-  return soutenances;
+  return { _soutenances: res.soutenances, message: res.message };
 }
 
-function assignSalesToSoutenances(
-  soutenances,
-  sales,
-  maxCrenaux,
-  startDate,
-  endDate
-) {
-  console.log("soutenancesLogic" + "assignSalesToTechaers");
+function assignSalesToSoutenances(soutenances, sales, maxCrenaux, saturday) {
+  // console.log("soutenancesLogic" + "assignSalesToTechaers");
+  const state = store.getState();
+  var message = "";
+  const startDate = state.savedDates.soutenanceStart;
+  const endDate = new Date(state.savedDates.soutenanceEnd);
 
   const _sales = sales.replace(" ", "").split(",");
   var currentDate = new Date(startDate);
-  var _endDate = new Date(endDate);
   var currentCrenau = 1;
   var currentSale = 0;
   var soutenances = [...soutenances];
+  //dates start
+  {
+    if (currentDate.getDay() === 0)
+      currentDate.setDate(currentDate.getDate() + 1);
+    if (!saturday && currentDate.getDay() === 6)
+      currentDate.setDate(currentDate.getDate() + 2);
+    if (currentDate > endDate) {
+      message = "Dates insuffisants";
+      return { soutenances, message };
+    }
+
+    //dates end
+  }
   for (let s of soutenances) {
     s.sale = _sales[currentSale];
     s.date = currentDate.toLocaleDateString();
@@ -194,16 +194,23 @@ function assignSalesToSoutenances(
       if (currentCrenau > maxCrenaux) {
         currentCrenau = 1;
         currentDate.setDate(currentDate.getDate() + 1);
-        if (currentDate.getDate() > _endDate.getDate()) {
-          alert("Dates insuffisants");
-          return soutenances;
+        //dates start
+        {
+          if (currentDate.getDay() === 0)
+            currentDate.setDate(currentDate.getDate() + 1);
+          if (!saturday && currentDate.getDay() === 6)
+            currentDate.setDate(currentDate.getDate() + 2);
+          if (currentDate > endDate) {
+            message = "Dates insuffisants";
+            return { soutenances, message };
+          }
+          //dates end
         }
       }
     }
   }
 
-  alert("sales assigned");
-  return soutenances;
+  return { soutenances, message };
 }
 
 export function getUser(id) {
@@ -219,7 +226,9 @@ export function getProject(id) {
 }
 
 export function getDays(soutenances, values) {
-  const { startDate, maxCrenaux } = values;
+  const { maxCrenaux } = values;
+  const state = store.getState();
+  const startDate = state.savedDates.soutenanceStart;
 
   var days = [];
   for (var i = 0; i < soutenances.length / maxCrenaux; i++) {
@@ -239,7 +248,7 @@ export function getCrenaux(soutenances) {
 }
 
 export function getSoutenanceAvailable(soutenance) {
-  console.log("soutenancesLogic" + " getSoutenanceAvailable");
+  // console.log("soutenancesLogic" + " getSoutenanceAvailable");
   const state = store.getState();
   var soutenances = [...state.soutenance.soutenances];
   var teachers = state.soutenance.teachers;
@@ -277,7 +286,7 @@ export function getSoutenanceAvailable(soutenance) {
 function getMatchedTags(soutenance, teacher) {
   const project = getProjectByID(soutenance.id_sujet);
   if (!project) {
-    console.log(soutenance);
+    // console.log(soutenance);
     return;
   }
   var matched = [];
@@ -303,13 +312,13 @@ function getMatchedDates(soutenance, teacher) {
     const crenaux = dates[i].crenaux
       ? dates[i].crenaux.split(",").map((c) => Number(c))
       : [];
-    console.log("----------");
-    console.log(tDate);
-    console.log(sDate);
-    console.log(crenaux);
+    // console.log("----------");
+    // console.log(tDate);
+    // console.log(sDate);
+    // console.log(crenaux);
     if (tDate === sDate && crenaux.indexOf(soutenance.crenau) > -1) {
       matchedDate = true;
-      console.log(soutenance.date + " -- " + soutenance.crenau);
+      // console.log(soutenance.date + " -- " + soutenance.crenau);
       break;
     }
   }
@@ -317,7 +326,7 @@ function getMatchedDates(soutenance, teacher) {
 }
 
 export const assignTeachers = (strictTags, strictDates) => {
-  console.log("soutenancesLogic" + " assignTeachers");
+  // console.log("soutenancesLogic" + " assignTeachers");
   const state = store.getState();
   var soutenances = [...state.soutenance.soutenances];
   var teachers = state.soutenance.teachers;
@@ -384,7 +393,7 @@ export function assignSingleTeacher(
   role,
   calledByUser = true
 ) {
-  console.log("soutenancesLogic" + "assignSingleTeacher");
+  // console.log("soutenancesLogic" + "assignSingleTeacher");
   if (calledByUser) {
     var sout = { ...soutenance };
     sout.invite = sout.invite.filter((u) => u.role !== role);
@@ -402,8 +411,8 @@ export function equalizeCrenaux() {
   for (let s of soutenances)
     days = { ...days, [s.date]: days[s.date] + 1 || 1 };
 
-  for (let i = 0; i < Object.keys(days).length; i++)
-    console.log("soutenancesLogic" + days);
+  // for (let i = 0; i < Object.keys(days).length; i++)
+  // console.log("soutenancesLogic" + days);
 }
 
 export function filterByDates(byDaysOnly = false) {
@@ -486,16 +495,19 @@ export function checkSoutenanceValid(soutenance) {
   return (
     soutenance.invite.filter(
       (i) => i.role === "président" || i.role === "rapporteur"
-    ).length > 1
+    ).length > 1 &&
+    soutenance.sale &&
+    soutenance.sale.length > 0
   );
 }
 
 export function checkMultipleSoutenanceValid(soutenances) {
+  if (!soutenances.length) return false;
   for (let s of soutenances) {
     var length =
       s.invite.filter((i) => i.role === "président" || i.role === "rapporteur")
         .length > 1;
-    if (!length) return false;
+    if (!length || !s.sale || s.sale.length < 1) return false;
   }
   return true;
 }
@@ -561,7 +573,7 @@ export const teachersStatistics = () => {
     for (let i of s.invite)
       teachers = { ...teachers, [i.nom]: teachers[i.nom] + 1 || 1 };
 
-  console.log(teachers);
+  // console.log(teachers);
 };
 
 export function saveSoutenances() {
@@ -616,7 +628,7 @@ export function load_saved_soutenances(soutenances) {
       )
         selectedTeachers.push(i.id_utilisateur);
       if (i.role === "président") {
-        console.log("president found");
+        // console.log("president found");
         if (selectedTeachers.indexOf(i.id_utilisateur) < 0)
           selectedTeachers.push(i.id_utilisateur);
         if (presidents.indexOf(i.id_utilisateur) < 0)
@@ -634,9 +646,8 @@ export function load_saved_soutenances(soutenances) {
 
   startDate = startDate.toLocaleDateString();
   endDate = endDate.toLocaleDateString();
-  console.log(startDate);
-  console.log(endDate);
-  return;
+  // console.log(startDate);
+  // console.log(endDate);
   const savedValues = {
     startDate,
     endDate,

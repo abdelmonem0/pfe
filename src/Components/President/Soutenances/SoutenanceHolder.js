@@ -1,20 +1,21 @@
-import { Button } from "@material-ui/core";
 import React from "react";
+import { useSelector } from "react-redux";
 import SoutenanceDay from "./SoutenanceDay";
-import { equalizeCrenaux, getDays, filterByDates } from "./SoutenanceLogic";
+import { getDays } from "./SoutenanceLogic";
 
 function SoutenanceHolder(props) {
-  const { soutenances, values, saved } = props;
+  const { values, saved } = props;
+  const generatedSoutenances = useSelector(
+    (state) => state.soutenance.soutenances
+  );
+  const savedSoutenances = useSelector(
+    (state) => state.savedSoutenance.soutenances
+  );
+  const soutenances = saved ? savedSoutenances : generatedSoutenances;
   const days = getDays(soutenances, values);
 
   return (
     <div>
-      <div className="horizontal-list">
-        <Button onClick={() => equalizeCrenaux()}>Egualiser</Button>
-        <Button onClick={() => filterByDates()}>By Dates And Crenau</Button>
-        <Button onClick={() => filterByDates(true)}>By Dates Only</Button>
-        <Button onClick={() => filterByDates(true)}>By Tags</Button>
-      </div>
       <div
         className="horizontal-list wrap"
         style={{ alignItems: "flex-start" }}

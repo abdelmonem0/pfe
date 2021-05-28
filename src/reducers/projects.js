@@ -1,7 +1,16 @@
-const projectsReducer = (state = { dataArray: [] }, action) => {
+const projectsReducer = (
+  state = { dataArray: [], proposed: [], self: [] },
+  action
+) => {
   switch (action.type) {
     case "SET_PROJECTS":
       state = { ...state, dataArray: action.payload };
+      return state;
+    case "SET_PROPOSED_PROJECTS":
+      state = { ...state, proposed: action.payload };
+      return state;
+    case "SET_SELF_PROJECTS":
+      state = { ...state, self: action.payload };
       return state;
     case "SET_CAHIER":
       var projects = [...state.dataArray];

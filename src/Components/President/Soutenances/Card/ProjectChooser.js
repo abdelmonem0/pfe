@@ -2,7 +2,7 @@ import { TextField } from "@material-ui/core";
 import { Autocomplete } from "@material-ui/lab";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getProject } from "../SoutenanceLogic";
+import { getProjectByID } from "../../../Enseignant/Candidatures/logic";
 
 function ProjectChooser(props) {
   const { soutenance } = props;
@@ -10,7 +10,8 @@ function ProjectChooser(props) {
   const dispatch = useDispatch();
   const affected = soutenances.map((s) => s.id_sujet);
   const projects = values.selectedProjects
-    .map((s) => getProject(s))
+    .map((s) => getProjectByID(s))
+    .filter((el) => el)
     .sort((a, b) =>
       affected.indexOf(a) === affected.indexOf(b)
         ? 0

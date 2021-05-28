@@ -5,8 +5,8 @@ import {
   Checkbox,
   ButtonGroup,
   Typography,
-  Paper,
   Collapse,
+  useTheme,
 } from "@material-ui/core";
 import { Autocomplete } from "@material-ui/lab";
 import moment from "moment";
@@ -20,10 +20,12 @@ import {
   addProjectToDatabase,
   getStudentsForPartnership,
 } from "./logic";
+import { Project_States } from "../../../Constants";
 
 moment.locale("fr");
 
 function AddProject(props) {
+  const theme = useTheme();
   const current = useSelector((state) => state.users.current);
   const users = useSelector((state) => state.users.all)
     .filter(
@@ -53,7 +55,7 @@ function AddProject(props) {
       setErrors(errors);
       return;
     }
-    addProjectToDatabase(form);
+    addProjectToDatabase({ ...form, etat: Project_States.waiting });
   };
 
   const toggleSecondStudent = () => {
@@ -74,7 +76,7 @@ function AddProject(props) {
         justifyContent: "space-between",
       }}
     >
-      <Paper
+      <div
         elevation={0}
         style={{
           gap: "0.5rem",
@@ -233,22 +235,30 @@ function AddProject(props) {
 
           <UploadFile size="large" fileProp="Fiche externe" />
         </div>
-      </Paper>
-      <Paper
-        elevation={0}
+      </div>
+      <div
+        className="horizontal-list"
         style={{
-          display: "flex",
-          gap: "0.5rem",
+          backgroundColor: theme.palette.background.default,
+          flex: 1,
           position: "sticky",
-          bottom: "0.5rem",
+          bottom: "0rem",
           zIndex: 1000,
-          padding: "0.5rem, 0",
+          padding: "0.5rem 0",
         }}
       >
-        <Button color="primary" variant="contained" onClick={() => sendData()}>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={() => sendData()}
+          style={{ textTransform: "none" }}
+        >
           Envoyer
         </Button>
-      </Paper>
+        <Button variant="outlined" style={{ textTransform: "none" }}>
+          Télécharger fiche externe
+        </Button>
+      </div>
     </div>
   );
 }

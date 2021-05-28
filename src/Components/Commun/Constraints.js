@@ -65,7 +65,13 @@ export function canCandidate(project = undefined, user = undefined) {
     state.candidatures.filter((c) => c.id_sujet === project.id_sujet).length > 0
   ) {
     _canCandidate = false;
-    raison = "Vous êtes invité pour ce sujet.";
+    const candidature = state.candidatures.find(
+      (c) => c.id_sujet === project.id_sujet
+    );
+    raison =
+      candidature.id_etudiant === user.id_utilisateur
+        ? "Vous avez postulé pour ce sujet."
+        : "Vous êtes invité pour ce sujet.";
   }
 
   return { canCandidate: _canCandidate, raison };
@@ -110,6 +116,31 @@ export function getProjectStateForChip(project, theme) {
         },
         tooltip: "En attente de la reponse de la commission",
       };
+    else if (project.etat === Project_States.proposed_by_student_for_teacher)
+      temp = {
+        state: "Proposition",
+
+        colors: {
+          color: theme.palette.error.light,
+          borderColor: theme.palette.error.dark,
+          backgroundColor: "transparent",
+        },
+        tooltip:
+          currentRole === "etudiant"
+            ? "Proposé par vous à un enseignant"
+            : "Proposé à vous par un étudiant",
+      };
+    else if (project.etat === Project_States.refused_by_teacher)
+      temp = {
+        state: "Refusé",
+
+        colors: {
+          color: "white",
+          borderColor: "transparent",
+          backgroundColor: theme.palette.error.main,
+        },
+        tooltip: Project_States.refused_by_teacher,
+      };
 
     if (project.affecte_a.length > 0) {
       temp = {
@@ -148,6 +179,28 @@ export function getProjectStateForChip(project, theme) {
           backgroundColor: "transparent",
         },
         tooltip: "En attente de la reponse de la commission",
+      };
+    else if (project.etat === Project_States.proposed_by_student_for_teacher)
+      temp = {
+        state: "Proposition",
+
+        colors: {
+          color: theme.palette.error.light,
+          borderColor: theme.palette.error.dark,
+          backgroundColor: "transparent",
+        },
+        tooltip: "Proposé par un étudiant à un enseignant",
+      };
+    else if (project.etat === Project_States.refused_by_teacher)
+      temp = {
+        state: "Refusé",
+
+        colors: {
+          color: "white",
+          borderColor: "transparent",
+          backgroundColor: theme.palette.error.main,
+        },
+        tooltip: Project_States.refused_by_teacher,
       };
     else
       temp = {

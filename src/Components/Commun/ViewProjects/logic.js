@@ -1,13 +1,18 @@
 import { store } from "../../..";
-import { File_States } from "../../../Constants";
+import { File_States, Project_States } from "../../../Constants";
 
 export function canEditProject(project) {
   const state = store.getState();
   const current = state.users.current;
 
   return (
-    project.enc_prim === current.id_utilisateur ||
-    project.enc_sec === current.id_utilisateur ||
+    ((project.enc_prim === current.id_utilisateur ||
+      project.enc_sec === current.id_utilisateur) &&
+      (project.etat === Project_States.waiting ||
+        project.etat === Project_States.proposed_by_student_for_teacher)) ||
+    ((project.id_etudiant === current.id_utilisateur ||
+      project.id_etudiant_2 === current.id_utilisateur) &&
+      project.etat === Project_States.proposed_by_student_for_teacher) ||
     current.role === "president"
   );
 }
@@ -46,6 +51,8 @@ export function canSeeCahierState(project) {
 }
 
 export function getCahierState(project, theme) {
+  if (!project) return { state: "Pas de cahier de charge", color: "default" };
+
   for (let f of project.fichiers) {
     if (f.type === File_States.cahier_de_charge_accepte)
       return {

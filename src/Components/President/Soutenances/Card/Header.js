@@ -22,47 +22,61 @@ function Header(props) {
   const dispatch = useDispatch();
 
   const handleDeleteSoutenance = () => {
-    dispatch({ type: "DELETE_SOUTENANCE", payload: soutenance.id });
+    dispatch({ type: "DELETE_SOUTENANCE", payload: soutenance.id_soutenance });
   };
 
   const handleChangeSale = (o, v) => {
     setSoutenanceSale(soutenance, v);
   };
 
+  const soutenanceValid = checkSoutenanceValid(soutenance);
+
   return (
     <>
       {soutenance.id_sujet === "" ? (
-        <IconButton size="small" onClick={handleDeleteSoutenance}>
-          <Delete />
-        </IconButton>
+        <Tooltip title="Supprimer le soutenance">
+          <IconButton size="small" onClick={handleDeleteSoutenance}>
+            <Delete />
+          </IconButton>
+        </Tooltip>
       ) : (
         <div className="horizontal-list space-between">
           <div className="horizontal-list wrap">
             {buttonsVisible || soutenance.sale === "" ? (
-              <Autocomplete
-                options={sales}
-                onChange={handleChangeSale}
-                getOptionLabel={(option) => option}
-                value={soutenance.sale}
-                getOptionSelected={(option, value) => option === value}
-                style={{ padding: 0 }}
-                renderInput={(params) => <TextField {...params} size="small" />}
-              />
+              <Tooltip title="Changer la sale">
+                <Autocomplete
+                  options={sales}
+                  onChange={handleChangeSale}
+                  getOptionLabel={(option) => option}
+                  value={soutenance.sale}
+                  getOptionSelected={(option, value) => option === value}
+                  style={{ padding: 0 }}
+                  renderInput={(params) => (
+                    <TextField {...params} size="small" />
+                  )}
+                />
+              </Tooltip>
             ) : (
-              <Typography variant="body2" color="textSecondary">
-                <Room /> {`Sale ${soutenance.sale}`}
-              </Typography>
+              <Tooltip title="Sale">
+                <Typography variant="body2" color="textSecondary">
+                  <Room /> {soutenance.sale}
+                </Typography>
+              </Tooltip>
             )}
             {buttonsVisible && (
-              <ConfirmDialog
-                title="Supprimer une soutenance"
-                body="Voulez-vous vraiment supprimer cette soutenance?"
-                onConfirm={handleDeleteSoutenance}
-              >
-                <IconButton style={{ padding: 0 }}>
-                  <Delete style={{ color: theme.palette.error.main }} />
-                </IconButton>
-              </ConfirmDialog>
+              <Tooltip title="Supprimer la soutenance">
+                <div>
+                  <ConfirmDialog
+                    title="Supprimer une soutenance"
+                    body="Voulez-vous vraiment supprimer cette soutenance?"
+                    onConfirm={handleDeleteSoutenance}
+                  >
+                    <IconButton style={{ padding: 0 }}>
+                      <Delete style={{ color: theme.palette.error.main }} />
+                    </IconButton>
+                  </ConfirmDialog>
+                </div>
+              </Tooltip>
             )}
           </div>
 
@@ -84,10 +98,12 @@ function Header(props) {
               Afficher les étudiants
             </Typography>
             <Divider orientation="vertical" flexItem />
-            {checkSoutenanceValid(soutenance) ? (
-              <Done style={{ color: theme.palette.success.light }} />
+            {soutenanceValid ? (
+              <Tooltip title="Soutenance valide">
+                <Done style={{ color: theme.palette.success.light }} />
+              </Tooltip>
             ) : (
-              <Tooltip title="Soutenance non verifiée encore">
+              <Tooltip title="Soutenance non valide (vérifiez les invités et la sale)">
                 <div className="rotation">
                   <Cached style={{ color: theme.palette.warning.light }} />
                 </div>

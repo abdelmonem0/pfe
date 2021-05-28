@@ -14,9 +14,15 @@ import { LibraryAdd } from "@material-ui/icons";
 
 function SoutenanceDay(props) {
   const { date, saved } = props;
-  const soutenances = useSelector(
+
+  const savedSoutenances = useSelector(
+    (state) => state.savedSoutenance.soutenances
+  ).filter((s) => s.date === date);
+  const currentSoutenances = useSelector(
     (state) => state.soutenance.soutenances
   ).filter((s) => s.date === date);
+  const soutenances = saved ? savedSoutenances : currentSoutenances;
+  console.log(soutenances.length);
   const maxCrenaux = useSelector((state) => state.soutenance.values.maxCrenaux);
   const [crenaux, setCrenaux] = useState(getCrenaux(soutenances) || []);
 
@@ -38,9 +44,16 @@ function SoutenanceDay(props) {
         className="horizontal-list space-between"
         style={{ alignItems: "flex-start" }}
       >
-        <Typography style={{ padding: "0.25rem" }} variant="h5">
-          {date}
-        </Typography>
+        <div className="horizontal-list">
+          <Typography style={{ padding: "0.25rem" }} variant="h5">
+            {date}
+          </Typography>
+          <Divider orientation="vertical" flexItem />
+          <Typography variant="h6" color="textSecondary">
+            {crenaux ? crenaux.length : "0"} crénau
+            {crenaux && crenaux.length < 2 ? "" : "x"}
+          </Typography>
+        </div>
         {!saved && (
           <Tooltip title="Ajouter un crénau">
             <IconButton

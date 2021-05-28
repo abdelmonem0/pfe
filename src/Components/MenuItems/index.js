@@ -20,8 +20,8 @@ import {
   ExpandMore,
 } from "@material-ui/icons";
 import React from "react";
-import { useDispatch } from "react-redux";
-import { useHistory } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory, useLocation } from "react-router";
 import GetIcon from "./GetIcon";
 
 function getChildren(pages, page) {
@@ -32,13 +32,15 @@ function MenuItems(props) {
   const dispatch = useDispatch();
   const { pages, drawerOpen, closeDrawer } = props;
   const history = useHistory();
-  const [drawerLink, setDrawerLink] = React.useState(history.location.pathname);
   const [logoutDialog, setLogoutDialog] = React.useState(false);
   const theme = useTheme();
 
   const handleLogout = () => {
     if (!drawerOpen) setLogoutDialog(true);
-    else dispatch({ type: "PURGE" });
+    else {
+      history.push("/");
+      dispatch({ type: "PURGE" });
+    }
   };
 
   return (
@@ -51,8 +53,6 @@ function MenuItems(props) {
               key={page.text}
               children={getChildren(pages, page)}
               drawerOpen={drawerOpen}
-              setDrawerLink={setDrawerLink}
-              drawerLink={drawerLink}
               closeDrawer={closeDrawer}
             />
           )
@@ -73,7 +73,10 @@ function MenuItems(props) {
         open={logoutDialog}
         setOpen={setLogoutDialog}
         theme={theme}
-        logout={() => dispatch({ type: "PURGE" })}
+        logout={() => {
+          history.push("/");
+          dispatch({ type: "PURGE" });
+        }}
       />
     </List>
   );
@@ -95,10 +98,12 @@ function childSelected(child, current) {
 }
 
 const Item = (props) => {
-  const { page, drawerOpen, children, setDrawerLink, drawerLink, closeDrawer } =
-    props;
+  const { page, drawerOpen, children, closeDrawer } = props;
+  const current = useSelector((state) => state.users.current);
   const history = useHistory();
+  const location = useLocation();
   const theme = useTheme();
+  const drawerLink = location.pathname;
 
   const [open, setOpen] = React.useState(false);
   const sublink = getSublink(children, drawerLink);
@@ -109,11 +114,9 @@ const Item = (props) => {
 
     if (link === drawerLink) {
       history.replace(link);
-      setDrawerLink(link);
       return;
     }
 
-    setDrawerLink(link);
     history.push(link);
   };
 
@@ -176,10 +179,12 @@ const Item = (props) => {
               primary={child.text}
               style={{ color: theme.palette.text.secondary }}
             />
+            <div style={{ flex: 1 }} />
+            <div>{child.count > 0 || ""}</div>
           </ListItem>
         ))}
       </Collapse>
-      {willRenderDivider(page) && <Divider />}
+      {willRenderDivider(page, current.role) && <Divider />}
     </>
   );
 };
@@ -197,6 +202,7 @@ const ConfirmLogout = (props) => {
           variant="contained"
           disableElevation
           style={{ backgroundColor: theme.palette.error.main, color: "white" }}
+          onClick={logout}
         >
           Deconnexion
         </Button>
@@ -205,12 +211,13 @@ const ConfirmLogout = (props) => {
   );
 };
 
-function willRenderDivider(page) {
+function willRenderDivider(page, role) {
   if (
     page.text.toLowerCase() === "accueil" ||
     page.text.toLowerCase() === "candidatures" ||
     page.text.toLowerCase() === "profile" ||
-    page.text.toLowerCase() === "enseignants"
+    page.text.toLowerCase() === "etudiants" ||
+    (page.text.toLowerCase() === "sujets" && role === "president")
   )
     return true;
 }

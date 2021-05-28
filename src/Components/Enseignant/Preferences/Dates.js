@@ -173,18 +173,25 @@ function Dates(props) {
 
   return dates.length > 0 ? (
     <div style={{ flex: "1" }}>
-      <Paper>
-        {datesSaved && (
-          <Typography variant="h6" color="primary">
-            Vous avez des préférences enregistrés, vous pouvez les modifier en
-            modifiant le tableau suivant.
-          </Typography>
-        )}
-        <div className="horizontal-list space-between">
-          <Typography>Début: {dates[0].day}</Typography>
-          <div style={{ height: "1px", backgroundColor: "gray", flex: 1 }} />
-          <Typography>Fin: {dates[dates.length - 1].day}</Typography>
+      <div className="horizontal-list space-between wrap">
+        <div>
+          {datesSaved && (
+            <Typography variant="h6" color="primary">
+              Vous avez des préférences enregistrés, vous pouvez les modifier en
+              modifiant le tableau suivant.
+            </Typography>
+          )}
+          <div className="horizontal-list space-between">
+            <Typography>Début: {dates[0].day}</Typography>
+            <div style={{ height: "1px", backgroundColor: "gray", flex: 1 }} />
+            <Typography>Fin: {dates[dates.length - 1].day}</Typography>
+          </div>
         </div>
+        <Button variant="contained" color="primary" onClick={() => saveDates()}>
+          Enregistrer
+        </Button>
+      </div>
+      <Paper className="table-container" style={{ marginTop: "0.5rem" }}>
         <TableContainer>
           <Table>
             <TableHead>
@@ -288,14 +295,6 @@ function Dates(props) {
           onChangeRowsPerPage={handleChangeRowsPerPage}
         />
       </Paper>
-      <Button
-        style={{ marginTop: "0.5rem" }}
-        variant="contained"
-        color="primary"
-        onClick={() => saveDates()}
-      >
-        Enregistrer
-      </Button>
     </div>
   ) : (
     <Typography variant="h5">

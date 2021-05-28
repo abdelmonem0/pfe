@@ -1,7 +1,8 @@
 import React from "react";
 import Statistics from "./Statistics";
 
-function Homepage(props) {
+function Homepage() {
+  console.log("homepage president.js");
   return (
     <div style={{ display: "flex", flex: "1", gap: "1rem", flexWrap: "wrap" }}>
       <Statistics />
@@ -9,4 +10,4 @@ function Homepage(props) {
   );
 }
 
-export default Homepage;
+export default React.memo(Homepage);

@@ -1,7 +1,8 @@
 import { store } from "../../..";
-import { addProject, addFileToDatabase } from "../../../functions";
+import { addProject, addFileToDatabase, getProjects } from "../../../functions";
 import { v4 as uuid } from "uuid";
 import { Project_States } from "../../../Constants";
+import { filterPrivateProjects, setPages } from "../../redirectLogic";
 
 export function validate(form, values) {
   const state = store.getState();
@@ -78,27 +79,55 @@ export function validate(form, values) {
   return { isValidated, errors };
 }
 
-export const addProjectToDatabase = (form, projectId = null, newFiles = []) => {
+export function validateProposal(form) {
+  const state = store.getState();
+  const files = state.files;
+  var errors = {};
+
+  errors.description =
+    form.description.length > 0
+      ? form.description.length < 21844
+        ? ""
+        : "Ce n'est qu'une description, vous n'êtes pas censé écrire un livre ici!"
+      : "Ce champs est obligatoire.";
+
+  errors.enc_prim = !form.enc_prim ? "Ce champs est obligatoire." : "";
+
+  const isValidated = errors.description === "" && errors.enc_prim === "";
+
+  return { isValidated, errors };
+}
+
+export const addProjectToDatabase = (
+  form,
+  projectId = null,
+  newFiles = [],
+  etat = Project_States.waiting,
+  file_type = "fiche externe"
+) => {
   const state = store.getState();
   const current = state.users.current;
   const id_sujet = projectId || uuid();
   const files = [];
   const fileSource = newFiles.length > 0 ? newFiles : state.files;
+  console.log(fileSource);
   for (let f of fileSource)
     files.push([
       f.path || f.id_fichier,
       current.id_utilisateur,
       id_sujet,
-      "fiche externe",
+      file_type,
     ]);
 
-  const object = { sujet: { ...form, id_sujet } };
+  var object = { sujet: { ...form, id_sujet, etat } };
+
   store.dispatch({ type: "OPEN_BACKDROP" });
   addProject(object, projectId)
     .then((res) => {
       if (files.length > 0) {
         addFileToDatabase(files);
       }
+
       store.dispatch({ type: "CLOSE_BACKDROP" });
       store.dispatch({
         type: "OPEN_SNACK",
@@ -127,7 +156,8 @@ export const initialForm = () => {
     tags: "",
     lieu: "",
     enc_ext: "",
-    date: new Date(),
+    date_creation: new Date().toISOString().split(".")[0],
+    etat: Project_States.waiting,
   };
 };
 
@@ -142,8 +172,13 @@ export const initialErrors = {
   id_etudiant_2: "",
 };
 
-export function updateProject(form, projectId, files) {
-  addProjectToDatabase(form, projectId, files);
+export const initialProposalErrors = {
+  description: "",
+  enc_prim: "",
+};
+
+export function updateProject(form, projectId, files, etat, file_type) {
+  addProjectToDatabase(form, projectId, files, etat, file_type);
 }
 
 export function getStudentsForPartnership() {

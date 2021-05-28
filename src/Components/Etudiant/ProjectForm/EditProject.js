@@ -5,7 +5,7 @@ import {
   Checkbox,
   ButtonGroup,
   Typography,
-  Paper,
+  div,
   Collapse,
   useTheme,
 } from "@material-ui/core";
@@ -14,16 +14,13 @@ import moment from "moment";
 import "moment/locale/fr";
 import { useSelector } from "react-redux";
 import UploadFile from "../../UploadFile";
-import {
-  initialErrors,
-  validate,
-  getProjectData,
-  updateProject,
-} from "./logic";
+import { initialErrors, validateProposal, updateProject } from "./logic";
 import { useLocation } from "react-router";
 import AttachedFiles from "../../Commun/AttachedFiles";
-import { getProjectByID } from "../Candidatures/logic";
 import ConfirmDialog from "../../Commun/ConfirmDialog";
+import { getProjectData } from "../../Enseignant/ProjectForm/logic";
+import { getProjectByID } from "../../Enseignant/Candidatures/logic";
+import { File_States, Project_States } from "../../../Constants";
 
 moment.locale("fr");
 
@@ -36,14 +33,9 @@ function EditProject(props) {
   var query = useQuery();
   const [projectId, setProjectId] = useState(query.get("id"));
   const project = getProjectByID(projectId);
+  console.log(project);
   const current = useSelector((state) => state.users.current);
-  const users = useSelector((state) => state.users.all)
-    .filter(
-      (object) =>
-        object.role === "enseignant" &&
-        object.id_utilisateur !== current.id_utilisateur
-    )
-    .sort((a, b) => a.nom.localeCompare(b.nom));
+  const files = useSelector((state) => state.files);
 
   const [errors, setErrors] = useState(initialErrors);
   const [form, setForm] = useState(getProjectData(projectId));
@@ -63,12 +55,19 @@ function EditProject(props) {
   };
 
   const update = () => {
-    const { isValidated, errors } = validate(form, values);
+    const { isValidated, errors } = validateProposal(form);
     if (!isValidated) {
       setErrors(errors);
       return;
     }
-    updateProject(form, projectId, project.fichiers);
+    updateProject(
+      form,
+      projectId,
+      project.fichiers.concat(files),
+      Project_States.proposed_by_student_for_teacher,
+      File_States.cahier_de_charge_en_instance
+    );
+    window.location.reload();
   };
 
   const toggleEncSec = () => {
@@ -91,7 +90,7 @@ function EditProject(props) {
         justifyContent: "space-between",
       }}
     >
-      <Paper
+      <div
         elevation={0}
         style={{
           gap: "0.5rem",
@@ -101,36 +100,9 @@ function EditProject(props) {
         }}
       >
         <Typography variant="h4" paragraph style={{ flex: "1 1 100%" }}>
-          Proposer un sujet
+          Modifier un sujet
         </Typography>
-        {current.role !== "etudiant" && (
-          <ButtonGroup
-            size="large"
-            style={{
-              flex: "1 1 30%",
-            }}
-            disableElevation
-          >
-            <Button
-              color={form.interne ? "primary" : "default"}
-              variant={form.interne ? "contained" : "outlined"}
-              style={{ flex: "1 1 45%", fontSize: "1.2rem" }}
-              onClick={() => {
-                setForm({ ...form, interne: true });
-              }}
-            >
-              Interne
-            </Button>
-            <Button
-              color={!form.interne ? "primary" : "default"}
-              variant={!form.interne ? "contained" : "outlined"}
-              style={{ flex: "1 1 45%", fontSize: "1.2rem" }}
-              onClick={() => setForm({ ...form, interne: false })}
-            >
-              Externe
-            </Button>
-          </ButtonGroup>
-        )}
+
         <TextField
           onChange={onTextChange}
           label="Titre"
@@ -178,60 +150,6 @@ function EditProject(props) {
           }}
         />
 
-        <Autocomplete
-          onChange={onAutocompleteChange}
-          id="enc_prim"
-          options={users}
-          getOptionLabel={(option) => option.nom}
-          disabled={current.role !== "president"}
-          defaultValue={current}
-          value={users.find((u) => u.id_utilisateur === form.enc_prim)}
-          getOptionSelected={(option, value) =>
-            option.id_utilisateur === value.id_utilisateur
-          }
-          groupBy={(option) => option.nom.charAt(0)}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Encadrant primair"
-              variant="outlined"
-              placeholder="Séléctionner l'encadrant pour ce sujet."
-              error={errors.enc_sec.length > 0}
-              helperText={errors.enc_sec}
-            />
-          )}
-          style={{ flex: "1 1 45%", minWidth: "16rem" }}
-        />
-        <div style={{ display: "flex", flex: "1 1 45%", minWidth: "16rem" }}>
-          <Checkbox
-            checked={form.enc_sec || values.encSec}
-            color="primary"
-            onChange={() => toggleEncSec()}
-          />
-          <Autocomplete
-            onChange={onAutocompleteChange}
-            id="enc_sec"
-            options={users}
-            getOptionLabel={(option) => option.nom}
-            disabled={!values.encSec ? true : !form.enc_sec}
-            value={users.find((u) => u.id_utilisateur === form.enc_sec)}
-            getOptionSelected={(option, value) =>
-              option.id_utilisateur === value.id_utilisateur
-            }
-            groupBy={(option) => option.nom.charAt(0)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Encadrant secondair"
-                variant="outlined"
-                placeholder="Séléctionner l'encadrant pour ce sujet."
-                error={errors.enc_sec.length > 0}
-                helperText={errors.enc_sec}
-              />
-            )}
-            style={{ flex: "1" }}
-          />
-        </div>
         <TextField
           variant="outlined"
           color="primary"
@@ -249,49 +167,13 @@ function EditProject(props) {
           }}
           style={{ flex: "1 1 100%" }}
         />
-        <Collapse unmountOnExit in={!form.interne} style={{ flex: "1 1 100%" }}>
-          <div
-            style={{
-              gap: "0.5rem",
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "flex-start",
-            }}
-          >
-            <TextField
-              onChange={(e) =>
-                setForm({ ...form, [e.target.id]: e.target.value })
-              }
-              label="Lieu (Societé)"
-              id="lieu"
-              value={form.lieu}
-              variant="outlined"
-              error={errors.lieu.length > 0}
-              helperText={errors.lieu}
-              style={{ flex: "1 1 49%", minWidth: "16rem" }}
-            />
-            <TextField
-              onChange={(e, value) =>
-                setForm({ ...form, [e.target.id]: e.target.value })
-              }
-              id="enc_ext"
-              label="Encadrant externe"
-              value={form.enc_ext}
-              variant="outlined"
-              placeholder="Séléctionner l'encadrant pour ce sujet."
-              error={errors.enc_ext.length > 0}
-              helperText={errors.enc_ext}
-              style={{ flex: "1 1 49%", minWidth: "16rem" }}
-            />
-            {project.fichiers.length ? (
-              <AttachedFiles project={project} canDelete />
-            ) : (
-              <UploadFile size="large" fileProp="Fiche externe" />
-            )}
-          </div>
-        </Collapse>
-      </Paper>
-      <Paper
+        {project.fichiers.length ? (
+          <AttachedFiles project={project} canDelete />
+        ) : (
+          <UploadFile size="large" fileProp="Cahier de charge" />
+        )}
+      </div>
+      <div
         elevation={0}
         style={{
           display: "flex",
@@ -325,7 +207,7 @@ function EditProject(props) {
             Supprimer
           </Button>
         </ConfirmDialog>
-      </Paper>
+      </div>
     </div>
   );
 }

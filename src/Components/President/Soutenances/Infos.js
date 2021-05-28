@@ -18,28 +18,30 @@ function Infos(props) {
       <Typography gutterBottom variant="h5" color="primary">
         Infos
       </Typography>
-      <div className="horizontal-list space-between">
-        <div className="horizontal-list">
-          <Typography variant="h6">Date de debut:</Typography>
-          <Typography variant="h6" color="primary">
-            {new Date(startDate).toLocaleDateString("fr-FR")}
-          </Typography>
+      {startDate && endDate && (
+        <div className="horizontal-list space-between">
+          <div className="horizontal-list">
+            <Typography variant="h6">Date de debut:</Typography>
+            <Typography variant="h6" color="primary">
+              {new Date(startDate).toLocaleDateString("fr-FR")}
+            </Typography>
+          </div>
+          <div
+            style={{
+              height: "1px",
+              margin: "0 0.2rem",
+              backgroundColor: "lightgray",
+              flex: "1",
+            }}
+          />
+          <div className="horizontal-list">
+            <Typography variant="h6">Date de fin:</Typography>
+            <Typography variant="h6" color="primary">
+              {new Date(endDate).toLocaleDateString("fr-FR")}
+            </Typography>
+          </div>
         </div>
-        <div
-          style={{
-            height: "1px",
-            margin: "0 0.2rem",
-            backgroundColor: "lightgray",
-            flex: "1",
-          }}
-        />
-        <div className="horizontal-list">
-          <Typography variant="h6">Date de fin:</Typography>
-          <Typography variant="h6" color="primary">
-            {new Date(endDate).toLocaleDateString("fr-FR")}
-          </Typography>
-        </div>
-      </div>
+      )}
       <div className="horizontal-list">
         <Typography variant="h6">Sales:</Typography>
 

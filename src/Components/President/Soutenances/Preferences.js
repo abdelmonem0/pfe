@@ -30,31 +30,12 @@ const constants = {
 
 function Preferences(props) {
   const values = useSelector((state) => state.soutenance.values);
-  const {
-    startDate,
-    endDate,
-    maxCrenaux,
-    sales,
-    selectedTeachers,
-    selectedProjects,
-    presidents,
-  } = values || constants;
+  const { selectedTeachers, selectedProjects, presidents } =
+    values || constants;
 
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  const setStartDate = (value) => {
-    dispatch({ type: "UPDATE_VALUES", payload: { prop: "startDate", value } });
-  };
-  const setEndDate = (value) => {
-    dispatch({ type: "UPDATE_VALUES", payload: { prop: "endDate", value } });
-  };
-  const setMaxCrenaux = (value) => {
-    dispatch({ type: "UPDATE_VALUES", payload: { prop: "maxCrenaux", value } });
-  };
-  const setSales = (value) => {
-    dispatch({ type: "UPDATE_VALUES", payload: { prop: "sales", value } });
-  };
   const setSelectedTeachers = (value) => {
     dispatch({
       type: "UPDATE_VALUES",
@@ -87,26 +68,13 @@ function Preferences(props) {
     switch (step) {
       case 0:
         return (
-          <DateSale
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-            maxCrenaux={maxCrenaux}
-            setMaxCrenaux={setMaxCrenaux}
-            sales={sales}
-            setSales={setSales}
-          />
-        );
-      case 1:
-        return (
           <TableView
             projects={projects}
             selectedProjects={selectedProjects}
             setSelectedProjects={setSelectedProjects}
           />
         );
-      case 2:
+      case 1:
         return (
           <Teachers
             calledFromSoutenances={true}
@@ -116,7 +84,7 @@ function Preferences(props) {
             setPresidents={setPresidents}
           />
         );
-      case 3:
+      case 2:
         return (
           <Soutenances
             values={values}
@@ -138,20 +106,9 @@ function Preferences(props) {
 
   return (
     (values && projects && teachers && (
-      <div>
+      <div style={{ flex: 1 }}>
         <Hidden smDown>
           <Stepper activeStep={step} style={{ backgroundColor: "transparent" }}>
-            <Step>
-              <StepLabel
-                optional={
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Dates, sales et crénaux
-                  </Typography>
-                }
-              >
-                <Typography>Paramètres générales</Typography>
-              </StepLabel>
-            </Step>
             <Step>
               <StepLabel>
                 <Typography>Choisir les sujets</Typography>

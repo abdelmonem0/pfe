@@ -12,6 +12,7 @@ import SoutenanceHolder from "./SoutenanceHolder";
 import { useDispatch, useSelector } from "react-redux";
 import Feedback from "./Feedback";
 import ConfirmDialog from "../../Commun/ConfirmDialog";
+import DateSale from "./Steps/DateSale";
 
 function Soutenances(props) {
   const { saved, values, projects, teachers } = props;
@@ -24,17 +25,23 @@ function Soutenances(props) {
     selectedProjects,
     presidents,
   } = values;
-  const soutenances = useSelector((state) =>
-    saved ? state.savedSoutenance.soutenances : state.soutenance.soutenances
-  );
+  const soutenances = useSelector((state) => state.soutenance.soutenances);
   const dispatch = useDispatch();
+
+  const setMaxCrenaux = (value) => {
+    dispatch({ type: "UPDATE_VALUES", payload: { prop: "maxCrenaux", value } });
+  };
+  const setSales = (value) => {
+    dispatch({ type: "UPDATE_VALUES", payload: { prop: "sales", value } });
+  };
 
   const [parameters, setParameters] = useState({ fullTeachers: false });
   const [feedback, setFeedback] = useState({});
+  const [saturday, setSaturday] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
   const create = () => {
-    const ss = createSoutenances({
+    const { _soutenances, message } = createSoutenances({
       selectedTeachers,
       selectedProjects,
       startDate,
@@ -42,8 +49,18 @@ function Soutenances(props) {
       maxCrenaux,
       sales,
       presidents,
+      saturday,
     });
-    dispatch({ type: "SET_SOUTENANCES", payload: ss });
+    dispatch({ type: "SET_SOUTENANCES", payload: _soutenances });
+    dispatch({
+      type: "OPEN_SNACK",
+      payload: {
+        message: message.length
+          ? message
+          : _soutenances.length + " soutenances sont générées.",
+        type: message.length ? "warning" : "success",
+      },
+    });
   };
 
   const handleAssignTeachers = () => {
@@ -59,9 +76,21 @@ function Soutenances(props) {
     <div style={{ paddingBottom: "10rem" }}>
       {!saved ? (
         <>
+          <Typography>
+            <Checkbox
+              checked={saturday}
+              onChange={() => setSaturday(!saturday)}
+            />{" "}
+            Inclure les samedis
+          </Typography>
+          <DateSale
+            maxCrenaux={maxCrenaux}
+            setMaxCrenaux={setMaxCrenaux}
+            sales={sales}
+            setSales={setSales}
+            saturday={saturday}
+          />
           <Infos
-            startDate={startDate}
-            endDate={endDate}
             sales={sales}
             maxCrenaux={maxCrenaux}
             selectedTeachers={selectedTeachers}
@@ -70,7 +99,11 @@ function Soutenances(props) {
             projects={projects}
             teachers={teachers}
           />
-          <Paper variant="outlined" className="horizontal-list wrap">
+          <Paper
+            variant="outlined"
+            className="horizontal-list wrap"
+            style={{ padding: "0.5rem" }}
+          >
             <Typography
               variant="h6"
               color="primary"

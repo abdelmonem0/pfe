@@ -1,4 +1,4 @@
-import { React, useEffect, useState } from "react";
+import React, { useState } from "react";
 import Pagination from "@material-ui/lab/Pagination";
 import ProjectCard from "../ProjectCard";
 
@@ -27,7 +27,9 @@ function CardView(props) {
         onChange={handlePageChange}
       />
       {projects.slice(sliceStart, sliceEnd).map((project) => (
-        <ProjectCard project={project} />
+        <React.Fragment key={project.id_sujet}>
+          <ProjectCard project={project} />
+        </React.Fragment>
       ))}
       <Pagination
         count={pagesCount}

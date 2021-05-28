@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -12,7 +12,13 @@ import {
   Chip,
   Divider,
 } from "@material-ui/core";
-import { Person, CommentRounded, Settings } from "@material-ui/icons";
+import {
+  Person,
+  CommentRounded,
+  Settings,
+  School,
+  Schedule,
+} from "@material-ui/icons";
 import { useSelector } from "react-redux";
 import ViewComments from "../ViewComments";
 import MembreProjectActions from "../../Membre/MembreProjectActions";
@@ -25,30 +31,34 @@ import ProjectDetail from "../ProjectDetail";
 import AttachementButton from "./AttachementButton";
 import StateChip from "./StateChip";
 import CahierState from "./CahierState";
+import { getUserByID } from "../Candidature.js/CandidatureLogic";
+import TeacherProjectAction from "../../Enseignant/TeacherProjectActions";
+import { canEditProject } from "./logic";
+import { Link } from "react-router-dom";
+import { getNextQuery } from "../ProjectDetail/logic";
+
+function can_view_comments(project, current) {
+  return (
+    project.id_etudiant === current.id_utilisateur ||
+    project.id_etudiant_2 === current.id_utilisateur ||
+    project.enc_prim === current.id_utilisateur ||
+    project.enc_sec === current.id_utilisateur ||
+    current.role === "president" ||
+    current.role === "membre"
+  );
+}
 
 function ProjectCard(props) {
   const { project } = props;
   const theme = useTheme();
   const current = useSelector((state) => state.users.current);
-  const candidatures = useSelector((state) => state.candidatures);
-  const gotAcceptedCand =
-    candidatures.filter((el) => {
-      return el.etat === Candidature_States.accepted;
-    }).length > 0;
+  const comments = useSelector((state) => state.comments.comments).filter(
+    (c) => c.id_sujet === project.id_sujet
+  );
 
   const [expanded, setExpanded] = useState(undefined);
 
-  const canViewComments =
-    current.role === "enseignant"
-      ? project.enc_prim === current.id_utilisateur ||
-        project.enc_sec === current.id_utilisateur
-        ? true
-        : false
-      : true;
-  const canCandidate =
-    current.role === "etudiant" &&
-    project.affecte_a.length === 0 &&
-    !gotAcceptedCand;
+  const canViewComments = can_view_comments(project, current);
 
   function expand(project) {
     setExpanded(expanded === project.id_sujet ? undefined : project.id_sujet);
@@ -64,35 +74,51 @@ function ProjectCard(props) {
               <StateChip project={project} />
               <CahierState project={project} />
               {project.encadrants[0] && (
-                <Typography variant="body2" color="textSecondary">
-                  <Person size="small" /> {project.encadrants[0].nom}{" "}
-                  {project.encadrants.length > 1 &&
-                    " - " + project.encadrants[1].nom}
-                </Typography>
+                <Tooltip title="Encadrant">
+                  <Typography variant="body2" color="textSecondary">
+                    <School size="small" /> {project.encadrants[0].nom}{" "}
+                    {project.encadrants.length > 1 &&
+                      " - " + project.encadrants[1].nom}
+                  </Typography>
+                </Tooltip>
               )}
+              {project.id_etudiant && (
+                <Tooltip title="Etudiant">
+                  <Typography variant="body2" color="textSecondary">
+                    <Person size="small" />{" "}
+                    {getUserByID(project.id_etudiant).nom}{" "}
+                    {project.id_etudiant_2 &&
+                      " - " + getUserByID(project.id_etudiant_2).nom}
+                  </Typography>
+                </Tooltip>
+              )}
+              <Tooltip title="Date d'ajout">
+                <Typography variant="body2" color="textSecondary">
+                  <Schedule />
+                  {" " +
+                    new Date(project.date_creation).toLocaleDateString("fr-FR")}
+                </Typography>
+              </Tooltip>
             </div>
           }
         />
         <Hidden xsDown>
           <CardContent>
-            <div
-              style={{
-                display: "flex",
-                gap: "0.5rem",
-                flexWrap: "wrap",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <Settings color="primary" />
-              {project.tags.map((tag, i) => (
-                <>
-                  <Typography color="primary">{tag.id_tag}</Typography>
-                  {i < project.tags.length - 1 && (
-                    <Divider orientation="vertical" flexItem />
-                  )}
-                </>
-              ))}
-            </div>
+            {project.tags && project.tags.length > 0 && (
+              <Tooltip title="Technologies">
+                <div className="horizontal-list">
+                  <Settings color="primary" />
+                  {project.tags.map((tag, i) => (
+                    <React.Fragment key={tag.id_tag}>
+                      <Typography color="primary">{tag.id_tag}</Typography>
+                      {i < project.tags.length - 1 && (
+                        <Divider orientation="vertical" flexItem />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </Tooltip>
+            )}
             <Typography variant="body1" color="primary">
               Description
             </Typography>
@@ -107,10 +133,21 @@ function ProjectCard(props) {
           <LikeButton project={project} current={current} />
           <CandidatButton project={project} />
           <PresidentProjectActions project={project} />
-          <MembreProjectActions project={project} current={current} />
+          <TeacherProjectAction project={project} />
+          <MembreProjectActions project={project} />
           <AttachementButton project={project} />
           <div style={{ flex: 1 }} />
 
+          {canEditProject(project) && (
+            <Button
+              component={Link}
+              size="small"
+              variant="outlined"
+              to={getNextQuery("modifier", "id", project.id_sujet)}
+            >
+              Modifier
+            </Button>
+          )}
           {/* Comments button */}
           {canViewComments && (
             <Tooltip title="Commentaires">
@@ -120,7 +157,7 @@ function ProjectCard(props) {
                 startIcon={<CommentRounded />}
                 onClick={() => expand(project)}
               >
-                {project.commentaires.length}
+                {comments.length}
               </Button>
             </Tooltip>
           )}

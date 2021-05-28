@@ -63,7 +63,7 @@ export default function Preferences() {
   };
 
   return (
-    <div className={classes.root} style={{ flex: "1" }}>
+    <div style={{ flex: "1" }}>
       <AppBar position="static" color="default">
         <Tabs
           value={value}
@@ -77,18 +77,9 @@ export default function Preferences() {
           <Tab label="Dates" {...a11yProps(1)} />
         </Tabs>
       </AppBar>
-      <SwipeableViews
-        axis={theme.direction === "rtl" ? "x-reverse" : "x"}
-        index={value}
-        onChangeIndex={handleChangeIndex}
-      >
-        <TabPanel value={value} index={0} dir={theme.direction}>
-          <Tags />
-        </TabPanel>
-        <TabPanel value={value} index={1} dir={theme.direction}>
-          <Dates />
-        </TabPanel>
-      </SwipeableViews>
+      <div style={{ marginTop: "0.8rem" }}>
+        {value === 0 ? <Tags /> : <Dates />}
+      </div>
     </div>
   );
 }

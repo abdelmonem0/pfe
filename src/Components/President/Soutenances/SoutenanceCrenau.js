@@ -25,12 +25,20 @@ import ConfirmDialog from "../../Commun/ConfirmDialog";
 function SoutenanceCrenau(props) {
   const { crenau, saved, date, deleteCrenau } = props;
   const dispatch = useDispatch();
-  const soutenances = useSelector(
+
+  const savedSoutenances =
+    useSelector((state) => state.savedSoutenance.soutenances).filter(
+      (s) => s.date === date && s.crenau === crenau
+    ) || [];
+  const currentSoutenances = useSelector(
     (state) => state.soutenance.soutenances
   ).filter((s) => s.date === date && s.crenau === crenau);
-  const sales = useSelector((state) =>
-    state.soutenance.values.sales.split(",")
-  );
+  const soutenances = saved ? savedSoutenances : currentSoutenances;
+
+  var sales = useSelector((state) => state.soutenance.values.sales.split(","));
+  const savedSales =
+    useSelector((state) => state.savedSoutenance.values.sales) || [];
+  if (saved) sales = savedSales;
   const [open, setOpen] = useState(true);
 
   const theme = useTheme();
@@ -38,6 +46,8 @@ function SoutenanceCrenau(props) {
   const handleExpand = () => {
     setOpen(!open);
   };
+
+  const allSoutenanceValid = checkMultipleSoutenanceValid(soutenances);
 
   const handleDeleteAllSoutenance = () => {
     dispatch({
@@ -90,27 +100,34 @@ function SoutenanceCrenau(props) {
             onConfirm={handleDeleteAllSoutenance}
           >
             <Tooltip title="Supprimer ce crénau">
-              <IconButton disabled={saved} size="small">
-                <DeleteSweep style={{ color: theme.palette.error.main }} />
-              </IconButton>
+              <div>
+                {" "}
+                <IconButton disabled={saved} size="small">
+                  <DeleteSweep style={{ color: theme.palette.error.main }} />
+                </IconButton>
+              </div>
             </Tooltip>
           </ConfirmDialog>
         )}
         {!saved && (
           <Tooltip title="Ajouter une soutenance">
-            <IconButton
-              disabled={soutenances.length >= sales.length}
-              size="small"
-              color="primary"
-              onClick={handleAddSoutenance}
-            >
-              <AddCircle />
-            </IconButton>
+            <div>
+              <IconButton
+                disabled={soutenances.length >= sales.length}
+                size="small"
+                color="primary"
+                onClick={handleAddSoutenance}
+              >
+                <AddCircle />
+              </IconButton>
+            </div>
           </Tooltip>
         )}
 
-        {checkMultipleSoutenanceValid(soutenances) ? (
-          <DoneAll style={{ color: theme.palette.success.main }} />
+        {allSoutenanceValid ? (
+          <Tooltip title="Toutes les soutenances de ce crénau sont valides">
+            <DoneAll style={{ color: theme.palette.success.main }} />
+          </Tooltip>
         ) : (
           <Tooltip title="Une ou plusieurs soutenance(s) non validée(s) dans ce crénau">
             <ErrorOutline style={{ color: theme.palette.warning.main }} />

@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Statistics(props) {
+function Statistics() {
   const projects = useSelector((state) => state.projects.dataArray);
   const theme = useTheme();
   const classes = useStyles();
@@ -97,7 +97,7 @@ function Statistics(props) {
   );
 }
 
-export default Statistics;
+export default React.memo(Statistics);
 
 const DoughnutChart = ({ state }) => {
   return (

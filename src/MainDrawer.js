@@ -19,6 +19,7 @@ import { useHistory } from "react-router-dom";
 import NotificationBar from "./Components/Commun/Notification/NotificationBar";
 import { Brightness4, Brightness7, ExitToApp } from "@material-ui/icons";
 import MenuItems from "./Components/MenuItems";
+import RedirectPage from "./Components/RedirectPage";
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -96,12 +97,23 @@ function MainDrawer(props) {
   const history = useHistory();
 
   const [open, setOpen] = React.useState(false);
+  const [authorized, setAuthorized] = React.useState(true);
 
   const handleDrawerOpen = () => {
     setOpen(!open);
   };
 
-  return (
+  React.useEffect(() => {
+    const location = history.location.pathname;
+    const pagesLinks = pages.map((page) => page.link);
+    const auth =
+      pagesLinks.indexOf(location) > -1 ||
+      location === "/" ||
+      location === "/modifier";
+    setAuthorized(auth);
+  }, [current, pages]);
+
+  return authorized ? (
     <div className={classes.root}>
       <CssBaseline />
       {current && (
@@ -232,6 +244,8 @@ function MainDrawer(props) {
 
       <Main current={current} classes={classes} themeType={themeType} />
     </div>
+  ) : (
+    <RedirectPage setAuthorized={setAuthorized} />
   );
 }
 

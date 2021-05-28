@@ -13,6 +13,8 @@ import {
   getTeacherDates,
   getUsers,
   getSoutenances,
+  getComments,
+  getDates,
 } from "../functions";
 import { useDispatch, useSelector } from "react-redux";
 import President from "./President";
@@ -22,7 +24,12 @@ import {
   assignDatesToTeachers,
   willInitSoutenanceValues,
 } from "./President/Soutenances/SoutenanceLogic";
-import { setPages, setupSoutenances } from "./redirectLogic";
+import {
+  setPages,
+  setupSoutenances,
+  filterPrivateProjects,
+} from "./redirectLogic";
+import Loading from "./Loading";
 
 function Redirect(props) {
   const current = props.current;
@@ -35,13 +42,16 @@ function Redirect(props) {
   const loadAllData = () => {
     getProjects()
       .then((res1) => {
-        if (role === "etudiant") {
-          const filtered = res1.data.filter(
-            (p) => p.etat !== Project_States.refused
-          );
-          dispatch({ type: "SET_PROJECTS", payload: filtered });
-        } else dispatch({ type: "SET_PROJECTS", payload: res1.data });
+        var filtered = res1.data;
+
+        //dispatches projects
+        filterPrivateProjects(filtered, current);
       })
+      .then(() =>
+        getComments().then((result) =>
+          dispatch({ type: "SET_COMMENTS", payload: result.data })
+        )
+      )
       .then(() =>
         getCandidatures(props.current.id_utilisateur).then((res2) =>
           dispatch({ type: "SET_CANDIDATURES", payload: res2.data })
@@ -74,9 +84,6 @@ function Redirect(props) {
                     dispatch({ type: "SET_TEACHERS", payload: teachers });
                   }
                 })
-            )
-            .then(() =>
-              getSoutenances().then((result) => setupSoutenances(result.data))
             );
         }
       })
@@ -96,6 +103,17 @@ function Redirect(props) {
           dispatch({ type: "SET_NOTIFICATIONS", payload: result.data })
         )
       )
+      .then(() =>
+        getDates().then((result) => {
+          var temp = {};
+          for (let date of result.data)
+            temp = { ...temp, [date.id_date]: date.date };
+          dispatch({ type: "SET_SAVED_DATES", payload: temp });
+        })
+      )
+      .then(() =>
+        getSoutenances().then((result) => setupSoutenances(result.data))
+      )
       .then(() => {
         dispatch({ type: "CLOSE_BACKDROP" });
         setAllDone(true);
@@ -109,7 +127,7 @@ function Redirect(props) {
     if (allDone) setPages(role);
   }, [allDone]);
 
-  return allDone ? <UserType role={role} /> : <div>!allDone (Redirect.js)</div>;
+  return allDone ? <UserType role={role} /> : <Loading />;
 }
 
 const UserType = React.memo((props) => {
@@ -119,7 +137,7 @@ const UserType = React.memo((props) => {
     case "enseignant":
       return <Enseignant />;
     case "membre":
-      return <Membre />;
+      return <Enseignant />;
     case "admin":
       return <Admin />;
     case "president":

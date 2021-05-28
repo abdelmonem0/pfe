@@ -1,6 +1,5 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
 import {
   Button,
   Dialog,
@@ -9,7 +8,6 @@ import {
   Typography,
   Paper,
   MenuItem,
-  CardContent,
   IconButton,
   Menu,
 } from "@material-ui/core";
@@ -17,28 +15,15 @@ import { Delete, EditRounded, MoreHoriz } from "@material-ui/icons";
 
 function Comment(props) {
   const users = useSelector((state) => state.users);
-  const comment = props.comment;
+  const { comment, removeComment, editComment } = props;
   const user = users.current;
-  const dispatch = useDispatch();
 
   const [editDialog, setEdit] = useState(false);
   const [deleteDialog, setDelete] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
   function getUser(id) {
-    var user = null;
-    var BreakException = {};
-    try {
-      users.all.forEach((element) => {
-        if (element.id_utilisateur === id) {
-          user = element;
-          throw BreakException;
-        }
-      });
-    } catch (e) {
-      if (e !== BreakException) throw e;
-    }
-    return user;
+    return users.all.find((u) => u.id_utilisateur === id);
   }
 
   const handleClick = (event) => {
@@ -49,22 +34,18 @@ function Comment(props) {
     setAnchorEl(null);
   };
   return (
-    <>
+    <React.Fragment key={comment.id_commentaire}>
       <Dialog
         open={editDialog}
         onClose={() => setEdit(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
-        <Edit
-          editComment={props.editComment}
-          comment={comment}
-          close={setEdit}
-        />
+        <Edit editComment={editComment} comment={comment} close={setEdit} />
       </Dialog>
       <Dialog open={deleteDialog} onClose={() => setDelete(false)}>
         <DeleteComment
-          removeComment={props.removeComment}
+          removeComment={removeComment}
           comment={comment}
           close={setDelete}
         />
@@ -72,7 +53,6 @@ function Comment(props) {
       <Card
         variant="outlined"
         style={{ margin: "0.2rem 0", padding: "0.5rem" }}
-        key={props.key}
       >
         <div style={{ display: "flex" }}>
           <Typography variant="body1" style={{ fontWeight: "bold", flex: "1" }}>
@@ -110,18 +90,19 @@ function Comment(props) {
           )}
         </div>
         <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-          {comment.date_commentaire}
+          {new Date(comment.date_commentaire).toLocaleString("fr-FR")}
         </Typography>
         <Typography variant="body2">{comment.text_commentaire}</Typography>
       </Card>
-    </>
+    </React.Fragment>
   );
 }
 
 export default Comment;
 
 const Edit = (props) => {
-  const lastComment = props.comment.text_commentaire;
+  const { comment, editComment, close } = props;
+  const lastComment = comment.text_commentaire;
   const [newComment, setNewComment] = useState(lastComment);
   return (
     <Paper
@@ -135,7 +116,7 @@ const Edit = (props) => {
       <div>
         <Typography variant="h5">Modifier le commentaire</Typography>
         <Typography>
-          Dernière modification: {props.comment.date_commentaire}
+          Dernière modification: {comment.date_commentaire}
         </Typography>
       </div>
       <TextField
@@ -151,8 +132,11 @@ const Edit = (props) => {
           variant="contained"
           color="primary"
           onClick={() => {
-            props.editComment(props.comment.id_commentaire, newComment);
-            props.close(false);
+            editComment({
+              ...comment,
+              text_commentaire: newComment,
+            });
+            close(false);
           }}
         >
           Enregistrer
@@ -161,7 +145,7 @@ const Edit = (props) => {
           size="small"
           variant="outlined"
           color="secondary"
-          onClick={() => props.close(false)}
+          onClick={() => close(false)}
         >
           Annuler
         </Button>
@@ -171,6 +155,7 @@ const Edit = (props) => {
 };
 
 const DeleteComment = (props) => {
+  const { removeComment, comment, close } = props;
   return (
     <Paper
       style={{
@@ -187,8 +172,8 @@ const DeleteComment = (props) => {
           variant="contained"
           color="secondary"
           onClick={() => {
-            props.removeComment(props.comment.id_commentaire);
-            props.close(false);
+            removeComment(comment.id_commentaire);
+            close(false);
           }}
         >
           Supprimer
@@ -197,7 +182,7 @@ const DeleteComment = (props) => {
           size="small"
           variant="outlined"
           color="secondary"
-          onClick={() => props.close(false)}
+          onClick={() => close(false)}
         >
           Anuuler
         </Button>

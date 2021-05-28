@@ -1,47 +1,46 @@
 import React, { useState } from "react";
 import { Paper, Button, TextField } from "@material-ui/core";
 import Comment from "./ViewProjects/Comment";
-import {
-  addComment,
-  getProjects,
-  modifyComment,
-  deleteComment,
-} from "../../functions";
+import { addComment, modifyComment, deleteComment } from "../../functions";
 import { useDispatch, useSelector } from "react-redux";
+import { v4 as uuid } from "uuid";
 import { sendCommentNotifications } from "../../Notifications";
 
 function ViewComments(props) {
   const project = props.project;
   const current = useSelector((state) => state.users.current);
+  const comments = useSelector((state) => state.comments.comments)
+    .filter((c) => c.id_sujet === project.id_sujet)
+    .sort((a, b) => new Date(a) - new Date(b));
   const dispatch = useDispatch();
   const [values, setValues] = useState({ comment: "" });
 
   const sendComment = () => {
-    addComment(current.id_utilisateur, project.id_sujet, values.comment).then(
-      () =>
-        getProjects().then((result) => {
-          sendCommentNotifications(current, project).catch((err) =>
-            console.error(err)
-          );
-          dispatch({ type: "SET_PROJECTS", payload: result.data });
-        })
+    const comment = {
+      id_commentaire: uuid(),
+      text_commentaire: values.comment,
+      date_commentaire: new Date().toISOString().split(".")[0],
+      id_utilisateur: current.id_utilisateur,
+      id_sujet: project.id_sujet,
+    };
+    addComment(comment).then(() =>
+      dispatch({
+        type: "ADD_COMMENT",
+        payload: comment,
+      })
     );
   };
 
   const removeComment = (id_commentaire) => {
-    deleteComment(id_commentaire).then(() =>
-      getProjects().then((result) =>
-        dispatch({ type: "SET_PROJECTS", payload: result.data })
-      )
-    );
+    deleteComment(id_commentaire)
+      .then(() => dispatch({ type: "DELETE_COMMENT", payload: id_commentaire }))
+      .catch((err) => console.error(err));
   };
 
-  const editComment = (id_commentaire, commentaire) => {
-    modifyComment(id_commentaire, commentaire).then(() =>
-      getProjects().then((result) =>
-        dispatch({ type: "SET_PROJECTS", payload: result.data })
-      )
-    );
+  const editComment = (comment) => {
+    modifyComment(comment)
+      .then(() => dispatch({ type: "UPDATE_COMMENT", payload: comment }))
+      .catch((err) => console.error(err));
   };
 
   return (
@@ -78,14 +77,15 @@ function ViewComments(props) {
         </Button>
       </Paper>
       <Paper elevation={0}>
-        {project.commentaires &&
-          project.commentaires.map((comment) => (
-            <Comment
-              key={comment.id_commentaire}
-              comment={comment}
-              removeComment={removeComment}
-              editComment={editComment}
-            />
+        {comments &&
+          comments.map((comment, index) => (
+            <React.Fragment key={index}>
+              <Comment
+                comment={comment}
+                removeComment={removeComment}
+                editComment={editComment}
+              />
+            </React.Fragment>
           ))}
       </Paper>
     </Paper>

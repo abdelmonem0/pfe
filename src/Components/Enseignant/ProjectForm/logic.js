@@ -1,6 +1,7 @@
 import { store } from "../../..";
 import { addProject, addFileToDatabase } from "../../../functions";
 import { v4 as uuid } from "uuid";
+import { getProjectByID } from "../Candidatures/logic";
 
 export function validate(form, values) {
   const state = store.getState();
@@ -133,8 +134,7 @@ export const initialForm = () => {
 };
 
 export const getProjectData = (id) => {
-  const state = store.getState();
-  const project = state.projects.dataArray.find((p) => p.id_sujet === id);
+  const project = getProjectByID(id);
   if (!project) return initialForm;
 
   var tagsString = "";
@@ -146,6 +146,16 @@ export const getProjectData = (id) => {
     interne: project.interne,
     enc_prim: project.enc_prim,
     enc_sec: project.enc_sec,
+    id_etudiant: project.id_etudiant
+      ? project.id_etudiant
+      : project.affecte_a.length > 0
+      ? project.affecte_a[0]
+      : null,
+    id_etudiant_2: project.id_etudiant_2
+      ? project.id_etudiant_2
+      : project.affecte_a.length > 1
+      ? project.affecte_a[1]
+      : null,
     tags: "",
     date: new Date(project.date),
     lieu: project.lieu,

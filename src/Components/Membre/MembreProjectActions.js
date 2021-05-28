@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  ButtonGroup,
   Tooltip,
   Button,
   Dialog,
   DialogTitle,
   DialogActions,
   IconButton,
+  Box,
+  Hidden,
 } from "@material-ui/core";
 import { ThumbUp, ThumbDown } from "@material-ui/icons";
 import { addAvis, getAvis } from "../../functions";
@@ -63,27 +64,37 @@ function MembreProjectActions(props) {
         >
           <DialogTitle>Avis</DialogTitle>
           <DialogActions>
-            <ButtonGroup size={props?.size || "medium"} color="primary">
+            <>
               <Tooltip title="Avis positif">
-                <Button
-                  color={userAvis === 1 ? "primary" : "default"}
-                  startIcon={<ThumbUp />}
-                  onClick={() => handleClick(true)}
-                >
-                  {defineAvis(true)}
-                </Button>
+                <Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={project.etat === Project_States.accepted}
+                    color={userAvis === 1 ? "primary" : "default"}
+                    startIcon={<ThumbUp />}
+                    onClick={() => handleClick(true)}
+                  >
+                    {defineAvis(true)}
+                  </Button>
+                </Box>
               </Tooltip>
               <Tooltip title="Avis négatif">
-                <Button
-                  color={userAvis === -1 ? "primary" : "default"}
-                  startIcon={<ThumbDown />}
-                  onClick={() => handleClick(false)}
-                >
-                  {defineAvis(false)}
-                </Button>
+                <Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={project.etat === Project_States.accepted}
+                    color={userAvis === -1 ? "primary" : "default"}
+                    startIcon={<ThumbDown />}
+                    onClick={() => handleClick(false)}
+                  >
+                    {defineAvis(false)}
+                  </Button>
+                </Box>
               </Tooltip>
-            </ButtonGroup>
-            <div style={{ flex: "1" }} />
+            </>
+            <Box style={{ flex: "1" }} />
             <Button color="secondary" onClick={() => openDialog(false)}>
               Fermer
             </Button>
@@ -91,7 +102,7 @@ function MembreProjectActions(props) {
         </Dialog>
         {iconButton ? (
           <Tooltip title={`👍 ${defineAvis(true)} 👎 ${defineAvis(false)}`}>
-            <div>
+            <Box>
               <IconButton
                 size="small"
                 onClick={() => openDialog(true)}
@@ -106,33 +117,57 @@ function MembreProjectActions(props) {
               >
                 {currentUserAvis() === -1 ? <ThumbDown /> : <ThumbUp />}
               </IconButton>
-            </div>
+            </Box>
           </Tooltip>
         ) : (
-          <ButtonGroup
-            size="small"
-            color="primary"
-            disabled={project.etat === Project_States.accepted}
-          >
-            <Tooltip title="Avis positif">
-              <Button
-                color={userAvis === 1 ? "primary" : "default"}
-                startIcon={<ThumbUp />}
-                onClick={() => handleClick(true)}
+          <>
+            <Hidden smDown>
+              <Tooltip title="Avis positif">
+                <Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={project.etat === Project_States.accepted}
+                    color={userAvis === 1 ? "primary" : "default"}
+                    startIcon={<ThumbUp />}
+                    onClick={() => handleClick(true)}
+                  >
+                    {defineAvis(true)}
+                  </Button>
+                </Box>
+              </Tooltip>
+              <Tooltip title="Avis négatif">
+                <Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={project.etat === Project_States.accepted}
+                    color={userAvis === -1 ? "primary" : "default"}
+                    startIcon={<ThumbDown />}
+                    onClick={() => handleClick(false)}
+                  >
+                    {defineAvis(false)}
+                  </Button>
+                </Box>
+              </Tooltip>
+            </Hidden>
+            <Hidden mdUp>
+              <IconButton
+                size="small"
+                onClick={() => openDialog(true)}
+                disabled={project.etat === Project_States.accepted}
+                color={
+                  currentUserAvis() === 1
+                    ? "primary"
+                    : currentUserAvis() === -1
+                    ? "secondary"
+                    : "default"
+                }
               >
-                {defineAvis(true)}
-              </Button>
-            </Tooltip>
-            <Tooltip title="Avis négatif">
-              <Button
-                color={userAvis === -1 ? "primary" : "default"}
-                startIcon={<ThumbDown />}
-                onClick={() => handleClick(false)}
-              >
-                {defineAvis(false)}
-              </Button>
-            </Tooltip>
-          </ButtonGroup>
+                {currentUserAvis() === -1 ? <ThumbDown /> : <ThumbUp />}
+              </IconButton>
+            </Hidden>
+          </>
         )}
       </>
     )

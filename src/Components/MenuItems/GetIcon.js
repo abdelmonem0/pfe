@@ -1,6 +1,8 @@
-import { AccountCircle, DoneOutlined } from "@material-ui/icons";
+import { AccountCircle, DoneOutlined, Unarchive } from "@material-ui/icons";
 import AccountTreeIcon from "@material-ui/icons/AccountTree";
+import EventNoteIcon from "@material-ui/icons/EventNote";
 import LibraryAddIcon from "@material-ui/icons/LibraryAdd";
+import SchoolIcon from "@material-ui/icons/School";
 import TuneIcon from "@material-ui/icons/Tune";
 import MeetingRoomIcon from "@material-ui/icons/MeetingRoom";
 import MoveToInboxIcon from "@material-ui/icons/MoveToInbox";
@@ -12,6 +14,8 @@ const GetIcon = React.memo((props) => {
   switch (props.iconName.toLowerCase()) {
     case "profile":
       return <AccountCircle style={{ fill: props.selected ? "white" : "" }} />;
+    case "proposer":
+      return <Unarchive style={{ fill: props.selected ? "white" : "" }} />;
     case "sujets":
       return (
         <AccountTreeIcon style={{ fill: props.selected ? "white" : "" }} />
@@ -28,12 +32,16 @@ const GetIcon = React.memo((props) => {
       return (
         <MeetingRoomIcon style={{ fill: props.selected ? "white" : "" }} />
       );
-    case "enseignants":
+    case "dates":
+      return <EventNoteIcon style={{ fill: props.selected ? "white" : "" }} />;
+    case "etudiants":
       return (
         <SupervisorAccountIcon
           style={{ fill: props.selected ? "white" : "" }}
         />
       );
+    case "enseignants":
+      return <SchoolIcon style={{ fill: props.selected ? "white" : "" }} />;
     case "accueil":
       return <HomeIcon style={{ fill: props.selected ? "white" : "" }} />;
     default:

@@ -13,6 +13,8 @@ export const Project_States = {
   refused: "Réfusé",
   waiting_for_second_student: "En attente de la reponse du partenaire.",
   refused_by_student: "Réfusé par l'etudiant",
+  proposed_by_student_for_teacher: "Proposé par un étudiant",
+  refused_by_teacher: "Proposition refusée par l'enseignant",
 };
 
 export const File_States = {

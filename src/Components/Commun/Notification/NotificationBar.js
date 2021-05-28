@@ -7,33 +7,34 @@ import {
   Menu,
   MenuItem,
   MenuList,
-  Paper,
   Typography,
 } from "@material-ui/core";
-import {
-  Comment,
-  Notifications,
-  NotificationsActive,
-} from "@material-ui/icons";
+import { Notifications, NotificationsActive } from "@material-ui/icons";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { checkNotification, getNotifications } from "../../../functions";
-import { getNotificationText } from "./logic";
+import { getNotificationText, sort_notifications } from "./logic";
 
 export default function NotificationBar(props) {
   const [anchor, setAnchor] = useState(null);
   const dispatch = useDispatch();
-  const notifications = useSelector((state) => state.notifications);
-  const uncheckedNots = notifications.filter((not) => !not.checked);
+  var notifications = useSelector((state) => state.notifications);
+  notifications = sort_notifications(notifications);
+  const [uncheckedNots, setUnchekedNots] = useState(
+    notifications.filter((not) => !not.checked)
+  );
 
   const handleOpenMenu = (event) => {
     if (anchor === null) {
       setAnchor(event.currentTarget);
       if (uncheckedNots.length > 0) {
-        dispatch({ type: "CHECK_NOTIFICATIONS" });
+        setUnchekedNots([]);
         checkNotification(notifications).catch((err) => console.error(err));
       }
-    } else setAnchor(null);
+    } else {
+      setAnchor(null);
+      dispatch({ type: "CHECK_NOTIFICATIONS" });
+    }
   };
 
   return (
@@ -78,14 +79,18 @@ const NotificationsMenu = (props) => {
     >
       <MenuList>
         {notifications.slice(0, shownNots).map((el, idx) => (
-          <Notification
-            notification={el}
-            index={idx}
-            divider={idx + 1 < notifications.length}
-          />
+          <React.Fragment key={idx}>
+            <Notification
+              notification={el}
+              divider={idx + 1 < notifications.length}
+            />
+          </React.Fragment>
         ))}
         {shownNots < notifications.length && (
-          <MenuItem onClick={() => setShownNots(shownNots + 5)}>
+          <MenuItem
+            key={"show more"}
+            onClick={() => setShownNots(shownNots + 5)}
+          >
             <div style={{ width: "100%", alignItems: "center" }}>
               <Typography variant="subtitle2" color="textSecondary">
                 Afficher plus
@@ -94,7 +99,11 @@ const NotificationsMenu = (props) => {
           </MenuItem>
         )}
         {notifications.length === 0 && (
-          <MenuItem button={false} style={{ minWidth: "20rem" }}>
+          <MenuItem
+            key={"end not"}
+            button={false}
+            style={{ minWidth: "20rem" }}
+          >
             Pas de notifications
           </MenuItem>
         )}
@@ -104,22 +113,29 @@ const NotificationsMenu = (props) => {
 };
 
 const Notification = (props) => {
-  const { notification, index, divider } = props;
+  const { notification, divider } = props;
   const users = useSelector((state) => state.users.all);
 
   const text = getNotificationText(notification);
 
   return (
-    <>
-      <MenuItem key={index} style={{ whiteSpace: "normal", maxWidth: "20rem" }}>
+    <React.Fragment key={notification.id_notification}>
+      <MenuItem style={{ whiteSpace: "normal", maxWidth: "20rem" }}>
         <Box>
-          <Typography variant="subtitle1">{text}</Typography>
-          <Typography variant="subtitle2" color="textSecondary">
-            {new Date(notification.date).toLocaleString("fr-FR")}
-          </Typography>
+          <Typography variant="body1">{text}</Typography>
+          <div className="horizontal-list space-between">
+            <Typography variant="body2" color="textSecondary">
+              {new Date(notification.date).toLocaleString("fr-FR")}
+            </Typography>
+            {notification.checked == 0 && (
+              <Typography color="primary" variant="subtitle2">
+                nouveau
+              </Typography>
+            )}
+          </div>
         </Box>
       </MenuItem>
       {divider && <Divider />}
-    </>
+    </React.Fragment>
   );
 };

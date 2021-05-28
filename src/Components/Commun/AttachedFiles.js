@@ -16,28 +16,31 @@ import download from "js-file-download";
 import { useDispatch, useSelector } from "react-redux";
 import EvaluateCahier from "../President/EvaluateCahier";
 import ConfirmDialog from "./ConfirmDialog";
+import { canSeeCahierState } from "./ViewProjects/logic";
+import { getProjectByID } from "../Enseignant/Candidatures/logic";
 
 function AttachedFiles(props) {
   const dispatch = useDispatch();
   const { project, canDelete } = props;
-  const _project = useSelector((state) => state.projects.dataArray).find(
-    (p) => p.id_sujet === project.id_sujet
+  var _project = getProjectByID(project.id_sujet);
+  const canSee = canSeeCahierState(_project);
+  return (
+    (_project.fichiers.length > 0 && canSee && (
+      <Paper
+        elevation={0}
+        style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}
+      >
+        <Attachment />
+        {_project.fichiers.map((file) => (
+          <File file={file} canDelete={canDelete} dispatch={dispatch} />
+        ))}
+      </Paper>
+    )) ||
+    null
   );
-
-  return _project.fichiers.length > 0 ? (
-    <Paper
-      elevation={0}
-      style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}
-    >
-      <Attachment />
-      {_project.fichiers.map((file) => (
-        <File file={file} canDelete={canDelete} dispatch={dispatch} />
-      ))}
-    </Paper>
-  ) : null;
 }
 
-export default React.memo(AttachedFiles);
+export default AttachedFiles;
 
 const File = (props) => {
   const { dispatch, file } = props;
@@ -65,7 +68,7 @@ const File = (props) => {
   };
 
   return (
-    <div className="horizontal-list wrap">
+    <div key={file.id_fichier} className="horizontal-list wrap">
       <Button
         size="small"
         variant="outlined"

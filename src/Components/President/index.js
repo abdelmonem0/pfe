@@ -1,4 +1,4 @@
-import { React } from "react";
+import React from "react";
 import "../../App.css";
 import { Switch, Route } from "react-router-dom";
 
@@ -11,6 +11,8 @@ import Homepage from "./Homepage";
 import Parameters from "./Parameters";
 import EditProject from "../Enseignant/ProjectForm/EditProject";
 import SavedSoutenances from "./SavedSoutenances";
+import Dates from "./Dates";
+import Students from "./Students/Students";
 
 function President() {
   return (
@@ -40,8 +42,14 @@ function President() {
         <Route exact path="/enseignants">
           <Teachers />
         </Route>
+        <Route exact path="/etudiants">
+          <Students />
+        </Route>
         <Route exact path="/modifier">
           <EditProject />
+        </Route>
+        <Route exact path="/dates">
+          <Dates />
         </Route>
         <Route exact path="/parametres">
           <Parameters />
@@ -51,4 +59,4 @@ function President() {
   );
 }
 
-export default President;
+export default React.memo(President);

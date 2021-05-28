@@ -111,12 +111,8 @@ export function acceptProject(id_sujet, etat) {
   });
 }
 
-export function addComment(id_utilisateur, id_sujet, commentaire) {
-  return axios.post("http://localhost:5000/api/comment/add-comment", {
-    id_utilisateur,
-    id_sujet,
-    commentaire,
-  });
+export function addComment(comment) {
+  return axios.post("http://localhost:5000/api/comment/add-comment", comment);
 }
 
 export function deleteComment(id_commentaire) {
@@ -125,11 +121,15 @@ export function deleteComment(id_commentaire) {
   });
 }
 
-export function modifyComment(id_commentaire, commentaire) {
-  return axios.post("http://localhost:5000/api/comment/modify-comment", {
-    id_commentaire,
-    commentaire,
-  });
+export function modifyComment(comment) {
+  return axios.post(
+    "http://localhost:5000/api/comment/modify-comment",
+    comment
+  );
+}
+
+export function getComments() {
+  return axios.get("http://localhost:5000/api/comment/get-comments");
 }
 
 export function addTeacherTags(id_utilisateur, tags) {
@@ -260,6 +260,14 @@ export function updatePassword({
     current_password,
     new_password,
   });
+}
+
+export function saveDates(date) {
+  return axios.post("http://localhost:5000/api/save-dates", date);
+}
+
+export function getDates() {
+  return axios.get("http://localhost:5000/api/get-dates");
 }
 
 export const uploadFile = "http://localhost:5000/upload-file";

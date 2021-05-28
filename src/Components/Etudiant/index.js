@@ -7,6 +7,9 @@ import ViewProjects from "../Commun/ViewProjects";
 import EditProfile from "../Commun/EditProfile";
 import Candidatures from "../Commun/Candidature.js";
 import Homepage from "./Homepage";
+import ProposeProject from "./ProjectForm/ProposeProject";
+import Proposed from "../Commun/Proposed";
+import EditProject from "./ProjectForm/EditProject";
 
 function Etudiant() {
   return (
@@ -18,11 +21,20 @@ function Etudiant() {
         <Route exact path="/ajouter">
           <AddProject />
         </Route>
+        <Route exact path="/proposer">
+          <ProposeProject />
+        </Route>
         <Route exact path="/sujets">
           <ViewProjects />
         </Route>
+        <Route exact path="/sujets/mes">
+          <Proposed self={true} />
+        </Route>
         <Route exact path="/candidatures">
           <Candidatures />
+        </Route>
+        <Route exact path="/modifier">
+          <EditProject />
         </Route>
         <Route exact path="/profile">
           <EditProfile />

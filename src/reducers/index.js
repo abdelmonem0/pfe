@@ -16,6 +16,8 @@ import datesReducer from "./dates";
 import avisReducer from "./avis";
 import parametersReducer from "./parameters";
 import savedSoutenanceReducer from "./savedSoutenance";
+import commentsReducer from "./comments";
+import savedDatesReducer from "./savedDates";
 
 const persistConfig = {
   key: "root",
@@ -47,6 +49,8 @@ const allReducers = combineReducers({
   notifications: notificationsReducer,
   dates: datesReducer,
   parameters: parametersReducer,
+  comments: commentsReducer,
+  savedDates: savedDatesReducer,
 });
 
 export default persistReducer(persistConfig, allReducers);

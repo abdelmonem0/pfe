@@ -8,7 +8,7 @@ function LikeButton(props) {
   const project = props.project;
   const dispatch = useDispatch();
   const current = useSelector((state) => state.users.current);
-  const canLike = current.role === "etudiant" && project.affecte_a.length < 1;
+  const canLike = current.role === "etudiant";
   const theme = useTheme();
 
   const likes = useSelector((state) => state.likes);

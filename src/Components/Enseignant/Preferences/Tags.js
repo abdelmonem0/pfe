@@ -88,7 +88,10 @@ function Tags(props) {
       <div className="vertical-list">
         <div>
           <Typography>Ajouter des tags</Typography>
-          <div className="horizontal-list" style={{ alignItems: "flex-start" }}>
+          <div
+            className="horizontal-list wrap"
+            style={{ alignItems: "flex-start" }}
+          >
             <TextField
               fullWidth
               size="small"
@@ -134,7 +137,7 @@ export default Tags;
 const ViewTags = (props) => {
   const { tags, deleteTag } = props;
   return (
-    <div style={{ display: "flex", gap: "0.5rem" }}>
+    <div className="horizontal-list wrap">
       {tags.map((tag) => (
         <Chip label={tag.id_tag} onDelete={() => deleteTag(tag.id_tag)} />
       ))}
