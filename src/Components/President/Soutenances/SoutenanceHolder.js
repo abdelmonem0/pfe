@@ -4,7 +4,7 @@ import SoutenanceDay from "./SoutenanceDay";
 import { getDays } from "./SoutenanceLogic";
 
 function SoutenanceHolder(props) {
-  const { values, saved } = props;
+  const { values, saved, saturday } = props;
   const generatedSoutenances = useSelector(
     (state) => state.soutenance.soutenances
   );
@@ -12,7 +12,7 @@ function SoutenanceHolder(props) {
     (state) => state.savedSoutenance.soutenances
   );
   const soutenances = saved ? savedSoutenances : generatedSoutenances;
-  const days = getDays(soutenances, values);
+  const days = getDays(soutenances, values, !saved ? saturday : true, saved);
 
   return (
     <div>

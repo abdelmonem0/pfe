@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Collapse, TextField, Typography } from "@material-ui/core";
+import { Collapse, TextField, Typography, useTheme } from "@material-ui/core";
 import {
   assignSingleTeacher,
   getSoutenanceAvailable,
@@ -33,6 +33,7 @@ function SoutenanceCard(props) {
     nom: "",
     isAvailable: false,
   };
+  const theme = useTheme();
 
   useEffect(() => {
     if (soutenance.id_sujet !== "") {
@@ -44,7 +45,11 @@ function SoutenanceCard(props) {
 
   return (
     <div
-      style={{ padding: "0.25rem", paddingLeft: "0.5rem" }}
+      style={{
+        padding: "0.25rem",
+        paddingLeft: "0.5rem",
+        backgroundColor: theme.palette.background.default,
+      }}
       onMouseEnter={() => {
         if (!saved) setButtonsVisible(true);
       }}

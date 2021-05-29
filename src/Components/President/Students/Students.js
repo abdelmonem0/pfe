@@ -141,8 +141,8 @@ function Students(props) {
               </TableCell>
               <TableCell>Nom</TableCell>
               <TableCell>Sujet affecté</TableCell>
-              <TableCell>Place</TableCell>
-              <TableCell>Cahier de charge</TableCell>
+              <TableCell>Lieu</TableCell>
+              <TableCell>Cahier des charges</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -184,7 +184,7 @@ function Students(props) {
                                 label="Sujet affecté"
                                 style={{
                                   backgroundColor: theme.palette.success.main,
-                                  color: "white",
+                                  color: "black",
                                 }}
                               />
                             </ProjectDetail>
@@ -193,7 +193,7 @@ function Students(props) {
                       ) : (
                         <Chip
                           size="small"
-                          label="Non"
+                          label="Aucun sujet"
                           style={{
                             backgroundColor: theme.palette.error.main,
                             color: "white",

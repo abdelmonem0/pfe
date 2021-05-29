@@ -13,6 +13,7 @@ import {
   DeleteSweep,
   DoneAll,
   ErrorOutline,
+  ExpandMore,
   ExpandLess,
 } from "@material-ui/icons";
 import React, { useState, useEffect } from "react";
@@ -76,16 +77,17 @@ function SoutenanceCrenau(props) {
   }, [soutenances]);
 
   return (
-    <Paper variant="outlined" style={{ width: "100%" }}>
+    <Paper variant="outlined" style={{ width: "100%", overflow: "hidden" }}>
       <div
         className="horizontal-list"
         style={{
           justifyContent: "center",
           alignItems: "center",
           backgroundColor: theme.palette.background.default,
+          padding: "0 0.2rem",
         }}
       >
-        <Typography variant="h6">{`Crenau ${crenau}`}</Typography>
+        <Typography variant="h6">{`Crénau ${crenau}`}</Typography>
 
         <Divider orientation="vertical" flexItem />
         <Typography>{`${soutenances.length} soutenance${
@@ -99,7 +101,7 @@ function SoutenanceCrenau(props) {
             body="Voulez-vous vraiment supprimer tout les soutenances de ce crénau?"
             onConfirm={handleDeleteAllSoutenance}
           >
-            <Tooltip title="Supprimer ce crénau">
+            <Tooltip title="Supprimer ce crénau ( y compris toutes ses soutenances )">
               <div>
                 {" "}
                 <IconButton disabled={saved} size="small">
@@ -110,7 +112,13 @@ function SoutenanceCrenau(props) {
           </ConfirmDialog>
         )}
         {!saved && (
-          <Tooltip title="Ajouter une soutenance">
+          <Tooltip
+            title={`Ajouter une soutenance ${
+              soutenances.length >= sales.length
+                ? " ( Nombre maximal des soutenances par rapport aux sales est atteint )"
+                : ""
+            }`}
+          >
             <div>
               <IconButton
                 disabled={soutenances.length >= sales.length}
@@ -134,22 +142,22 @@ function SoutenanceCrenau(props) {
           </Tooltip>
         )}
         <IconButton size="small" onClick={handleExpand}>
-          <ExpandLess />
+          {open ? <ExpandLess /> : <ExpandMore />}
         </IconButton>
       </div>
       <Collapse in={open}>
         <Divider />
 
-        <div className="vertical-list" style={{ flex: 1 }}>
+        <div className="vertical-list" style={{ flex: 1, gap: "0" }}>
           {soutenances.map((s, i) => (
-            <>
+            <React.Fragment key={s.id_sujet}>
               <SoutenanceCard
                 saved={saved}
                 key={s.id_sujet + i}
                 soutenance={s}
               />
-              {i < soutenances.length && <Divider key={s.id_sujet} light />}
-            </>
+              {i < soutenances.length && <Divider light />}
+            </React.Fragment>
           ))}
         </div>
       </Collapse>

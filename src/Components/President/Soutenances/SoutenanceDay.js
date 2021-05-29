@@ -12,6 +12,8 @@ import SoutenanceCrenau from "./SoutenanceCrenau";
 import { useSelector } from "react-redux";
 import { LibraryAdd } from "@material-ui/icons";
 
+const options = { weekday: "short", month: "short", day: "numeric" };
+
 function SoutenanceDay(props) {
   const { date, saved } = props;
 
@@ -37,7 +39,6 @@ function SoutenanceDay(props) {
       variant="outlined"
       style={{
         flex: "1 1 49%",
-        backgroundColor: theme.palette.background.default,
       }}
     >
       <div
@@ -45,8 +46,8 @@ function SoutenanceDay(props) {
         style={{ alignItems: "flex-start" }}
       >
         <div className="horizontal-list">
-          <Typography style={{ padding: "0.25rem" }} variant="h5">
-            {date}
+          <Typography style={{ padding: "0.25rem" }} variant="h6">
+            {new Date(date).toLocaleDateString("fr-FR", options)}
           </Typography>
           <Divider orientation="vertical" flexItem />
           <Typography variant="h6" color="textSecondary">
@@ -55,7 +56,13 @@ function SoutenanceDay(props) {
           </Typography>
         </div>
         {!saved && (
-          <Tooltip title="Ajouter un crénau">
+          <Tooltip
+            title={`Ajouter une soutenance ${
+              crenaux.length >= maxCrenaux
+                ? " ( Nombre maximal des crénaux est atteint pour ce jour )"
+                : ""
+            }`}
+          >
             <IconButton
               disabled={crenaux.length >= maxCrenaux}
               color="primary"

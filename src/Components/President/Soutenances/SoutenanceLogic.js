@@ -225,16 +225,29 @@ export function getProject(id) {
   return project;
 }
 
-export function getDays(soutenances, values) {
+export function getDays(soutenances, values, saturday, saved) {
   const { maxCrenaux } = values;
   const state = store.getState();
-  const startDate = state.savedDates.soutenanceStart;
-
+  var startDate = state.savedDates.soutenanceStart;
   var days = [];
+
+  if (saved) {
+    const savedSoutenances = state.savedSoutenance.soutenances;
+    startDate = new Date(savedSoutenances[0].date);
+    for (let s of savedSoutenances)
+      if (days.indexOf(new Date(s.date).toLocaleDateString()) < 0)
+        days.push(new Date(s.date).toLocaleDateString());
+    return days;
+  }
+
   for (var i = 0; i < soutenances.length / maxCrenaux; i++) {
     var date = new Date(startDate);
     date.setDate(date.getDate() + i);
-    days.push(date.toLocaleDateString());
+    if (date.getDay() !== 0)
+      if (!saturday)
+        if (date.getDay() === 6) continue;
+        else days.push(date.toLocaleDateString());
+      else days.push(date.toLocaleDateString());
   }
   return days;
 }

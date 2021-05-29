@@ -160,6 +160,7 @@ function Soutenances(props) {
           saved={saved}
           soutenances={soutenances}
           values={values}
+          saturday={saturday}
         />
       )}
     </div>
