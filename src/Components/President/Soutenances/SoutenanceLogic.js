@@ -237,8 +237,7 @@ export function getDays(soutenances, values, saturday, saved) {
       : soutenances;
     startDate = new Date(savedSoutenances[0].date);
     for (let s of savedSoutenances)
-      if (days.indexOf(new Date(s.date).toLocaleDateString()) < 0)
-        days.push(new Date(s.date).toLocaleDateString());
+      if (days.indexOf(s.date) < 0) days.push(s.date);
     return days;
   }
 

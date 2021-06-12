@@ -45,7 +45,13 @@ function SoutenanceDay(props) {
       >
         <div className="horizontal-list">
           <Typography style={{ padding: "0.25rem" }} variant="h6">
-            {new Date(date).toLocaleDateString("fr-FR", options)}
+            {new Date(
+              date.split("/")[1] +
+                "/" +
+                date.split("/")[0] +
+                "/" +
+                date.split("/")[2]
+            ).toLocaleDateString("fr-FR", options)}
           </Typography>
           <Divider orientation="vertical" flexItem />
           <Typography variant="h6" color="textSecondary">
