@@ -9,12 +9,15 @@ import { getUserByID } from "../Candidature.js/CandidatureLogic";
 export function getNotificationText(notification) {
   var suffixe = "",
     prefixe = "";
-
+  const candidature = getCandidatureByID(notification.id_objet);
+  const project = getProjectByID(
+    candidature ? candidature.id_sujet : notification.id_objet
+  );
+  const source = getUserByID(notification.id_source);
   switch (notification.type) {
     case Notifications_Types.comment:
-      prefixe = getUserByID(notification.id_source).nom;
+      prefixe = source.nom;
       suffixe = " a ajouté un commentaire dans un sujet que vous suivez.";
-
       break;
     case Notifications_Types.president_set_dates:
       prefixe = "Le president de la commission ";
@@ -37,15 +40,11 @@ export function getNotificationText(notification) {
       break;
     case Notifications_Types.candidature_inactive:
       prefixe = `Votre candidature pour le sujet "${
-        getProjectByID(notification.id_object)
-          ? getProjectByID(notification.id_object).titre.slice(0, 15) + "..."
-          : "@sujet non disponible@"
+        project ? project.titre.slice(0, 15) + "..." : "@sujet non disponible@"
       }" est désormais non active.`;
       break;
     case Notifications_Types.candidature_accepted_by_first_teacher:
       try {
-        const candidature = getCandidatureByID(notification.id_object);
-        const project = getProjectByID(candidature.id_sujet);
         const partner = getProjectPartner(project);
         prefixe = `Votre partenaire ${partner.nom} a accepté une candidature, veuillez consulter la rubrique Candidatures pour la vérifier.`;
       } catch (e) {
@@ -64,17 +63,13 @@ export function getNotificationText(notification) {
       prefixe =
         "Félicitation, le sujet que vous avez proposé est accepté par la commission.";
       suffixe = ` Sujet: ${
-        getProjectByID(notification.id_object)
-          ? getProjectByID(notification.id_object).titre.slice(0, 15) + "..."
-          : "@sujet non disponible@"
+        project ? project.titre.slice(0, 15) + "..." : "@sujet non disponible@"
       }`;
       break;
     case Notifications_Types.project_refused:
       prefixe = "Le sujet que vous avez proposé est réfusé par la commission.";
       suffixe = ` Sujet: ${
-        getProjectByID(notification.id_object)
-          ? getProjectByID(notification.id_object).titre.slice(0, 15) + "..."
-          : "@sujet non disponible@"
+        project ? project.titre.slice(0, 15) + "..." : "@sujet non disponible@"
       }`;
       break;
     default:

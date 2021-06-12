@@ -231,8 +231,10 @@ export function getDays(soutenances, values, saturday, saved) {
   var startDate = state.savedDates.soutenanceStart;
   var days = [];
 
-  if (saved) {
-    const savedSoutenances = state.savedSoutenance.soutenances;
+  if (saved || soutenances.length > 0) {
+    const savedSoutenances = saved
+      ? state.savedSoutenance.soutenances
+      : soutenances;
     startDate = new Date(savedSoutenances[0].date);
     for (let s of savedSoutenances)
       if (days.indexOf(new Date(s.date).toLocaleDateString()) < 0)
@@ -623,7 +625,7 @@ export function saveSoutenances() {
     .catch((err) => console.error(err));
 }
 
-export function load_saved_soutenances(soutenances) {
+export function load_saved_soutenances(soutenances, edit = false) {
   var sales = [],
     maxCrenaux = 0,
     dates = [],
@@ -631,7 +633,7 @@ export function load_saved_soutenances(soutenances) {
     selectedProjects = [],
     presidents = [];
   for (let s of soutenances) {
-    if (sales.indexOf(s.sale) < 0) sales.push(s.sale);
+    if (sales.indexOf(s.sale) < 0) sales += "," + s.sale;
     if (s.crenau > maxCrenaux) maxCrenaux = s.crenau;
     if (dates.indexOf(s.date) < 0) dates.push(new Date(s.date));
     for (let i of s.invite) {
@@ -659,17 +661,33 @@ export function load_saved_soutenances(soutenances) {
 
   startDate = startDate.toLocaleDateString();
   endDate = endDate.toLocaleDateString();
-  // console.log(startDate);
-  // console.log(endDate);
+
   const savedValues = {
     startDate,
     endDate,
     sales,
     maxCrenaux,
     selectedTeachers,
-    presidents,
     selectedProjects,
+    presidents,
   };
-
-  store.dispatch({ type: "SET_SAVED_VALUES", payload: savedValues });
+  if (!edit) {
+    store.dispatch({
+      type: "SET_ALL_SAVED_SOUTENANCES",
+      payload: {
+        savedValues,
+        soutenances,
+      },
+    });
+  } else {
+    store.dispatch({
+      type: "SET_ALL_SOUTENANCES",
+      payload: {
+        values: savedValues,
+        soutenances,
+      },
+    });
+    assignDatesToTeachers();
+    assignTagsToTeachers();
+  }
 }

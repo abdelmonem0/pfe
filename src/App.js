@@ -15,15 +15,23 @@ import {
 } from "@material-ui/core/styles";
 import { frFR } from "@material-ui/core/locale";
 import Loading from "./Components/Loading";
+import ProjectDetail from "./Components/Commun/ProjectDetail";
 
 function SlideTransition(props) {
   return <Slide {...props} direction="up" />;
 }
 
 function App() {
-  const [themeType, setThemeType] = useState("light");
+  const themeType = useSelector((state) => state.constants.theme) || "light";
   const constants = useSelector((state) => state.constants);
   const dispatch = useDispatch();
+
+  const setThemeType = () => {
+    dispatch({
+      type: "SET_THEME",
+      payload: themeType === "light" ? "dark" : "light",
+    });
+  };
 
   let theme = createMuiTheme(
     {
@@ -57,7 +65,7 @@ function App() {
           TransitionComponent={SlideTransition}
           key="snack"
           open={constants.snackbar.open}
-          autoHideDuration={5000}
+          autoHideDuration={50000}
           onClose={handleClose}
         >
           <Alert
@@ -68,6 +76,7 @@ function App() {
             {constants.snackbar.message}
           </Alert>
         </Snackbar>
+        <ProjectDetail />
         {/* <Backdrop className={classes.backdrop} open={constants.backdrop.open}>
           <CircularProgress color="inherit" />
         </Backdrop> */}

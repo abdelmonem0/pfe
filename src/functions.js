@@ -14,18 +14,13 @@ export function getUsers() {
 }
 
 export function getCandidatures(id) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/candidature/get-candidatures",
-    {
-      id,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/candidature/get-candidatures", {
+    id,
+  });
 }
 
 export function getProjects() {
-  return axios.get(
-    "https://pfe-abdelmonem.herokuapp.com/api/project/get-projects"
-  );
+  return axios.get("https://pfe-abdelmonem.herokuapp.com/api/project/get-projects");
 }
 
 export function addCandidature(candidature) {
@@ -84,15 +79,18 @@ export function downloadFile(path) {
 }
 
 export function addAvis(id_utilisateur, id_sujet, avis_favorable, _delete) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/comment/add-avis",
-    {
-      id_utilisateur,
-      id_sujet,
-      avis_favorable,
-      _delete,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/comment/add-avis", {
+    id_utilisateur,
+    id_sujet,
+    avis_favorable,
+    _delete,
+  });
+}
+
+export function deleteProject(id) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/project/delete-project", {
+    id,
+  });
 }
 
 export function getAvis() {
@@ -113,29 +111,20 @@ export function getLikes(id_utilisateur) {
 }
 
 export function acceptProject(id_sujet, etat) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/project/accept-project",
-    {
-      id_sujet,
-      etat,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/project/accept-project", {
+    id_sujet,
+    etat,
+  });
 }
 
 export function addComment(comment) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/comment/add-comment",
-    comment
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/comment/add-comment", comment);
 }
 
 export function deleteComment(id_commentaire) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/comment/delete-comment",
-    {
-      id_commentaire,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/comment/delete-comment", {
+    id_commentaire,
+  });
 }
 
 export function modifyComment(comment) {
@@ -146,44 +135,31 @@ export function modifyComment(comment) {
 }
 
 export function getComments() {
-  return axios.get(
-    "https://pfe-abdelmonem.herokuapp.com/api/comment/get-comments"
-  );
+  return axios.get("https://pfe-abdelmonem.herokuapp.com/api/comment/get-comments");
 }
 
 export function addTeacherTags(id_utilisateur, tags) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/add-tags",
-    {
-      id_utilisateur,
-      tags,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/soutenance/add-tags", {
+    id_utilisateur,
+    tags,
+  });
 }
 
 export function getTeacherTags(id_utilisateur) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-tags",
-    {
-      id_utilisateur,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-tags", {
+    id_utilisateur,
+  });
 }
 
 export function deleteTeacherTag(associe_a, id_tag) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/delete-tag",
-    {
-      associe_a,
-      id_tag,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/soutenance/delete-tag", {
+    associe_a,
+    id_tag,
+  });
 }
 
 export function getAllTags() {
-  return axios.get(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-all-tags"
-  );
+  return axios.get("https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-all-tags");
 }
 
 export function saveSoutenanceDates(date_debut, date_fin) {
@@ -203,22 +179,16 @@ export function getSoutenancesDates() {
 }
 
 export function saveTeacherDates(id_utilisateur, dates) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/save-teacher-dates",
-    {
-      id_utilisateur,
-      dates,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/soutenance/save-teacher-dates", {
+    id_utilisateur,
+    dates,
+  });
 }
 
 export function getTeacherDates(id_utilisateur) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-teacher-dates",
-    {
-      id_utilisateur,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-teacher-dates", {
+    id_utilisateur,
+  });
 }
 
 export function getAllTeachersDates() {
@@ -227,14 +197,16 @@ export function getAllTeachersDates() {
   );
 }
 
-export function addProject(project, update) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/project/add-project",
-    {
-      project,
-      update,
-    }
-  );
+export function addProject(project) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/project/add-project", {
+    project,
+  });
+}
+
+export function updateProject(project) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/project/update-project", {
+    project,
+  });
 }
 
 export function sendNotifications(notifications) {
@@ -261,20 +233,14 @@ export function checkNotification(notifications) {
 }
 
 export function send2ndCandidatureComment(id_candidature, commentaire) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/candidature/add-2nd-comment",
-    {
-      id_candidature,
-      commentaire,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/candidature/add-2nd-comment", {
+    id_candidature,
+    commentaire,
+  });
 }
 
 export function saveParameter(params) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/parameters/save",
-    params
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/parameters/save", params);
 }
 
 export function updateFile(id_fichier, type) {
@@ -285,19 +251,14 @@ export function updateFile(id_fichier, type) {
 }
 
 export function saveSoutenances(soutenances, invite) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/save-soutenances",
-    {
-      soutenances,
-      invite,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/soutenance/save-soutenances", {
+    soutenances,
+    invite,
+  });
 }
 
 export function getSoutenances() {
-  return axios.get(
-    "https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-soutenances"
-  );
+  return axios.get("https://pfe-abdelmonem.herokuapp.com/api/soutenance/get-soutenances");
 }
 
 export function updatePassword({
@@ -305,25 +266,29 @@ export function updatePassword({
   current_password,
   new_password,
 }) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/update-password",
-    {
-      id_utilisateur,
-      current_password,
-      new_password,
-    }
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/update-password", {
+    id_utilisateur,
+    current_password,
+    new_password,
+  });
 }
 
 export function saveDates(date) {
-  return axios.post(
-    "https://pfe-abdelmonem.herokuapp.com/api/save-dates",
-    date
-  );
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/api/save-dates", date);
 }
 
 export function getDates() {
   return axios.get("https://pfe-abdelmonem.herokuapp.com/api/get-dates");
+}
+
+export function uploadExcelFile(formData) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/importing/upload", formData);
+}
+
+export function fillDatabaseFromUploadedFile(filePath) {
+  return axios.post("https://pfe-abdelmonem.herokuapp.com/importing/fill", {
+    filePath,
+  });
 }
 
 export const uploadFile = "https://pfe-abdelmonem.herokuapp.com/upload-file";

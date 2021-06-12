@@ -3,6 +3,12 @@ const constantsReducer = (
   action
 ) => {
   switch (action.type) {
+    case "SET_THEME":
+      state = { ...state, theme: action.payload };
+      return state;
+    case "SET_CAN_SWITCH":
+      state = { ...state, canSwitch: true };
+      return state;
     case "OPEN_SNACK":
       state = {
         ...state,
@@ -22,6 +28,9 @@ const constantsReducer = (
       return state;
     case "CLOSE_BACKDROP":
       state = { ...state, backdrop: { open: false } };
+      return state;
+    case "PURGE":
+      state = { ...state, canSwitch: false };
       return state;
     default:
       return state;

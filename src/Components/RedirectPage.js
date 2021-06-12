@@ -1,10 +1,11 @@
 import { Typography } from "@material-ui/core";
 import { Warning } from "@material-ui/icons";
 import React from "react";
-import { useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
 
 function RedirectPage({ setAuthorized }) {
   const history = useHistory();
+  const location = useLocation();
 
   React.useEffect(() => {
     setTimeout(() => {
@@ -21,10 +22,10 @@ function RedirectPage({ setAuthorized }) {
         </div>
         <div>
           <Typography variant="h4" color="secondary">
-            Page introuvée ou vous n'êtes pas autorisé.
+            Page introuvable ou vous n'êtes pas autorisé à la visiter.
           </Typography>
           <Typography variant="h5">
-            Vous serez réorinté vers la page d'accueil dans quelque secondes.
+            Vous serez rédirigé vers la page d'accueil dans quelque instants.
           </Typography>
         </div>
       </div>

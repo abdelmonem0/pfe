@@ -27,7 +27,12 @@ function FiltreProjects(props) {
   const { projects, setProjects, fetchedProjects } = props;
 
   const filters = getFilters();
-  function resetAll() {}
+  const resetAll = () => {
+    setTextValue("");
+    setSearchResults(null);
+    setCurrentFilter([]);
+    setProjects(fetchedProjects);
+  };
 
   const handleFilterButtonClick = (event) => {
     handle_filter_button(
@@ -63,17 +68,14 @@ function FiltreProjects(props) {
             {expand ? <ExpandLess /> : <ExpandMore />}
           </IconButton>
           <Typography>Filtrer et trier</Typography>
-
-          {(multiFilters || expand) && (
-            <div
-              className="horizontal-list pointer"
-              onClick={() => setMultiFilters(!multiFilters)}
+          {projects.length < fetchedProjects.length && (
+            <Button
+              style={{ textTransform: "none" }}
+              color="secondary"
+              onClick={resetAll}
             >
-              <Checkbox checked={multiFilters} />
-              <Typography color={multiFilters ? "secondary" : "textPrimary"}>
-                Filtres multiples
-              </Typography>
-            </div>
+              Réinitialiser
+            </Button>
           )}
         </div>
         <div className="horizontal-list">
@@ -85,7 +87,7 @@ function FiltreProjects(props) {
               style={{ textTransform: "none" }}
               onClick={() => setProjects(searchResults)}
             >
-              {searchResults.length + " résultats"}
+              {searchResults && searchResults.length + " résultats"}
             </Button>
           )}
           <TextField
@@ -108,23 +110,30 @@ function FiltreProjects(props) {
         </div>
       </div>
       <Collapse in={expand}>
-        <div className="horizontal-list wrap">
+        <div className="horizontal-list wrap" style={{ gap: "1rem" }}>
           {Object.keys(filters).map((key) => (
             <React.Fragment key={key}>
               {(filters[key].length > 0 && (
-                <Button
-                  onClick={handleFilterButtonClick}
-                  color={
-                    currentFilter.indexOf(filters[key]) > -1
-                      ? "primary"
-                      : "default"
-                  }
-                  size="small"
-                  style={{ textTransform: "none" }}
-                  variant="outlined"
+                <div
+                  className="horizontal-list pointer"
+                  style={{ gap: "0.2rem" }}
+                  onClick={() => handleFilterButtonClick(filters[key])}
                 >
-                  {filters[key]}
-                </Button>
+                  <Checkbox
+                    color="primary"
+                    style={{ padding: 0 }}
+                    checked={currentFilter.indexOf(filters[key]) > -1}
+                  />
+                  <Typography
+                    color={
+                      currentFilter.indexOf(filters[key]) > -1
+                        ? "primary"
+                        : "textSecondary"
+                    }
+                  >
+                    {filters[key]}
+                  </Typography>
+                </div>
               )) ||
                 null}
             </React.Fragment>

@@ -1,6 +1,4 @@
 const values = {
-  startDate: new Date().toISOString(),
-  endDate: new Date().toISOString(),
   maxCrenaux: 1,
   sales: "",
   selectedTeachers: [],
@@ -12,6 +10,10 @@ const savedSoutenanceReducer = (state = {}, action) => {
   const target = action.payload;
 
   switch (action.type) {
+    case "SET_ALL_SAVED_SOUTENANCES":
+      state = { ...state, ...action.payload };
+      console.log(action.payload);
+      return state;
     case "SET_SAVED_VALUES":
       state = { ...state, values: action.payload };
       return state;
@@ -50,8 +52,8 @@ const savedSoutenanceReducer = (state = {}, action) => {
         soutenances: [],
       };
       return state;
-    // case "PURGE":
-    //   return { ...state, soutenances: [] };
+    case "PURGE":
+      return [];
     default:
       return state;
   }

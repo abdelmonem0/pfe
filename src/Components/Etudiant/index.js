@@ -28,7 +28,7 @@ function Etudiant() {
           <ViewProjects />
         </Route>
         <Route exact path="/sujets/mes">
-          <Proposed self={true} />
+          <Proposed student={true} />
         </Route>
         <Route exact path="/candidatures">
           <Candidatures />

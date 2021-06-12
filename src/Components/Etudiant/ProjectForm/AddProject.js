@@ -21,22 +21,20 @@ import {
   getStudentsForPartnership,
 } from "./logic";
 import { Project_States } from "../../../Constants";
+import { useHistory } from "react-router";
 
 moment.locale("fr");
 
 function AddProject(props) {
   const theme = useTheme();
+  const history = useHistory();
   const current = useSelector((state) => state.users.current);
-  const users = useSelector((state) => state.users.all)
-    .filter(
-      (object) =>
-        object.role === "enseignant" &&
-        object.id_utilisateur !== current.id_utilisateur
-    )
-    .sort((a, b) => a.nom.localeCompare(b.nom));
+
   const [values, setValues] = useState({ secondStudent: false });
   const [errors, setErrors] = useState(initialErrors);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState({
+    ...initialForm(),
+  });
   const [students, setStudents] = useState(getStudentsForPartnership());
 
   const onTextChange = (e) => {
@@ -55,7 +53,11 @@ function AddProject(props) {
       setErrors(errors);
       return;
     }
-    addProjectToDatabase({ ...form, etat: Project_States.waiting });
+    addProjectToDatabase({ ...form }, Project_States.waiting, "Fiche externe")
+      .then(() => history.replace("/sujets/mes"))
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const toggleSecondStudent = () => {
@@ -203,7 +205,7 @@ function AddProject(props) {
           onChange={(e) => {
             setForm({
               ...form,
-              tags: e.target.value.replace(/\s/g, "").split(","),
+              tags: e.target.value.split(","),
             });
           }}
           style={{ flex: "1 1 100%" }}

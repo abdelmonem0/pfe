@@ -75,8 +75,8 @@ function sendCandidatureNotification(
     if (id_destination) {
       const id_source = current.id_utilisateur;
 
-      const id_object = candidature.id_sujet;
-      notifications.push({ id_destination, id_source, id_object, type });
+      const id_objet = candidature.id_sujet;
+      notifications.push({ id_destination, id_source, id_objet, type });
     }
 
   sendNotifications(notifications).catch((err) => console.error(err));
@@ -114,11 +114,8 @@ export function getProjectPartner(project, isTeacher = true) {
 
 export function getProjectByID(id) {
   const state = store.getState();
-  const { dataArray, self, proposed } = state.projects;
-  return dataArray
-    .concat(self || [])
-    .concat(proposed || [])
-    .find((p) => p.id_sujet === id);
+  const projects = state.projects.dataArray;
+  return projects.find((p) => p.id_sujet === id);
 }
 
 export function getCandidatureByID(id) {

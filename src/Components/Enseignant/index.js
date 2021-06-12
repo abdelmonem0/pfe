@@ -28,10 +28,10 @@ function Enseignant(props) {
           <ViewProjects />
         </Route>
         <Route exact path="/sujets/mes">
-          <Proposed self={true} />
+          <Proposed />
         </Route>
         <Route exact path="/sujets/proposes">
-          <Proposed />
+          <Proposed self={true} />
         </Route>
         <Route exact path="/candidatures">
           <Candidatures />

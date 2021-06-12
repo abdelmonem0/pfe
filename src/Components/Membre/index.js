@@ -5,20 +5,23 @@ import axios from "axios";
 
 import ViewProjects from "../Commun/ViewProjects";
 import EditProfile from "../Commun/EditProfile";
+import Homepage from "../Enseignant/Homepage";
 
 function Membre() {
-
   return (
-    <div style={{ display: "flex", justifyContent: "center", width:'100%' }}>
-    <Switch>
-      <Route path="/sujets">
-        <ViewProjects />
-      </Route>
-      <Route path="/profile">
-        <EditProfile />
-      </Route>
-    </Switch>
-</div>
+    <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+      <Switch>
+        <Route exact path="/">
+          <Homepage />
+        </Route>
+        <Route exact path="/sujets">
+          <ViewProjects />
+        </Route>
+        <Route exact path="/profile">
+          <EditProfile />
+        </Route>
+      </Switch>
+    </div>
   );
 }
 

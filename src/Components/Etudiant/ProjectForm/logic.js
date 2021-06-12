@@ -1,8 +1,12 @@
 import { store } from "../../..";
-import { addProject, addFileToDatabase, getProjects } from "../../../functions";
+import {
+  addProject,
+  addFileToDatabase,
+  getProjects,
+  updateProject,
+} from "../../../functions";
 import { v4 as uuid } from "uuid";
 import { Project_States } from "../../../Constants";
-import { filterPrivateProjects, setPages } from "../../redirectLogic";
 
 export function validate(form, values) {
   const state = store.getState();
@@ -100,30 +104,22 @@ export function validateProposal(form) {
 
 export const addProjectToDatabase = (
   form,
-  projectId = null,
-  newFiles = [],
   etat = Project_States.waiting,
   file_type = "fiche externe"
 ) => {
   const state = store.getState();
   const current = state.users.current;
-  const id_sujet = projectId || uuid();
-  const files = [];
-  const fileSource = newFiles.length > 0 ? newFiles : state.files;
-  console.log(fileSource);
-  for (let f of fileSource)
-    files.push([
-      f.path || f.id_fichier,
-      current.id_utilisateur,
-      id_sujet,
-      file_type,
-    ]);
+  const id_sujet = uuid();
 
+  var files = [];
+  for (let f of state.files)
+    files.push([f.path, current.id_utilisateur, id_sujet, file_type]);
   var object = { sujet: { ...form, id_sujet, etat } };
 
   store.dispatch({ type: "OPEN_BACKDROP" });
-  addProject(object, projectId)
-    .then((res) => {
+
+  return addProject(object)
+    .then(() => {
       if (files.length > 0) {
         addFileToDatabase(files);
       }
@@ -133,13 +129,16 @@ export const addProjectToDatabase = (
         type: "OPEN_SNACK",
         payload: {
           open: true,
-          message: !projectId
-            ? "Projet ajouté avec succès."
-            : "Projet mis à jour avec succès.",
+          message: "Projet ajouté avec succès.",
           type: "success",
         },
       });
     })
+    .then(() =>
+      getProjects().then((result) => {
+        store.dispatch({ type: "SET_PROJECTS", payload: result.data });
+      })
+    )
     .catch((err) => console.error(err));
 };
 
@@ -153,10 +152,11 @@ export const initialForm = () => {
     travail: "",
     interne: current.role === "etudiant" ? false : true,
     id_etudiant: current.id_utilisateur,
+    id_etudiant_2: "",
     tags: "",
     lieu: "",
     enc_ext: "",
-    date_creation: new Date().toISOString().split(".")[0],
+    date_creation: new Date(),
     etat: Project_States.waiting,
   };
 };
@@ -177,26 +177,77 @@ export const initialProposalErrors = {
   enc_prim: "",
 };
 
-export function updateProject(form, projectId, files, etat, file_type) {
-  addProjectToDatabase(form, projectId, files, etat, file_type);
-}
+export const updateProjectToDatabase = (
+  form,
+  id,
+  etat = "En instance",
+  file_type = "fiche externe",
+  _files
+) => {
+  const state = store.getState();
+  const current = state.users.current;
+  const id_sujet = id;
+
+  var files = [];
+  if (_files.length > 0) {
+    for (let file of _files) {
+      var _file = [];
+      for (let key of Object.keys(file)) _file.push(file[key]);
+      files.push(_file);
+    }
+  } else {
+    for (let f of state.files)
+      files.push([f.path, current.id_utilisateur, id_sujet, file_type]);
+  }
+  console.log(files);
+  var object = { sujet: { ...form, id_sujet, etat } };
+
+  console.log(object);
+  console.log(files);
+  store.dispatch({ type: "OPEN_BACKDROP" });
+
+  return updateProject(object)
+    .then(() => {
+      if (files.length > 0) {
+        addFileToDatabase(files);
+      }
+
+      store.dispatch({ type: "CLOSE_BACKDROP" });
+      store.dispatch({
+        type: "OPEN_SNACK",
+        payload: {
+          open: true,
+          message: "Projet mis à jour avec succès.",
+          type: "success",
+        },
+      });
+    })
+    .then(() =>
+      getProjects().then((result) => {
+        store.dispatch({ type: "SET_PROJECTS", payload: result.data });
+      })
+    )
+    .catch((err) => console.error(err));
+};
 
 export function getStudentsForPartnership() {
   const state = store.getState();
   const users = state.users;
   const projects = state.projects.dataArray;
-  return users.all.filter(
-    (u) =>
-      u.role === "etudiant" &&
-      u.sujet_affecte == null &&
-      u.id_utilisateur !== users.current.id_utilisateur &&
-      projects.filter(
-        (p) =>
-          (p.etat === Project_States.accepted ||
-            p.etat === Project_States.waiting_for_second_student ||
-            p.etat === Project_States.waiting) &&
-          (p.id_etudiant === u.id_utilisateur ||
-            p.id_etudiant_2 === u.id_utilisateur)
-      ).length < 1
-  );
+  return users.all
+    .filter(
+      (u) =>
+        u.role === "etudiant" &&
+        u.sujet_affecte == null &&
+        u.id_utilisateur !== users.current.id_utilisateur &&
+        projects.filter(
+          (p) =>
+            (p.etat === Project_States.accepted ||
+              p.etat === Project_States.waiting_for_second_student ||
+              p.etat === Project_States.waiting) &&
+            (p.id_etudiant === u.id_utilisateur ||
+              p.id_etudiant_2 === u.id_utilisateur)
+        ).length < 1
+    )
+    .sort((a, b) => a.nom.localeCompare(b.nom));
 }

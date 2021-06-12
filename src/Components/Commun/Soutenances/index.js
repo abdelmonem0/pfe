@@ -2,8 +2,8 @@ import { Divider, Paper, Tooltip, Typography } from "@material-ui/core";
 import { AccountTree, Place, Schedule } from "@material-ui/icons";
 import React from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { getProjectByID } from "../../Enseignant/Candidatures/logic";
-import ProjectDetail from "../ProjectDetail";
 import { getUserSoutenances } from "./logic";
 
 function SoutenancesDetails() {
@@ -39,7 +39,7 @@ const Soutenance = (props) => {
       <Paper
         variant="outlined"
         key={soutenance.id_soutenance}
-        style={{ flex: "1 1 32%", minWidth: "16rem", padding: "0.5rem" }}
+        style={{ flex: "1 1 100%", minWidth: "16rem", padding: "0.5rem" }}
         className="vertical-list"
       >
         <div className="horizontal-list space-between">
@@ -66,13 +66,13 @@ const Soutenance = (props) => {
             }
           </Typography>
         </div>
-        <ProjectDetail project={project}>
+        <Link className="link-style" to={`?pid=${project.id_sujet}`}>
           <Tooltip title="Titre du sujet affecté à cette soutenance">
             <Typography paragraph>
               <AccountTree /> {project.titre}
             </Typography>
           </Tooltip>
-        </ProjectDetail>
+        </Link>
 
         <Divider />
         <Typography>Autres invités</Typography>

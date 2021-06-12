@@ -15,16 +15,14 @@ import { LibraryAdd } from "@material-ui/icons";
 const options = { weekday: "short", month: "short", day: "numeric" };
 
 function SoutenanceDay(props) {
-  const { date, saved } = props;
+  const { date, saved, soutenances } = props;
 
-  const savedSoutenances = useSelector(
-    (state) => state.savedSoutenance.soutenances
-  ).filter((s) => s.date === date);
-  const currentSoutenances = useSelector(
-    (state) => state.soutenance.soutenances
-  ).filter((s) => s.date === date);
-  const soutenances = saved ? savedSoutenances : currentSoutenances;
-  console.log(soutenances.length);
+  // const savedSoutenances = useSelector(
+  //   (state) => state.savedSoutenance.soutenances
+  // ).filter((s) => s.date === date);
+  // const currentSoutenances = useSelector(
+  //   (state) => state.soutenance.soutenances
+  // ).filter((s) => s.date === date);
   const maxCrenaux = useSelector((state) => state.soutenance.values.maxCrenaux);
   const [crenaux, setCrenaux] = useState(getCrenaux(soutenances) || []);
 
@@ -63,14 +61,16 @@ function SoutenanceDay(props) {
                 : ""
             }`}
           >
-            <IconButton
-              disabled={crenaux.length >= maxCrenaux}
-              color="primary"
-              size="small"
-              onClick={() => setCrenaux([...crenaux, crenaux.length + 1])}
-            >
-              <LibraryAdd />
-            </IconButton>
+            <div>
+              <IconButton
+                disabled={crenaux.length >= maxCrenaux}
+                color="primary"
+                size="small"
+                onClick={() => setCrenaux([...crenaux, crenaux.length + 1])}
+              >
+                <LibraryAdd />
+              </IconButton>
+            </div>
           </Tooltip>
         )}
       </div>
@@ -91,6 +91,7 @@ function SoutenanceDay(props) {
               crenau={crenau}
               saved={saved}
               deleteCrenau={deleteCrenau}
+              soutenances={soutenances.filter((s) => s.crenau === crenau)}
             />
           ))}
       </div>

@@ -1,8 +1,8 @@
 import { Paper, Typography, useTheme } from "@material-ui/core";
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { getProjectByID } from "../../Enseignant/Candidatures/logic";
 import AttachedFiles from "../AttachedFiles";
-import ProjectDetail from "../ProjectDetail";
 import { getProject, getUserByID, withAttachments } from "./CandidatureLogic";
 
 function CandidatureBody(props) {
@@ -11,9 +11,9 @@ function CandidatureBody(props) {
   return (
     <div className="vertical-list">
       <Paper variant="outlined" style={{ padding: "0.5rem" }}>
-        <ProjectDetail project={project}>
+        <Link className="link-style" to={`?pid=${project.id_sujet}`}>
           <Typography variant="h6">{project.titre}</Typography>
-        </ProjectDetail>
+        </Link>
       </Paper>
       {withAttachments(candidature) && (
         <Attachments candidature={candidature} />

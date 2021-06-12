@@ -11,11 +11,12 @@ import {
   TablePagination,
   TableRow,
   Tooltip,
+  Typography,
   useTheme,
 } from "@material-ui/core";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import ProjectDetail from "../../Commun/ProjectDetail";
+import { Link } from "react-router-dom";
 import CahierState from "../../Commun/ViewProjects/CahierState";
 import { getProjectByID } from "../../Enseignant/Candidatures/logic";
 // import { sendReminderForStudentsNotifications } from "../../../Notifications";
@@ -115,30 +116,12 @@ function Students(props) {
 
   return (
     <div className="table-container">
+      <Typography variant="h4">Liste des étudiants</Typography>
       <TableContainer component="div">
-        <TableToolbar
-          notify={notify}
-          selected={selectedStudents}
-          selectStudentsWithoutTags={selectStudentsWithoutTags}
-          selectStudentsWithoutDates={selectStudentsWithoutDates}
-          setSelectedStudents={setSelectedStudents}
-        />
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  indeterminate={
-                    selectedStudents.length > 0 &&
-                    selectedStudents.length < students.length
-                  }
-                  checked={
-                    students.length > 0 &&
-                    selectedStudents.length === students.length
-                  }
-                  onChange={() => handleSelectAllStudents()}
-                />
-              </TableCell>
+              <TableCell padding="checkbox"></TableCell>
               <TableCell>Nom</TableCell>
               <TableCell>Sujet affecté</TableCell>
               <TableCell>Lieu</TableCell>
@@ -151,26 +134,9 @@ function Students(props) {
 
               return (
                 <React.Fragment>
-                  <TableRow className={classes.root} role="checkbox">
-                    <TableCell
-                      onClick={() =>
-                        handleSelectTeacher(student.id_utilisateur)
-                      }
-                      padding="checkbox"
-                    >
-                      <Checkbox
-                        checked={
-                          selectedStudents.indexOf(student.id_utilisateur) > -1
-                        }
-                      />
-                    </TableCell>
-                    <TableCell
-                      onClick={() =>
-                        handleSelectTeacher(student.id_utilisateur)
-                      }
-                    >
-                      {student.nom}
-                    </TableCell>
+                  <TableRow className={classes.root}>
+                    <TableCell padding="checkbox"></TableCell>
+                    <TableCell>{student.nom}</TableCell>
 
                     <TableCell>
                       {project ? (
@@ -178,7 +144,10 @@ function Students(props) {
                           title={"Cliquer pour visualiser - " + project.titre}
                         >
                           <div>
-                            <ProjectDetail project={project}>
+                            <Link
+                              className="link-style"
+                              to={`?pid=${project.id_sujet}`}
+                            >
                               <Chip
                                 size="small"
                                 label="Sujet affecté"
@@ -187,7 +156,7 @@ function Students(props) {
                                   color: "black",
                                 }}
                               />
-                            </ProjectDetail>
+                            </Link>
                           </div>
                         </Tooltip>
                       ) : (

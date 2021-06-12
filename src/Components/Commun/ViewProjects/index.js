@@ -1,21 +1,30 @@
 import { React, useEffect, useState } from "react";
-import { Button, Typography } from "@material-ui/core";
+import {
+  Button,
+  Hidden,
+  IconButton,
+  Tooltip,
+  Typography,
+} from "@material-ui/core";
 import { useSelector, useDispatch } from "react-redux";
 
 import "./style.css";
 import { getCandidatures, getProjects } from "../../../functions";
 import FiltreProjects from "./Filter/FiltreProjects";
 import CardView from "./Views/CardView";
+import EnhancedCardView from "./Views/EnhancedCardView";
 import TableView from "./Views/TableView";
-import { ViewAgenda, ViewHeadline } from "@material-ui/icons";
+import { VerticalSplit, ViewAgenda, ViewHeadline } from "@material-ui/icons";
+import { getAllProjects } from "../../redirectLogic";
 
 function ViewProjects() {
   const current = useSelector((state) => state.users.current);
-  const fetchedProjects = useSelector((state) => state.projects.dataArray);
+  const allProjects = getAllProjects();
+  const fetchedProjects = allProjects._public;
   const dispatch = useDispatch();
 
   const [projects, setProjects] = useState(fetchedProjects);
-  const [cardView, setCardView] = useState(true);
+  const [viewType, setViewType] = useState(0);
 
   useEffect(() => {
     getProjects()
@@ -34,9 +43,11 @@ function ViewProjects() {
       <div className="vertical-list" style={{ flex: 1 }}>
         <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <Typography variant="h4" paragraph>
-            List des sujets
+            Liste des sujets
           </Typography>
-          <SwitchView cardView={cardView} setCardView={setCardView} />
+          <Hidden smDown>
+            <SwitchView cardView={viewType} setCardView={setViewType} />
+          </Hidden>
         </div>
         {/* <FiltreProjects /> */}
         {fetchedProjects.length > 0 && (
@@ -57,10 +68,21 @@ function ViewProjects() {
               Pas des sujets encore
             </Typography>
           )
-        ) : cardView ? (
-          <CardView projects={projects} />
         ) : (
-          <TableView projects={projects} current={current} />
+          <>
+            <Hidden smDown>
+              {viewType === 0 ? (
+                <EnhancedCardView projects={projects} />
+              ) : viewType === 1 ? (
+                <CardView projects={projects} />
+              ) : (
+                <TableView projects={projects} current={current} />
+              )}
+            </Hidden>
+            <Hidden mdUp>
+              <CardView projects={projects} />
+            </Hidden>
+          </>
         )}
       </div>
     )
@@ -72,26 +94,31 @@ export default ViewProjects;
 const SwitchView = (props) => {
   const { cardView, setCardView } = props;
 
-  const handleClick = (isViewCard) => {
-    setCardView(isViewCard);
-  };
-
   return (
-    <div style={{ display: "flex", gap: "0.5rem" }}>
-      <Button
-        color="primary"
-        disabled={cardView}
-        onClick={() => handleClick(true)}
-      >
-        <ViewAgenda />
-      </Button>
-      <Button
-        color="primary"
-        disabled={!cardView}
-        onClick={() => handleClick(false)}
-      >
-        <ViewHeadline />
-      </Button>
-    </div>
+    <Tooltip title="Type de vue">
+      <div style={{ display: "flex", gap: "0.5rem" }}>
+        <IconButton
+          color="primary"
+          disabled={cardView === 0}
+          onClick={() => setCardView(0)}
+        >
+          <VerticalSplit />
+        </IconButton>
+        <IconButton
+          color="primary"
+          disabled={cardView === 1}
+          onClick={() => setCardView(1)}
+        >
+          <ViewAgenda />
+        </IconButton>
+        <IconButton
+          color="primary"
+          disabled={cardView === 2}
+          onClick={() => setCardView(2)}
+        >
+          <ViewHeadline />
+        </IconButton>
+      </div>
+    </Tooltip>
   );
 };

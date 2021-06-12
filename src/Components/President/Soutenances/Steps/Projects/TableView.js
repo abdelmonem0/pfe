@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Checkbox,
+  Chip,
   Table,
   TableBody,
   TableCell,
@@ -10,12 +11,13 @@ import {
   TableRow,
   useTheme,
 } from "@material-ui/core";
-import ProjectDetail from "../../../../Commun/ProjectDetail";
 import {
   projectCheckBox,
   isProjectSel,
   selectAllProjects,
 } from "../../SoutenanceLogic";
+import { Link } from "react-router-dom";
+import CahierState from "../../../../Commun/ViewProjects/CahierState";
 
 function TableView(props) {
   const { projects, selectedProjects, setSelectedProjects } = props;
@@ -69,6 +71,7 @@ function TableView(props) {
                 <TableCell>Projet</TableCell>
                 <TableCell align="left">Encadrant</TableCell>
                 <TableCell align="left">Affecté à</TableCell>
+                <TableCell align="left">Cahier des charges</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -96,16 +99,31 @@ function TableView(props) {
                     />
                   </TableCell>
                   <TableCell>
-                    <ProjectDetail project={project}>
+                    <Link
+                      className="link-style"
+                      to={`?pid=${project.id_sujet}`}
+                    >
                       {project.titre}
-                    </ProjectDetail>
+                    </Link>
                   </TableCell>
-                  <TableCell align="left"></TableCell>
+
                   <TableCell align="left">
                     {project.encadrants[0] ? project.encadrants[0].nom : ""}
                     {project.encadrants[1]
                       ? " / " + project.encadrants[1].nom
                       : ""}
+                    {!project.enc_prim && (
+                      <Chip color="secondary" label="Sans encadrant" />
+                    )}
+                  </TableCell>
+                  <TableCell align="left">
+                    {project.affecte_a[0] ? project.affecte_a[0].nom : ""}
+                    {project.affecte_a[1]
+                      ? " / " + project.affecte_a[1].nom
+                      : ""}
+                  </TableCell>
+                  <TableCell>
+                    <CahierState project={project} />
                   </TableCell>
                 </TableRow>
               ))}

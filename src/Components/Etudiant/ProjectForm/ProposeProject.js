@@ -12,11 +12,13 @@ import {
   validateProposal,
 } from "./logic";
 import { File_States, Project_States } from "../../../Constants";
+import { useHistory } from "react-router";
 
 moment.locale("fr");
 
 function ProposeProject(props) {
   const theme = useTheme();
+  const history = useHistory();
   const current = useSelector((state) => state.users.current);
   const users = useSelector((state) => state.users.all)
     .filter((object) => object.role === "enseignant")
@@ -27,6 +29,7 @@ function ProposeProject(props) {
     ...initialForm,
     interne: true,
     id_etudiant: current.id_utilisateur,
+    date_creation: new Date(),
   });
 
   const onTextChange = (e) => {
@@ -47,13 +50,11 @@ function ProposeProject(props) {
       return;
     }
     addProjectToDatabase(
-      { ...form, etat: Project_States.proposed_by_student_for_teacher },
-      null,
-      [],
+      form,
       Project_States.proposed_by_student_for_teacher,
       File_States.cahier_de_charge_en_instance
-    );
-    window.location.reload();
+    ).then(() => history.push("/sujets/mes"));
+    //window.location.reload();
   };
 
   return (
@@ -123,7 +124,7 @@ function ProposeProject(props) {
           onChange={(e) => {
             setForm({
               ...form,
-              tags: e.target.value.replace(/\s/g, "").split(","),
+              tags: e.target.value.split(","),
             });
           }}
           style={{ flex: "1 1 100%" }}

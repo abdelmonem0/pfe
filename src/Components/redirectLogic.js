@@ -7,47 +7,46 @@ import { Project_States } from "../Constants";
 export const setPages = (role) => {
   const state = store.getState();
   const soutenances = state.savedSoutenance.soutenances;
-  const self_projects = state.projects.self || [];
-  const proposed_projects = state.projects.proposed || [];
-
+  const current = state.users.current;
+  const { _private, _proposed } = getAllProjects();
   var pages = [];
-  pages.push(makePage("Accueil", ""));
+  pages.push(makePage("Accueil", "/"));
   switch (role) {
     case "etudiant":
       pages.push(makePage("Sujets", "/sujets"));
-      if (self_projects.length > 0)
+      if (_proposed.concat(_private).length > 0)
         pages.push(
           makeNestedPage(
             "Mes sujets",
             "/sujets/mes",
             "/sujets",
-            self_projects.length
+            _proposed.concat(_private).length
           )
         );
       if (canAddProject()) pages.push(makePage("Ajouter", "/ajouter"));
-      pages.push(makePage("Proposer", "/proposer"));
+      if (!current.sujet_affecte) pages.push(makePage("Proposer", "/proposer"));
       pages.push(makePage("Candidatures", "/candidatures"));
 
       break;
     case "enseignant":
       pages.push(makePage("Sujets", "/sujets"));
       pages.push(makePage("Ajouter", "/ajouter"));
-      if (self_projects.length > 0)
+      if (_proposed.length > 0)
         pages.push(
           makeNestedPage(
             "Mes sujets",
             "/sujets/mes",
             "/sujets",
-            self_projects.length
+            _proposed.length
           )
         );
-      if (proposed_projects.length > 0)
+      if (_private.length > 0)
         pages.push(
           makeNestedPage(
             "Sujets proposés",
             "/sujets/proposes",
             "/sujets",
-            proposed_projects.length
+            _private.length
           )
         );
       pages.push(makePage("Candidatures", "/candidatures"));
@@ -55,10 +54,7 @@ export const setPages = (role) => {
 
       break;
     case "membre":
-      pages.push(makePage("Ajouter", "/ajouter"));
       pages.push(makePage("Sujets", "/sujets"));
-      pages.push(makePage("Candidatures", "/candidatures"));
-      pages.push(makePage("Préférences", "/preferences"));
 
       break;
     case "president":
@@ -119,8 +115,10 @@ export function setupSoutenances(data) {
   load_saved_soutenances(soutenances);
 }
 
-export function filterPrivateProjects(_projects, current) {
-  var projects = [..._projects];
+export function getAllProjects() {
+  const state = store.getState();
+  const current = state.users.current;
+  var projects = state.projects.dataArray;
 
   if (current.role === "etudiant")
     projects = projects.filter((p) => p.etat !== Project_States.refused);
@@ -138,22 +136,15 @@ export function filterPrivateProjects(_projects, current) {
       (el.enc_prim === current.id_utilisateur ||
         el.id_etudiant === current.id_utilisateur)
   );
-  var _proposed_by_user = projects.filter(
+  var _proposed = projects.filter(
     (el) =>
       el.etat !== Project_States.proposed_by_student_for_teacher &&
       el.etat !== Project_States.refused_by_teacher &&
       (el.enc_prim === current.id_utilisateur ||
-        el.enc_sec === current.id_utilisateur)
+        el.enc_sec === current.id_utilisateur ||
+        el.id_etudiant === current.id_utilisateur ||
+        el.id_etudiant_2 === current.id_utilisateur)
   );
-  store.dispatch({ type: "SET_PROJECTS", payload: _public });
 
-  if (current.role !== "etudiant") {
-    store.dispatch({
-      type: "SET_PROPOSED_PROJECTS",
-      payload: _private,
-    });
-    store.dispatch({ type: "SET_SELF_PROJECTS", payload: _proposed_by_user });
-  } else {
-    store.dispatch({ type: "SET_SELF_PROJECTS", payload: _private });
-  }
+  return { _public, _private, _proposed };
 }

@@ -1,8 +1,8 @@
 import { Button, makeStyles, Switch, Typography } from "@material-ui/core";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { Candidature_States } from "../../../Constants";
-import ProjectDetail from "../ProjectDetail";
 import CandidatureCard from "./CandidatureCard";
 import { getProjectsWithCandidatures } from "./CandidatureLogic";
 import "./style.css";
@@ -36,7 +36,7 @@ function Candidatures(props) {
   const [collapse, setCollapse] = useState(true);
   return candidatures.length > 0 ? (
     <div style={{ flex: "1" }}>
-      {users.role !== "etudiant" && (
+      {users.current.role !== "etudiant" && (
         <Sort
           byProjects={byProjects}
           setByProjects={setByProjects}
@@ -71,11 +71,11 @@ const CandsByTitle = ({ collapse }) => {
       {getProjectsWithCandidatures().map((project) => (
         <div style={{ paddingBottom: "3rem" }}>
           <div className={classes.sticky}>
-            <ProjectDetail project={project}>
-              <Typography color="primary" variant="h4">
+            <Link className="link-style" to={`?pid=${project.id_sujet}`}>
+              <Typography color="primary" variant="h6">
                 {project.titre}
               </Typography>
-            </ProjectDetail>
+            </Link>
           </div>
           <div
             className="vertical-list index"
@@ -89,7 +89,7 @@ const CandsByTitle = ({ collapse }) => {
               />
             ))}
             {project.candidatures.length === 0 && (
-              <Typography variant="h5">
+              <Typography color="textSecondary">
                 Ce sujet ne contient pas des candidatures
               </Typography>
             )}

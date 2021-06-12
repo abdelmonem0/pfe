@@ -132,3 +132,13 @@
 .align-flex-start {
   align-items: flex-start;
 }
+
+.link-style {
+  color: inherit; /* blue colors for links too */
+  text-decoration: none; /* no underline */
+}
+
+.link-style:hover {
+  color: inherit; /* blue colors for links too */
+  text-decoration: none;
+}

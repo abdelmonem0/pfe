@@ -1,4 +1,11 @@
-import { Button, Checkbox, Paper, Typography } from "@material-ui/core";
+import {
+  Button,
+  Checkbox,
+  Collapse,
+  IconButton,
+  Paper,
+  Typography,
+} from "@material-ui/core";
 import React, { useState } from "react";
 import Infos from "./Infos";
 import {
@@ -13,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Feedback from "./Feedback";
 import ConfirmDialog from "../../Commun/ConfirmDialog";
 import DateSale from "./Steps/DateSale";
+import { ExpandLess, ExpandMore } from "@material-ui/icons";
 
 function Soutenances(props) {
   const { saved, values, projects, teachers } = props;
@@ -26,6 +34,9 @@ function Soutenances(props) {
     presidents,
   } = values;
   const soutenances = useSelector((state) => state.soutenance.soutenances);
+  const savedSoutenances = useSelector(
+    (state) => state.savedSoutenance.soutenances
+  );
   const dispatch = useDispatch();
 
   const setMaxCrenaux = (value) => {
@@ -35,12 +46,16 @@ function Soutenances(props) {
     dispatch({ type: "UPDATE_VALUES", payload: { prop: "sales", value } });
   };
 
-  const [parameters, setParameters] = useState({ fullTeachers: false });
+  const [parameters, setParameters] = useState({
+    fullTeachers: false,
+    saturday: false,
+  });
   const [feedback, setFeedback] = useState({});
-  const [saturday, setSaturday] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [collapse, setCollapse] = useState(true);
 
   const create = () => {
+    console.time("soutenances start");
     const { _soutenances, message } = createSoutenances({
       selectedTeachers,
       selectedProjects,
@@ -49,8 +64,9 @@ function Soutenances(props) {
       maxCrenaux,
       sales,
       presidents,
-      saturday,
+      saturday: parameters.saturday,
     });
+    console.timeEnd("soutenances start");
     dispatch({ type: "SET_SOUTENANCES", payload: _soutenances });
     dispatch({
       type: "OPEN_SNACK",
@@ -64,88 +80,134 @@ function Soutenances(props) {
   };
 
   const handleAssignTeachers = () => {
+    console.time("assign teachers");
     const fBack = assignTeachers(
       parameters.tags || false,
       parameters.dates || false
     );
     setFeedback({ ...feedback, assignedTeachers: fBack });
     setShowFeedback(true);
+    console.timeEnd("assign teachers");
   };
 
+  React.useEffect(() => {
+    if (soutenances && soutenances.length) setCollapse(false);
+  }, [soutenances]);
+
   return (
-    <div style={{ paddingBottom: "10rem" }}>
+    <div style={{ paddingBottom: "10rem", paddingTop: "1rem" }}>
       {!saved ? (
         <>
-          <Typography>
-            <Checkbox
-              checked={saturday}
-              onChange={() => setSaturday(!saturday)}
-            />{" "}
-            Inclure les samedis
-          </Typography>
-          <DateSale
-            maxCrenaux={maxCrenaux}
-            setMaxCrenaux={setMaxCrenaux}
-            sales={sales}
-            setSales={setSales}
-            saturday={saturday}
-          />
-          <Infos
-            sales={sales}
-            maxCrenaux={maxCrenaux}
-            selectedTeachers={selectedTeachers}
-            selectedProjects={selectedProjects}
-            presidents={presidents}
-            projects={projects}
-            teachers={teachers}
-          />
-          <Paper
-            variant="outlined"
-            className="horizontal-list wrap"
-            style={{ padding: "0.5rem" }}
-          >
-            <Typography
-              variant="h6"
-              color="primary"
-              style={{ flex: "1 1 100%" }}
-            >
-              Paramètres des soutenances
-            </Typography>
-            <Parameter
-              text="Affecter rapporteurs et présidents"
-              parameters={parameters}
-              currentParameter="fullTeachers"
-              setParameters={setParameters}
-            />
-            <Parameter
-              text="Strict tags"
-              parameters={parameters}
-              currentParameter="tags"
-              setParameters={setParameters}
-            />
-            <Parameter
-              text="Strict dates"
-              parameters={parameters}
-              currentParameter="dates"
-              setParameters={setParameters}
-            />
+          <Paper variant="outlined" style={{ padding: "0.5rem" }}>
+            <div className="horizontal-list space-between">
+              <Typography
+                variant="h6"
+                color="primary"
+                style={{ flex: "1 1 100%" }}
+              >
+                Paramètres des soutenances
+              </Typography>
+              <IconButton size="small" onClick={() => setCollapse(!collapse)}>
+                {collapse ? <ExpandLess /> : <ExpandMore />}
+              </IconButton>
+            </div>
+            <Collapse in={collapse}>
+              <div className="horizontal-list wrap">
+                <DateSale
+                  maxCrenaux={maxCrenaux}
+                  setMaxCrenaux={setMaxCrenaux}
+                  sales={sales}
+                  setSales={setSales}
+                  saturday={parameters.saturday}
+                />
+                <div style={{ flex: "1 1 100%" }}>
+                  <Parameter
+                    text="Inclure les samedis"
+                    parameters={parameters}
+                    currentParameter="saturday"
+                    setParameters={setParameters}
+                  />
+                </div>
+                <Parameter
+                  text="Affecter rapporteurs et présidents"
+                  parameters={parameters}
+                  currentParameter="fullTeachers"
+                  setParameters={setParameters}
+                />
+                <Parameter
+                  text="N'affecte que lorsque les Tags correspondent"
+                  parameters={parameters}
+                  currentParameter="tags"
+                  setParameters={setParameters}
+                />
+                <Parameter
+                  text="N'affecte que lorsque les Dates correspondent"
+                  parameters={parameters}
+                  currentParameter="dates"
+                  setParameters={setParameters}
+                />
 
-            <div style={{ flex: "1 1 100%" }} />
-            <Button onClick={create}>Générer</Button>
-            <Button onClick={handleAssignTeachers}>Assign teachers</Button>
-            <Button onClick={teachersStatistics}>Teachers stats</Button>
-            <Button onClick={() => load_saved_soutenances(soutenances)}>
-              Load
-            </Button>
-            {showFeedback && (
-              <Feedback
-                showFeedback={showFeedback}
-                setShowFeedback={setShowFeedback}
-                assignedTeachers={feedback.assignedTeachers}
+                <div style={{ flex: "1 1 100%" }} />
+                <Button variant="contained" color="primary" onClick={create}>
+                  Générer
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleAssignTeachers}
+                >
+                  Affecter des enseignants
+                </Button>
+                <Button color="primary" onClick={teachersStatistics}>
+                  Statistiques des enseignants
+                </Button>
+                <div style={{ flex: 1 }} />
+                <div className="horizontal-list">
+                  {savedSoutenances && (
+                    <ConfirmDialog
+                      title="Charger les soutenances"
+                      body="Vous allez perdre les soutenances générées dans cette page en chargeant celles enrégistrées dans la base de données"
+                      onConfirm={() =>
+                        load_saved_soutenances(savedSoutenances, true)
+                      }
+                    >
+                      <Button variant="contained" color="secondary">
+                        Charger
+                      </Button>
+                    </ConfirmDialog>
+                  )}
+                  {soutenances && (
+                    <ConfirmDialog
+                      title="Enrégistrer les soutenances"
+                      body="S'il y a des soutenances enrégistrées, vous les perderez en enrégistrant ces unes."
+                      onConfirm={() => saveSoutenances()}
+                    >
+                      <Button variant="contained" color="primary">
+                        Enrégistrer
+                      </Button>
+                    </ConfirmDialog>
+                  )}
+                </div>
+
+                {showFeedback && (
+                  <Feedback
+                    showFeedback={showFeedback}
+                    setShowFeedback={setShowFeedback}
+                    assignedTeachers={feedback.assignedTeachers}
+                  />
+                )}
+              </div>
+              <Infos
+                sales={sales}
+                maxCrenaux={maxCrenaux}
+                selectedTeachers={selectedTeachers}
+                selectedProjects={selectedProjects}
+                presidents={presidents}
+                projects={projects}
+                teachers={teachers}
               />
-            )}
+            </Collapse>
           </Paper>
-          <Button onClick={() => saveSoutenances()}>save</Button>{" "}
         </>
       ) : (
         <ConfirmDialog
@@ -160,7 +222,7 @@ function Soutenances(props) {
           saved={saved}
           soutenances={soutenances}
           values={values}
-          saturday={saturday}
+          saturday={parameters.saturday}
         />
       )}
     </div>

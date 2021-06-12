@@ -12,6 +12,7 @@ import {
 import { Notifications, NotificationsActive } from "@material-ui/icons";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { checkNotification, getNotifications } from "../../../functions";
 import { getNotificationText, sort_notifications } from "./logic";
 
@@ -119,7 +120,11 @@ const Notification = (props) => {
   const text = getNotificationText(notification);
 
   return (
-    <React.Fragment key={notification.id_notification}>
+    <Link
+      className="link-style"
+      to={`?pid=${notification.id_objet}&cid=${notification.id_objet}?`}
+      key={notification.id_notification}
+    >
       <MenuItem style={{ whiteSpace: "normal", maxWidth: "20rem" }}>
         <Box>
           <Typography variant="body1">{text}</Typography>
@@ -136,6 +141,6 @@ const Notification = (props) => {
         </Box>
       </MenuItem>
       {divider && <Divider />}
-    </React.Fragment>
+    </Link>
   );
 };

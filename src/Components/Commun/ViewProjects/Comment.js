@@ -10,8 +10,13 @@ import {
   MenuItem,
   IconButton,
   Menu,
+  ListItemIcon,
+  ListItemText,
 } from "@material-ui/core";
 import { Delete, EditRounded, MoreHoriz } from "@material-ui/icons";
+import { get_comment_visibility } from "../ViewComments";
+import { getProjectByID } from "../../Enseignant/Candidatures/logic";
+import { Comment_Visibility } from "../../../Constants";
 
 function Comment(props) {
   const users = useSelector((state) => state.users);
@@ -21,6 +26,11 @@ function Comment(props) {
   const [editDialog, setEdit] = useState(false);
   const [deleteDialog, setDelete] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const project = getProjectByID(comment.id_sujet);
+
+  const visibility = project
+    ? get_comment_visibility(project, user.role)
+    : Comment_Visibility.candidature;
 
   function getUser(id) {
     return users.all.find((u) => u.id_utilisateur === id);
@@ -34,6 +44,10 @@ function Comment(props) {
     setAnchorEl(null);
   };
   return (
+    // visibility === comment.visible_par ||
+    // (user.role === "president" &&
+    //   (comment.visible_par === Comment_Visibility.proposing_and_president ||
+    //     comment.visible_par === Comment_Visibility.membres_and_president) && (
     <React.Fragment key={comment.id_commentaire}>
       <Dialog
         open={editDialog}
@@ -50,50 +64,72 @@ function Comment(props) {
           close={setDelete}
         />
       </Dialog>
-      <Card
-        variant="outlined"
-        style={{ margin: "0.2rem 0", padding: "0.5rem" }}
-      >
-        <div style={{ display: "flex" }}>
-          <Typography variant="body1" style={{ fontWeight: "bold", flex: "1" }}>
-            {getUser(comment.id_utilisateur).nom}
+      <div style={{ margin: "0.2rem 0" }}>
+        <Paper variant="outlined">
+          <div
+            className="horizontal-list space-between"
+            style={{ alignItems: "flext-start" }}
+          >
+            <Typography
+              style={{
+                fontWeight: "bold",
+                paddingLeft: "0.4rem",
+                paddingTop: "0.2rem",
+              }}
+              variant="body2"
+            >
+              {getUser(comment.id_utilisateur).nom}
+            </Typography>
+            {user.id_utilisateur == comment.id_utilisateur && (
+              <div>
+                <IconButton size="small" onClick={handleClick}>
+                  <MoreHoriz />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  keepMounted
+                  open={Boolean(anchorEl)}
+                  onClose={handleClose}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      setEdit(true);
+                      handleClose();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <EditRounded color="primary" />{" "}
+                    </ListItemIcon>
+                    <ListItemText primary="Modifier" />
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setDelete(true);
+                      handleClose();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Delete color="secondary" />{" "}
+                    </ListItemIcon>
+                    <ListItemText primary="Supprimer" />
+                  </MenuItem>
+                </Menu>
+              </div>
+            )}
+          </div>
+
+          <Typography
+            style={{ paddingLeft: "0.5rem", paddingBottom: "0.1rem" }}
+            variant="subtitle2"
+          >
+            {comment.text_commentaire}
           </Typography>
-          {user.id_utilisateur == comment.id_utilisateur && (
-            <div>
-              <IconButton size="small" onClick={handleClick}>
-                <MoreHoriz />
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                keepMounted
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem
-                  onClick={() => {
-                    setEdit(true);
-                    handleClose();
-                  }}
-                >
-                  <EditRounded color="primary" /> Modifier
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    setDelete(true);
-                    handleClose();
-                  }}
-                >
-                  <Delete color="secondary" /> Supprimer
-                </MenuItem>
-              </Menu>
-            </div>
-          )}
-        </div>
-        <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+        </Paper>
+
+        <Typography style={{ fontSize: "12px" }} color="textSecondary">
           {new Date(comment.date_commentaire).toLocaleString("fr-FR")}
         </Typography>
-        <Typography variant="body2">{comment.text_commentaire}</Typography>
-      </Card>
+      </div>
     </React.Fragment>
   );
 }
@@ -115,9 +151,6 @@ const Edit = (props) => {
     >
       <div>
         <Typography variant="h5">Modifier le commentaire</Typography>
-        <Typography>
-          Dernière modification: {comment.date_commentaire}
-        </Typography>
       </div>
       <TextField
         value={newComment}

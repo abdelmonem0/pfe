@@ -24,15 +24,11 @@ import {
   assignDatesToTeachers,
   willInitSoutenanceValues,
 } from "./President/Soutenances/SoutenanceLogic";
-import {
-  setPages,
-  setupSoutenances,
-  filterPrivateProjects,
-} from "./redirectLogic";
+import { setPages, setupSoutenances } from "./redirectLogic";
 import Loading from "./Loading";
 
 function Redirect(props) {
-  const current = props.current;
+  const current = useSelector((state) => state.users.current);
   const role = current.role;
   const tags = useSelector((state) => state.soutenance.tags);
   const dates = useSelector((state) => state.soutenance.dates);
@@ -42,10 +38,8 @@ function Redirect(props) {
   const loadAllData = () => {
     getProjects()
       .then((res1) => {
-        var filtered = res1.data;
-
         //dispatches projects
-        filterPrivateProjects(filtered, current);
+        dispatch({ type: "SET_PROJECTS", payload: res1.data });
       })
       .then(() =>
         getComments().then((result) =>
@@ -53,7 +47,7 @@ function Redirect(props) {
         )
       )
       .then(() =>
-        getCandidatures(props.current.id_utilisateur).then((res2) =>
+        getCandidatures(current.id_utilisateur).then((res2) =>
           dispatch({ type: "SET_CANDIDATURES", payload: res2.data })
         )
       )
@@ -78,11 +72,9 @@ function Redirect(props) {
                   })
                 )
                 .then(() => {
-                  if (tags && dates) {
-                    var teachers = assignTagsToTeachers();
-                    teachers = assignDatesToTeachers();
-                    dispatch({ type: "SET_TEACHERS", payload: teachers });
-                  }
+                  var teachers = assignTagsToTeachers();
+                  teachers = assignDatesToTeachers();
+                  dispatch({ type: "SET_TEACHERS", payload: teachers });
                 })
             );
         }
@@ -116,6 +108,8 @@ function Redirect(props) {
       )
       .then(() => {
         dispatch({ type: "CLOSE_BACKDROP" });
+        if (current.role === "membre" || current.role === "president")
+          dispatch({ type: "SET_CAN_SWITCH" });
         setAllDone(true);
       })
       .catch((err) => console.error(err));
@@ -123,9 +117,9 @@ function Redirect(props) {
 
   React.useEffect(() => {
     console.log("refetching");
-    loadAllData();
+    if (!allDone) loadAllData();
     if (allDone) setPages(role);
-  }, [allDone]);
+  }, [role, allDone]);
 
   return allDone ? <UserType role={role} /> : <Loading />;
 }
@@ -137,7 +131,7 @@ const UserType = React.memo((props) => {
     case "enseignant":
       return <Enseignant />;
     case "membre":
-      return <Enseignant />;
+      return <Membre />;
     case "admin":
       return <Admin />;
     case "president":

@@ -97,7 +97,6 @@ export function getProjectStateForChip(project, theme) {
     if (project.etat === Project_States.accepted)
       temp = {
         state: "Validé",
-
         colors: {
           color: "white",
           borderColor: "transparent",
@@ -140,6 +139,16 @@ export function getProjectStateForChip(project, theme) {
           backgroundColor: theme.palette.error.main,
         },
         tooltip: Project_States.refused_by_teacher,
+      };
+    else
+      temp = {
+        state: "Réfusé",
+        colors: {
+          color: "white",
+          borderColor: "transparent",
+          backgroundColor: theme.palette.error.main,
+        },
+        tooltip: "Réfusé par la commission.",
       };
 
     if (project.affecte_a.length > 0) {
@@ -236,6 +245,7 @@ export function getProjectStateForChip(project, theme) {
 export function canAddProject() {
   const state = store.getState();
   const current = state.users.current;
+  if (current.role === "enseignant") return true;
 
   //student got affected project
   if (current.sujet_affecte) return false;
@@ -300,6 +310,5 @@ export function getCandidaturePartner() {
       canCandidate(undefined, user)
   );
 
-  console.log(students);
   return students;
 }

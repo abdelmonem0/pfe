@@ -12,6 +12,7 @@ import {
 import { CheckCircle, Info } from "@material-ui/icons";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import ConfirmDialog from "../../Commun/ConfirmDialog";
 import { getStepToShow } from "./SoutenanceLogic";
 import Soutenances from "./Soutenances";
 import DateSale from "./Steps/DateSale";
@@ -54,9 +55,10 @@ function Preferences(props) {
 
   const [step, setStep] = useState(0);
 
-  const projects = useSelector((state) => state.projects.dataArray).filter(
-    (proj) => proj.enc_prim != null
-  );
+  const projects = useSelector((state) => state.projects.dataArray);
+  // .filter(
+  //   (proj) => proj.affecte_a.length > 0
+  // );
 
   const teachers = useSelector((state) => state.soutenance.teachers);
 
@@ -93,6 +95,8 @@ function Preferences(props) {
             teachers={teachers}
           />
         );
+      default:
+        return null;
     }
   };
 
@@ -101,7 +105,6 @@ function Preferences(props) {
     const st = getStepToShow(step);
     if (calculatedStep === -1) setStep(st.step);
     setCalculatedStep(st);
-    console.log("here is the prob");
   }, [values, step]);
 
   return (
@@ -121,7 +124,7 @@ function Preferences(props) {
             </Step>
             <Step>
               <StepLabel>
-                <Typography>Soutenances générées</Typography>
+                <Typography>Générer des soutenances</Typography>
               </StepLabel>
             </Step>
           </Stepper>
@@ -134,14 +137,7 @@ function Preferences(props) {
             >
               Précédant
             </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={calculatedStep.step <= step || step >= 3}
-              onClick={() => handleStep(true)}
-            >
-              Suivant
-            </Button>
+
             <ResetValues
               setStep={setStep}
               values={values}
@@ -162,6 +158,15 @@ function Preferences(props) {
                 <CheckCircle />
               </Tooltip>
             )}
+            <div style={{ flex: "1" }} />
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={calculatedStep.step <= step || step >= 3}
+              onClick={() => handleStep(true)}
+            >
+              Suivant
+            </Button>
           </div>
         </Hidden>
 
@@ -169,7 +174,7 @@ function Preferences(props) {
         <Hidden mdUp>
           <MobileStepper
             activeStep={step}
-            steps={4}
+            steps={3}
             position="bottom"
             backButton={
               <Button
@@ -202,11 +207,7 @@ export default Preferences;
 
 const ResetValues = ({ values, dispatch, setStep }) => {
   const _values = { ...values };
-  _values.startDate = new Date(values.startDate).getDate();
-  _values.endDate = new Date(values.endDate).getDate();
   const constants = {
-    startDate: new Date().getDate(),
-    endDate: new Date().getDate(),
     maxCrenaux: 1,
     sales: "",
     selectedTeachers: [],
@@ -217,16 +218,17 @@ const ResetValues = ({ values, dispatch, setStep }) => {
   const disabled = JSON.stringify(_values) === JSON.stringify(constants);
 
   return (
-    <Button
-      disabled={disabled}
-      variant="outlined"
-      color="primary"
-      onClick={() => {
+    <ConfirmDialog
+      title="Réinitialiser"
+      body="Voulez-vous vraiment réinitialiser les paramètres?"
+      onConfirm={() => {
         setStep(0);
         dispatch({ type: "RESET_VALUES" });
       }}
     >
-      RESET
-    </Button>
+      <Button disabled={disabled} variant="outlined" color="primary">
+        Réinitialiser
+      </Button>
+    </ConfirmDialog>
   );
 };

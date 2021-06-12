@@ -1,21 +1,15 @@
 import { React, useState } from "react";
-import {
-  Button,
-  TextField,
-  Checkbox,
-  ButtonGroup,
-  Typography,
-  div,
-  Collapse,
-  useTheme,
-} from "@material-ui/core";
-import { Autocomplete } from "@material-ui/lab";
+import { Button, TextField, Typography, useTheme } from "@material-ui/core";
 import moment from "moment";
 import "moment/locale/fr";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import UploadFile from "../../UploadFile";
-import { initialErrors, validateProposal, updateProject } from "./logic";
-import { useLocation } from "react-router";
+import {
+  initialErrors,
+  validateProposal,
+  updateProjectToDatabase,
+} from "./logic";
+import { useHistory, useLocation } from "react-router";
 import AttachedFiles from "../../Commun/AttachedFiles";
 import ConfirmDialog from "../../Commun/ConfirmDialog";
 import { getProjectData } from "../../Enseignant/ProjectForm/logic";
@@ -31,11 +25,11 @@ function useQuery() {
 function EditProject(props) {
   const theme = useTheme();
   var query = useQuery();
+  const dispatch = useDispatch();
   const [projectId, setProjectId] = useState(query.get("id"));
   const project = getProjectByID(projectId);
-  console.log(project);
   const current = useSelector((state) => state.users.current);
-  const files = useSelector((state) => state.files);
+  const history = useHistory();
 
   const [errors, setErrors] = useState(initialErrors);
   const [form, setForm] = useState(getProjectData(projectId));
@@ -49,25 +43,33 @@ function EditProject(props) {
     setErrors({ ...errors, [e.target.id]: "" });
   };
 
-  const onAutocompleteChange = (e, option) => {
-    var id_utilisateur = option?.id_utilisateur || null;
-    setForm({ ...form, enc_sec: id_utilisateur });
-  };
-
   const update = () => {
     const { isValidated, errors } = validateProposal(form);
     if (!isValidated) {
       setErrors(errors);
       return;
     }
-    updateProject(
+    dispatch({ type: "OPEN_BACKDROP" });
+    updateProjectToDatabase(
       form,
       projectId,
-      project.fichiers.concat(files),
       Project_States.proposed_by_student_for_teacher,
-      File_States.cahier_de_charge_en_instance
-    );
-    window.location.reload();
+      File_States.cahier_de_charge_en_instance,
+      project.fichiers
+    )
+      .then(() => {
+        dispatch({ type: "CLOSE_BACKDROP" });
+        dispatch({
+          type: "OPEN_SNACK",
+          payload: {
+            open: true,
+            message: "Projet est mis à jour.",
+            type: "success",
+          },
+        });
+        history.push("/sujets/mes");
+      })
+      .catch((err) => console.error(err));
   };
 
   const toggleEncSec = () => {
@@ -162,7 +164,7 @@ function EditProject(props) {
           onChange={(e) => {
             setForm({
               ...form,
-              tags: e.target.value.replace(/\s/g, "").split(","),
+              tags: e.target.value.split(","),
             });
           }}
           style={{ flex: "1 1 100%" }}
@@ -191,20 +193,6 @@ function EditProject(props) {
         >
           <Button color="primary" variant="contained">
             Mettre à jour
-          </Button>
-        </ConfirmDialog>
-        <ConfirmDialog
-          title="Supprimer le sujet"
-          body="Confimer la suppression du sujet"
-        >
-          <Button
-            style={{
-              backgroundColor: theme.palette.error.main,
-              color: "white",
-            }}
-            variant="contained"
-          >
-            Supprimer
           </Button>
         </ConfirmDialog>
       </div>

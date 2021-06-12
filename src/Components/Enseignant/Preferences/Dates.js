@@ -29,14 +29,17 @@ const options = {
 function Dates(props) {
   const dispatch = useDispatch();
   const current = useSelector((state) => state.users.current);
+  const _dates = useSelector((state) => state.savedDates);
   const fetchedDates = useSelector((state) => state.dates);
-  const [dates, setDates] = useState([]);
+  const [dates, setDates] = useState(getDays(_dates, options));
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
   const [selectedDates, setSelectedDates] = useState(
     normalizeFetchedDates(fetchedDates, options) || []
   );
-  const [datesSaved, setDatesSaved] = useState(fetchedDates.length > 0);
+  const [datesSaved, setDatesSaved] = useState(
+    fetchedDates && fetchedDates.length > 0
+  );
 
   const sliceStart = page * rowsPerPage < dates.length ? page * rowsPerPage : 0;
   const sliceEnd =
@@ -152,23 +155,19 @@ function Dates(props) {
   }
 
   useEffect(() => {
-    getSoutenancesDates()
-      .then((result) => setDates(getDays(result.data, options)))
-      .then(() => {
-        if (!datesSaved && fetchedDates.length === 0) {
-          getTeacherDates(current.id_utilisateur).then((result) => {
-            var newDates = normalizeFetchedDates(result.data, options);
-            if (newDates.length > 0) {
-              if (selectedDates.length > 0) {
-                setDatesSaved(true);
-                return;
-              }
-              setSelectedDates(newDates);
-              setDatesSaved(true);
-            }
-          });
+    if (!datesSaved && fetchedDates.length === 0) {
+      getTeacherDates(current.id_utilisateur).then((result) => {
+        var newDates = normalizeFetchedDates(result.data, options);
+        if (newDates.length > 0) {
+          if (selectedDates.length > 0) {
+            setDatesSaved(true);
+            return;
+          }
+          setSelectedDates(newDates);
+          setDatesSaved(true);
         }
       });
+    }
   }, []);
 
   return dates.length > 0 ? (
@@ -209,11 +208,11 @@ function Dates(props) {
                   />
                 </TableCell>
                 <TableCell>Jour</TableCell>
-                <TableCell>Crénaux 1</TableCell>
-                <TableCell>Crénaux 2</TableCell>
-                <TableCell>Crénaux 3</TableCell>
-                <TableCell>Crénaux 4</TableCell>
-                <TableCell>Crénaux 5</TableCell>
+                <TableCell>Crénau 1</TableCell>
+                <TableCell>Crénau 2</TableCell>
+                <TableCell>Crénau 3</TableCell>
+                <TableCell>Crénau 4</TableCell>
+                <TableCell>Crénau 5</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -308,21 +307,17 @@ export default Dates;
 
 function getDays(dates, options) {
   var days = [];
-  const endDate = new Date(dates.date_fin);
+  if (!dates) return [];
+  const endDate = new Date(dates.soutenanceEnd);
+  var day = new Date(dates.soutenanceStart);
   for (var i = 0; i < 100; i++) {
-    var day = new Date(
-      new Date().setDate(new Date(dates.date_debut).getDate() + i)
-    );
+    day.setDate(day.getDate() + i);
+    if (day > endDate) break;
     days.push({
       day: day.toLocaleDateString("fr-FR", options),
-      isWeekend: [0, 6].indexOf(day.getDay()) < 0 ? false : true,
+      isWeekend: day.getDay() === 0 ? true : false,
       iso: day.toDateString(),
     });
-    if (
-      day.getDate() === endDate.getDate() &&
-      day.getDay() === endDate.getDay()
-    )
-      return days;
   }
 
   return days;

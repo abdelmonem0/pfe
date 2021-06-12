@@ -36,7 +36,7 @@ function SoutenanceCard(props) {
   const theme = useTheme();
 
   useEffect(() => {
-    if (soutenance.id_sujet !== "") {
+    if (soutenance.id_sujet !== "" && !saved) {
       var _available = getSoutenanceAvailable(soutenance);
       setAvailable(_available);
       if (soutenance.invite.length === 0) setSoutenanceInvited(soutenance);
@@ -70,7 +70,7 @@ function SoutenanceCard(props) {
           </Typography>
           <div style={{ paddingLeft: "0.5rem" }}>
             <div className="vertical-list">
-              {available && (
+              {((available && available.length > 0) || saved) && (
                 <div className="horizontal-list wrap">
                   <Chooser
                     available={available}
@@ -130,4 +130,4 @@ function SoutenanceCard(props) {
   );
 }
 
-export default React.memo(SoutenanceCard);
+export default SoutenanceCard;

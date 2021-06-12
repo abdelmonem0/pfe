@@ -15,11 +15,13 @@ import Login from "./Components/Login";
 import { Button, Hidden } from "@material-ui/core";
 import { useSelector, useDispatch } from "react-redux";
 import Redirect from "./Components/Redirect";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import NotificationBar from "./Components/Commun/Notification/NotificationBar";
 import { Brightness4, Brightness7, ExitToApp } from "@material-ui/icons";
 import MenuItems from "./Components/MenuItems";
 import RedirectPage from "./Components/RedirectPage";
+import { canAddProject } from "./Components/Commun/Constraints";
+import SwitchAccount from "./Components/MenuItems/SwitchAccount";
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -95,6 +97,7 @@ function MainDrawer(props) {
   const dispatch = useDispatch();
 
   const history = useHistory();
+  const location = useLocation();
 
   const [open, setOpen] = React.useState(false);
   const [authorized, setAuthorized] = React.useState(true);
@@ -104,14 +107,14 @@ function MainDrawer(props) {
   };
 
   React.useEffect(() => {
-    const location = history.location.pathname;
+    const pathname = location.pathname;
     const pagesLinks = pages.map((page) => page.link);
     const auth =
-      pagesLinks.indexOf(location) > -1 ||
-      location === "/" ||
-      location === "/modifier";
+      pagesLinks.indexOf(pathname) > -1 ||
+      pathname === "/" ||
+      (pathname === "/modifier" && canAddProject());
     setAuthorized(auth);
-  }, [current, pages]);
+  }, [current, pages, location.pathname]);
 
   return authorized ? (
     <div className={classes.root}>
@@ -125,31 +128,31 @@ function MainDrawer(props) {
                 aria-label="open drawer"
                 onClick={handleDrawerOpen}
                 edge="start"
-                className={clsx(
-                  classes.menuButton
-                  //   {
-                  //   [classes.hide]: open,
-                  // }
-                )}
+                className={clsx(classes.menuButton)}
               >
                 <MenuIcon />
               </IconButton>
               <Typography variant="h6" noWrap>
-                {current.nom + " - " + current.role}
+                {current.nom}
               </Typography>
+              <Hidden smDown>
+                <div style={{ margin: "0 0.5rem" }}>
+                  <SwitchAccount button={true} />
+                </div>
+              </Hidden>
               <div style={{ flex: 1 }} />
-              <IconButton
-                onClick={() =>
-                  setThemeType(themeType === "light" ? "dark" : "light")
-                }
-              >
-                {themeType === "dark" ? (
-                  <Brightness7 />
-                ) : (
-                  <Brightness4 style={{ fill: "white" }} />
-                )}
-              </IconButton>
-              <NotificationBar />
+              {current.role !== "admin" && (
+                <>
+                  <IconButton onClick={() => setThemeType()}>
+                    {themeType === "dark" ? (
+                      <Brightness7 />
+                    ) : (
+                      <Brightness4 style={{ fill: "white" }} />
+                    )}
+                  </IconButton>
+                  <NotificationBar />
+                </>
+              )}
               <Hidden smDown>
                 <Button
                   variant="contained"
@@ -160,7 +163,10 @@ function MainDrawer(props) {
                     fontWeight: "bold",
                   }}
                   disableElevation
-                  onClick={() => dispatch({ type: "PURGE" })}
+                  onClick={() => {
+                    history.replace("/");
+                    dispatch({ type: "PURGE" });
+                  }}
                   endIcon={<ExitToApp />}
                 >
                   Deconnexion
@@ -168,6 +174,7 @@ function MainDrawer(props) {
               </Hidden>
             </Toolbar>
           </AppBar>
+
           <Hidden smDown>
             <Drawer
               variant="permanent"

@@ -20,11 +20,13 @@ import {
   addProjectToDatabase,
 } from "./logic";
 import { Project_States } from "../../../Constants";
+import { useHistory } from "react-router";
 
 moment.locale("fr");
 
 function AddProject(props) {
   const theme = useTheme();
+  const history = useHistory();
   const current = useSelector((state) => state.users.current);
   const users = useSelector((state) => state.users.all)
     .filter(
@@ -37,7 +39,9 @@ function AddProject(props) {
     encSec: false,
   });
   const [errors, setErrors] = useState(initialErrors);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState({
+    ...initialForm(),
+  });
 
   const onTextChange = (e) => {
     setForm({ ...form, [e.target.id]: e.target.value });
@@ -55,7 +59,11 @@ function AddProject(props) {
       setErrors(errors);
       return;
     }
-    addProjectToDatabase({ ...form, etat: Project_States.waiting });
+    addProjectToDatabase(
+      { ...form },
+      Project_States.waiting,
+      "Fiche externe"
+    ).then(() => history.push("/sujets/mes"));
   };
 
   const toggleEncSec = () => {
@@ -200,7 +208,7 @@ function AddProject(props) {
           onChange={(e) => {
             setForm({
               ...form,
-              tags: e.target.value.replace(/\s/g, "").split(","),
+              tags: e.target.value.split(","),
             });
           }}
           style={{ flex: "1 1 100%" }}

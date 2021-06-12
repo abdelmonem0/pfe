@@ -1,10 +1,8 @@
-import { Typography } from "@material-ui/core";
+import { Typography, Paper } from "@material-ui/core";
 import React from "react";
 
 function Infos(props) {
   const {
-    startDate,
-    endDate,
     sales,
     maxCrenaux,
     selectedTeachers,
@@ -14,51 +12,27 @@ function Infos(props) {
     teachers,
   } = props;
   return (
-    <div>
-      <Typography gutterBottom variant="h5" color="primary">
-        Infos
-      </Typography>
-      {startDate && endDate && (
-        <div className="horizontal-list space-between">
-          <div className="horizontal-list">
-            <Typography variant="h6">Date de debut:</Typography>
-            <Typography variant="h6" color="primary">
-              {new Date(startDate).toLocaleDateString("fr-FR")}
-            </Typography>
-          </div>
-          <div
-            style={{
-              height: "1px",
-              margin: "0 0.2rem",
-              backgroundColor: "lightgray",
-              flex: "1",
-            }}
-          />
-          <div className="horizontal-list">
-            <Typography variant="h6">Date de fin:</Typography>
-            <Typography variant="h6" color="primary">
-              {new Date(endDate).toLocaleDateString("fr-FR")}
-            </Typography>
-          </div>
-        </div>
-      )}
-      <div className="horizontal-list">
+    <Paper
+      className="horizontal-list wrap"
+      style={{ margin: "0.5rem 0", padding: "0.5rem" }}
+    >
+      <div className="horizontal-list wrap" style={{ flex: "1  1 49%" }}>
         <Typography variant="h6">Sales:</Typography>
 
         {sales
           .replace(" ", "")
           .split(",")
           .map((s) => (
-            <Typography key={s} variant="h6" color="primary">
+            <Typography variant="h6" key={s} color="primary">
               {s}
             </Typography>
           ))}
 
-        <Typography variant="h6">
+        <Typography>
           ({sales.replace(" ", "").split(",").length} sales)
         </Typography>
       </div>
-      <div className="horizontal-list">
+      <div className="horizontal-list wrap" style={{ flex: "1  1 49%" }}>
         <Typography variant="h6">
           Nombre des crénaux maximales par jour:
         </Typography>
@@ -66,27 +40,25 @@ function Infos(props) {
           {maxCrenaux}
         </Typography>
       </div>
-      <div className="horizontal-list">
+      <div className="horizontal-list wrap" style={{ flex: "1  1 49%" }}>
         <Typography variant="h6">Nombre des sujets séléctionnés:</Typography>
         <Typography variant="h6" color="primary">
           {selectedProjects.length}
         </Typography>
         <Typography variant="h6">/ {projects.length}</Typography>
       </div>
-      <div className="horizontal-list">
-        <Typography variant="h6">
-          Nombre des enseignants séléctionnés:
-        </Typography>
+      <div className="horizontal-list wrap" style={{ flex: "1  1 49%" }}>
+        <Typography variant="h6">Enseignants séléctionnés:</Typography>
         <Typography variant="h6" color="primary">
           {selectedTeachers.length}
         </Typography>
         <Typography variant="h6"> / {teachers.length}</Typography>
         <Typography variant="h6">
           {" "}
-          (dont {presidents.length} présidents)
+          ( {presidents.length} présidents )
         </Typography>
       </div>
-    </div>
+    </Paper>
   );
 }
 

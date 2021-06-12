@@ -32,7 +32,10 @@ function DateSale(props) {
   }
 
   return (
-    <div className="vertical-list" style={{ gap: "1rem", padding: "0.5rem 0" }}>
+    <div
+      className="vertical-list"
+      style={{ flex: 1, gap: "1rem", padding: "0.5rem 0" }}
+    >
       <div className="horizontal-list wrap">
         {(savedDates.soutenanceStart && savedDates.soutenanceEnd && (
           <div className="horizontal-list space-between wrap">
@@ -75,13 +78,13 @@ function DateSale(props) {
           </div>
         )}
       </div>
-      <div className="horizontal-list wrap">
+      <div className="horizontal-list ">
         <Autocomplete
           options={["1", "2", "3", "4", "5"]}
           getOptionLabel={(option) => option}
           onChange={handleCrenauxOnChange}
           value={maxCrenaux.toString()}
-          style={{ minWidth: "16rem", flex: "1 1 20%" }}
+          style={{ minWidth: "15rem", flex: "1 1 20%" }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -96,7 +99,7 @@ function DateSale(props) {
           variant="outlined"
           value={sales}
           fullWidth
-          style={{ minWidth: "16rem", flex: "1 1 79%" }}
+          style={{ minWidth: "15rem", flex: "1 1 79%" }}
         />
       </div>
     </div>

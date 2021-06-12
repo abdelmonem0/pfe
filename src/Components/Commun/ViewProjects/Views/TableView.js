@@ -22,11 +22,11 @@ import { ExpandLess, ExpandMore } from "@material-ui/icons";
 import "../style.css";
 import AddCandidature from "../../../Etudiant/AddCandidature";
 import CandidatButton from "../CandidatButton";
-import ProjectDetail from "../../ProjectDetail";
 import StateChip from "../StateChip";
 import MembreProjectActions from "../../../Membre/MembreProjectActions";
 import PresidentProjectActions from "../../../President/PresidentProjectActions";
 import AttachementButton from "../AttachementButton";
+import { Link } from "react-router-dom";
 
 const useRowStyles = makeStyles({
   root: {
@@ -149,9 +149,12 @@ function TableView(props) {
                       </TableCell>
                     </Hidden>
                     <TableCell>
-                      <ProjectDetail project={project}>
+                      <Link
+                        className="link-style"
+                        to={`?pid=${project.id_sujet}`}
+                      >
                         {project.titre}
-                      </ProjectDetail>
+                      </Link>
                     </TableCell>
                     <TableCell align="left">
                       <Actions project={project} />

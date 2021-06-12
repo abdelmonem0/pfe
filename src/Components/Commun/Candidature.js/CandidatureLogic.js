@@ -115,7 +115,7 @@ export function getProject(candidature) {
 
 export function getUserByID(id) {
   const state = store.getState();
-  return state.users.all.find((u) => u.id_utilisateur === id);
+  return state.users.all.find((u) => u.id_utilisateur === id) || null;
 }
 
 export function withAttachments(candidature) {

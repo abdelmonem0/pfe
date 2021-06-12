@@ -1,11 +1,17 @@
 import { store } from "../../..";
-import { addProject, addFileToDatabase } from "../../../functions";
+import {
+  addProject,
+  addFileToDatabase,
+  updateProject,
+  getProjects,
+  deleteProject,
+} from "../../../functions";
 import { v4 as uuid } from "uuid";
 import { getProjectByID } from "../Candidatures/logic";
 
 export function validate(form, values) {
   const state = store.getState();
-  const files = state.files;
+  const files = values.files || state.files;
   var errors = {};
   errors.titre =
     form.titre.length > 0
@@ -79,40 +85,43 @@ export function validate(form, values) {
   return { isValidated, errors };
 }
 
-export const addProjectToDatabase = (form, projectId = null, newFiles = []) => {
+export const addProjectToDatabase = (
+  form,
+  etat = "En instance",
+  file_type = "fiche externe"
+) => {
   const state = store.getState();
   const current = state.users.current;
-  const id_sujet = projectId || uuid();
+  const id_sujet = uuid();
 
-  const files = [];
-  const fileSource = newFiles.length > 0 ? newFiles : state.files;
-  for (let f of fileSource)
-    files.push([
-      f.path || f.id_fichier,
-      current.id_utilisateur,
-      id_sujet,
-      "fiche externe",
-    ]);
+  var files = [];
+  for (let f of state.files)
+    files.push([f.path, current.id_utilisateur, id_sujet, file_type]);
+  var object = { sujet: { ...form, id_sujet, etat } };
 
-  const object = { sujet: { ...form, id_sujet } };
   store.dispatch({ type: "OPEN_BACKDROP" });
-  addProject(object, projectId)
-    .then((res) => {
+
+  return addProject(object)
+    .then(() => {
       if (files.length > 0) {
         addFileToDatabase(files);
       }
+
       store.dispatch({ type: "CLOSE_BACKDROP" });
       store.dispatch({
         type: "OPEN_SNACK",
         payload: {
           open: true,
-          message: !projectId
-            ? "Projet ajouté avec succès."
-            : "Projet mis à jour avec succès.",
+          message: "Projet ajouté avec succès.",
           type: "success",
         },
       });
     })
+    .then(() =>
+      getProjects().then((result) => {
+        store.dispatch({ type: "SET_PROJECTS", payload: result.data });
+      })
+    )
     .catch((err) => console.error(err));
 };
 
@@ -124,12 +133,11 @@ export const initialForm = () => {
     titre: "",
     description: "",
     travail: "",
-    interne: current.role === "etudiant" ? false : true,
-    enc_prim: current.role === "enseignant" ? current.id_utilisateur : null,
+    interne: true,
+    enc_prim: current.id_utilisateur,
     enc_sec: null,
-    interne: current.role === "etudiant" ? false : true,
     tags: "",
-    date: new Date(),
+    date_creation: new Date(),
   };
 };
 
@@ -146,18 +154,9 @@ export const getProjectData = (id) => {
     interne: project.interne,
     enc_prim: project.enc_prim,
     enc_sec: project.enc_sec,
-    id_etudiant: project.id_etudiant
-      ? project.id_etudiant
-      : project.affecte_a.length > 0
-      ? project.affecte_a[0]
-      : null,
-    id_etudiant_2: project.id_etudiant_2
-      ? project.id_etudiant_2
-      : project.affecte_a.length > 1
-      ? project.affecte_a[1]
-      : null,
-    tags: "",
-    date: new Date(project.date),
+    id_etudiant: project.id_etudiant,
+    id_etudiant_2: project.id_etudiant_2,
+    date_creation: new Date(project.date_creation),
     lieu: project.lieu,
     enc_ext: project.enc_ext,
     tags: project.tags.map((tag) => tag.id_tag),
@@ -174,6 +173,70 @@ export const initialErrors = {
   enc_ext: "",
 };
 
-export function updateProject(form, projectId, files) {
-  addProjectToDatabase(form, projectId, files);
+export const updateProjectToDatabase = (
+  form,
+  id,
+  etat = "En instance",
+  file_type = "fiche externe",
+  _files
+) => {
+  const state = store.getState();
+  const current = state.users.current;
+  const id_sujet = id;
+
+  var files = [];
+  if (_files.length > 0) {
+    for (let file of _files) {
+      var _file = [];
+      for (let key of Object.keys(file)) _file.push(file[key]);
+      files.push(_file);
+    }
+  } else {
+    for (let f of state.files)
+      files.push([f.path, current.id_utilisateur, id_sujet, file_type]);
+  }
+
+  var object = { sujet: { ...form, id_sujet, etat } };
+
+  console.log(object);
+  console.log(files);
+  store.dispatch({ type: "OPEN_BACKDROP" });
+
+  return updateProject(object)
+    .then(() =>
+      addFileToDatabase(files)
+        .then(() => {
+          store.dispatch({ type: "CLOSE_BACKDROP" });
+          store.dispatch({
+            type: "OPEN_SNACK",
+            payload: {
+              open: true,
+              message: "Projet mis à jour avec succès.",
+              type: "success",
+            },
+          });
+        })
+        .then(() =>
+          getProjects().then((result) => {
+            store.dispatch({ type: "SET_PROJECTS", payload: result.data });
+          })
+        )
+    )
+    .catch((err) => console.error(err));
+};
+
+export function deleteProjectFromDatabase(id_sujet) {
+  return deleteProject(id_sujet)
+    .then(() => {
+      store.dispatch({
+        type: "OPEN_SNACK",
+        payload: { message: "Le sujet est supprimé.", type: "success" },
+      });
+    })
+    .then(() =>
+      getProjects().then((result) => {
+        store.dispatch({ type: "SET_PROJECTS", payload: result.data });
+      })
+    )
+    .catch((err) => console.error(err));
 }

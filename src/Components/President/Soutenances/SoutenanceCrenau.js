@@ -24,21 +24,21 @@ import { v4 as uuid } from "uuid";
 import ConfirmDialog from "../../Commun/ConfirmDialog";
 
 function SoutenanceCrenau(props) {
-  const { crenau, saved, date, deleteCrenau } = props;
+  const { crenau, saved, date, deleteCrenau, soutenances } = props;
   const dispatch = useDispatch();
 
-  const savedSoutenances =
-    useSelector((state) => state.savedSoutenance.soutenances).filter(
-      (s) => s.date === date && s.crenau === crenau
-    ) || [];
-  const currentSoutenances = useSelector(
-    (state) => state.soutenance.soutenances
-  ).filter((s) => s.date === date && s.crenau === crenau);
-  const soutenances = saved ? savedSoutenances : currentSoutenances;
+  // const savedSoutenances =
+  //   useSelector((state) => state.savedSoutenance.soutenances).filter(
+  //     (s) => s.date === date && s.crenau === crenau
+  //   ) || [];
+  // const currentSoutenances = useSelector(
+  //   (state) => state.soutenance.soutenances
+  // ).filter((s) => s.date === date && s.crenau === crenau);
+  // const soutenances = saved ? savedSoutenances : currentSoutenances;
 
   var sales = useSelector((state) => state.soutenance.values.sales.split(","));
   const savedSales =
-    useSelector((state) => state.savedSoutenance.values.sales) || [];
+    useSelector((state) => state.savedSoutenance?.values?.sales || null) || [];
   if (saved) sales = savedSales;
   const [open, setOpen] = useState(true);
 
@@ -53,7 +53,7 @@ function SoutenanceCrenau(props) {
   const handleDeleteAllSoutenance = () => {
     dispatch({
       type: "DELETE_SOUTENANCE",
-      payload: soutenances.map((s) => s.id),
+      payload: soutenances.map((s) => s.id_soutenance),
     });
     deleteCrenau(crenau);
   };

@@ -24,6 +24,13 @@ export const File_States = {
   cahier_de_charge_accepte: "Cahier de charge accepté",
 };
 
+export const Comment_Visibility = {
+  student_and_teacher_private: "étudiant et enseignant (privé)",
+  proposing_and_president: "qui a proposé et président",
+  membres_and_president: "membre de la commission",
+  candidature: "candidature",
+};
+
 export const Notifications_Types = {
   comment: "comment",
   president_set_dates: "dates soutenances",

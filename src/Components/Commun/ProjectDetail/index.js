@@ -36,189 +36,219 @@ import { getNextQuery } from "../ProjectDetail/logic";
 import StateChip from "../ViewProjects/StateChip";
 import CahierState from "../ViewProjects/CahierState";
 import { getUserByID } from "../Candidature.js/CandidatureLogic";
+import { getProjectByID } from "../../Enseignant/Candidatures/logic";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-function ProjectDetail(props) {
-  const project = props.project;
-  const current = useSelector((state) => state.users.current);
-  const [open, setOpen] = useState(false);
 
-  const canViewComments = can_view_comments(project, current);
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
+
+function ProjectDetail(props) {
+  const location = useLocation();
+  const history = useHistory();
+  var query = useQuery();
+  const queryProject = query.get("pid");
+  const [project, setProject] = useState(getProjectByID(queryProject));
+  const current = useSelector((state) => state.users.current);
+  const [open, setOpen] = useState(queryProject || false);
+
+  const canViewComments =
+    project && current ? can_view_comments(project, current) : false;
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("xs"));
 
   const handleClose = () => {
     setOpen(!open);
+    history.replace(location.pathname);
   };
 
+  React.useEffect(() => {
+    const _project = getProjectByID(queryProject);
+    if (_project) setProject(_project);
+    console.log("updateddd");
+  }, [queryProject]);
+
   return (
-    <>
-      <div style={{ cursor: "pointer" }} onClick={handleClose}>
-        {props.children}
-      </div>
-      <Dialog
-        open={open}
-        TransitionComponent={Transition}
-        fullWidth
-        maxWidth={canViewComments ? "lg" : "md"}
-        onClose={handleClose}
-        fullScreen={fullScreen}
-      >
-        <Paper elevation={0} style={{ display: "flex", overflowY: "hidden" }}>
-          <Paper elevation={0} style={{ flex: "1 1 60%", overflowY: "scroll" }}>
-            <Card elevation={0}>
-              <CardHeader
-                title={project.titre}
-                subheader={
-                  <div className="horizontal-list wrap">
-                    <StateChip project={project} />
-                    <CahierState project={project} />
-                    {project.encadrants[0] && (
-                      <Tooltip title="Encadrant">
+    (project && current && (
+      <>
+        <Dialog
+          open={queryProject === project.id_sujet}
+          TransitionComponent={Transition}
+          fullWidth
+          maxWidth={canViewComments ? "lg" : "md"}
+          onClose={handleClose}
+          fullScreen={fullScreen}
+        >
+          <Paper
+            elevation={0}
+            style={{
+              display: "flex",
+              overflowY: "hidden",
+              minHeight: "70vh",
+              height: "70vh",
+            }}
+          >
+            <Paper
+              elevation={0}
+              style={{ flex: "1 1 60%", overflowY: "scroll" }}
+            >
+              <Card elevation={0}>
+                <CardHeader
+                  title={project.titre}
+                  subheader={
+                    <div className="horizontal-list wrap">
+                      <StateChip project={project} />
+                      <CahierState project={project} />
+                      {project.encadrants[0] && (
+                        <Tooltip title="Encadrant">
+                          <Typography variant="body2" color="textSecondary">
+                            <School size="small" /> {project.encadrants[0].nom}{" "}
+                            {(project.encadrants.length > 1 &&
+                              " - " + project.encadrants[1].nom) ||
+                              ""}
+                          </Typography>
+                        </Tooltip>
+                      )}
+                      {project.id_etudiant && (
+                        <Tooltip title="Etudiant">
+                          <Typography variant="body2" color="textSecondary">
+                            <Person size="small" />{" "}
+                            {getUserByID(project.id_etudiant)?.nom || ""}{" "}
+                            {project.id_etudiant_2 &&
+                              " - " +
+                                (getUserByID(project.id_etudiant_2)?.nom || "")}
+                          </Typography>
+                        </Tooltip>
+                      )}
+                      <Tooltip title="Date d'ajout">
                         <Typography variant="body2" color="textSecondary">
-                          <School size="small" /> {project.encadrants[0].nom}{" "}
-                          {project.encadrants.length > 1 &&
-                            " - " + project.encadrants[1].nom}
-                        </Typography>
-                      </Tooltip>
-                    )}
-                    {project.id_etudiant && (
-                      <Tooltip title="Etudiant">
-                        <Typography variant="body2" color="textSecondary">
-                          <Person size="small" />{" "}
-                          {getUserByID(project.id_etudiant).nom}{" "}
-                          {project.id_etudiant_2 &&
-                            " - " + getUserByID(project.id_etudiant_2).nom}
-                        </Typography>
-                      </Tooltip>
-                    )}
-                    <Tooltip title="Date d'ajout">
-                      <Typography variant="body2" color="textSecondary">
-                        <Schedule />
-                        {" " +
-                          new Date(project.date_creation).toLocaleDateString(
-                            "fr-FR"
-                          )}
-                      </Typography>
-                    </Tooltip>
-                  </div>
-                }
-              />
-              <CardContent>
-                <div
-                  className="horizontal-list wrap"
-                  style={{ columnGap: "2rem" }}
-                >
-                  <div className="horizontal-list">
-                    <LocationOn color="primary" />
-                    <Typography variant="body1">
-                      {project.interne ? "Interne" : "Externe"}
-                    </Typography>
-                  </div>
-                  {!project.interne && (
-                    <div className="horizontal-list">
-                      <Apartment color="primary" />
-                      <Typography variant="body1">{project.lieu}</Typography>
-                    </div>
-                  )}
-                  {!project.interne && (
-                    <div>
-                      <Typography variant="subtitle2">
-                        Encadrant externe: {project.enc_ext}
-                      </Typography>
-                    </div>
-                  )}
-                  {project.tags && project.tags.length > 0 && (
-                    <Tooltip title="Technologies">
-                      <div className="horizontal-list">
-                        <Settings color="primary" />
-                        {project.tags.map((tag, i) => (
-                          <React.Fragment key={tag.id_tag}>
-                            <Typography color="primary">
-                              {tag.id_tag}
-                            </Typography>
-                            {i < project.tags.length - 1 && (
-                              <Divider orientation="vertical" flexItem />
+                          <Schedule />
+                          {" " +
+                            new Date(project.date_creation).toLocaleDateString(
+                              "fr-FR"
                             )}
-                          </React.Fragment>
-                        ))}
+                        </Typography>
+                      </Tooltip>
+                    </div>
+                  }
+                />
+                <CardContent>
+                  <div
+                    className="horizontal-list wrap"
+                    style={{ columnGap: "2rem" }}
+                  >
+                    <div className="horizontal-list">
+                      <LocationOn color="primary" />
+                      <Typography variant="body1">
+                        {project.interne ? "Interne" : "Externe"}
+                      </Typography>
+                    </div>
+                    {!project.interne && (
+                      <div className="horizontal-list">
+                        <Apartment color="primary" />
+                        <Typography variant="body1">{project.lieu}</Typography>
                       </div>
-                    </Tooltip>
+                    )}
+                    {!project.interne && (
+                      <div>
+                        <Typography variant="subtitle2">
+                          Encadrant externe: {project.enc_ext}
+                        </Typography>
+                      </div>
+                    )}
+                    {project.tags && project.tags.length > 0 && (
+                      <Tooltip title="Technologies">
+                        <div className="horizontal-list">
+                          <Settings color="primary" />
+                          {project.tags.map((tag, i) => (
+                            <React.Fragment key={tag.id_tag}>
+                              <Typography color="primary">
+                                {tag.id_tag}
+                              </Typography>
+                              {i < project.tags.length - 1 && (
+                                <Divider orientation="vertical" flexItem />
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </Tooltip>
+                    )}
+                  </div>
+                  <AttachedFiles project={project} />
+                  <Typography variant="h6" color="primary">
+                    Description
+                  </Typography>
+                  <Typography variant="body1" paragraph>
+                    {project.description}
+                  </Typography>
+                  <Typography variant="h6" color="primary">
+                    Travail demandé
+                  </Typography>
+                  <Typography variant="body1" paragraph>
+                    {project.travail}
+                  </Typography>
+
+                  {canViewComments && (
+                    <Hidden mdUp>
+                      <Typography variant="h6" color="primary">
+                        Commentaires
+                      </Typography>
+                      <ViewComments project={project} />
+                    </Hidden>
                   )}
-                </div>
-                <AttachedFiles project={project} />
-                <Typography variant="h6" color="primary">
-                  Description
-                </Typography>
-                <Typography variant="body1" paragraph>
-                  {project.description}
-                </Typography>
-                <Typography variant="h6" color="primary">
-                  Travail demandé
-                </Typography>
-                <Typography variant="body1" paragraph>
-                  {project.travail}
-                </Typography>
-
-                {canViewComments && (
-                  <Hidden mdUp>
-                    <Typography variant="h6" color="primary">
-                      Commentaires
-                    </Typography>
-                    <ViewComments
-                      addComment={props.addComment}
-                      project={project}
-                    />
-                  </Hidden>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Paper>
+            {canViewComments && (
+              <Hidden smDown>
+                <Paper
+                  elevation={0}
+                  style={{ flex: "1 1 40%", overflowY: "scroll" }}
+                >
+                  <Card elevation={0}>
+                    <CardContent>
+                      <ViewComments project={project} />
+                    </CardContent>
+                  </Card>
+                </Paper>
+              </Hidden>
+            )}
           </Paper>
-          {canViewComments && (
-            <Hidden smDown>
-              <Paper
-                elevation={0}
-                style={{ flex: "1 1 40%", overflowY: "scroll" }}
+
+          <DialogActions>
+            <LikeButton project={project} />
+            <CandidatButton project={project} />
+            <PresidentProjectActions project={project} />
+            <MembreProjectActions project={project} />
+
+            <div style={{ flex: 1 }} />
+            {canEditProject(project) && (
+              <Button
+                size="small"
+                variant="outlined"
+                component={Link}
+                to={getNextQuery("modifier", "id", project.id_sujet)}
               >
-                <Card elevation={0}>
-                  <CardContent>
-                    <ViewComments
-                      addComment={props.addComment}
-                      project={project}
-                    />
-                  </CardContent>
-                </Card>
-              </Paper>
-            </Hidden>
-          )}
-        </Paper>
-
-        <DialogActions>
-          <LikeButton project={project} />
-          <CandidatButton project={project} />
-          <PresidentProjectActions project={project} />
-          <MembreProjectActions project={project} />
-
-          <div style={{ flex: 1 }} />
-          {canEditProject(project) && (
+                Modifier
+              </Button>
+            )}
             <Button
               size="small"
-              variant="outlined"
-              component={Link}
-              to={getNextQuery("modifier", "id", project.id_sujet)}
+              variant="contained"
+              color="secondary"
+              onClick={handleClose}
             >
-              Modifier
+              Fermer
             </Button>
-          )}
-          <Button variant="outlined" color="secondary" onClick={handleClose}>
-            Fermer
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+          </DialogActions>
+        </Dialog>
+      </>
+    )) ||
+    null
   );
 }
 

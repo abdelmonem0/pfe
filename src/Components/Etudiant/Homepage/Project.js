@@ -9,15 +9,17 @@ import {
 import {
   CheckCircleOutlined,
   HourglassEmpty,
+  Person,
   School,
   SupervisorAccount,
   Warning,
 } from "@material-ui/icons";
 import React from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { File_States } from "../../../Constants";
 import AttachedFiles from "../../Commun/AttachedFiles";
-import ProjectDetail from "../../Commun/ProjectDetail";
+import { getUserByID } from "../../Commun/Candidature.js/CandidatureLogic";
 import UploadFile from "../../UploadFile";
 import { saveCahierDeCharge, willRenderUploadCahier } from "./logic";
 
@@ -50,13 +52,13 @@ function Projects(props) {
       >
         <CheckCircleOutlined />
         {"  "}
-        Sujet accepté
+        Sujet affecté
       </Typography>
       <Divider />
       <Paper style={{ padding: "0.5rem" }} variant="outlined">
-        <ProjectDetail project={project}>
+        <Link className="link-style" to={`?pid=${project.id_sujet}`}>
           <Typography variant="h6">{project.titre}</Typography>
-        </ProjectDetail>
+        </Link>
 
         <div
           style={{
@@ -66,38 +68,28 @@ function Projects(props) {
             alignItems: "center",
           }}
         >
-          {project.affecte_a.length > 1 && (
-            <>
-              <SupervisorAccount />
-              <Tooltip title="Partenair">
-                <Typography variant="body2">
-                  {
-                    project.affecte_a.filter(
-                      (u) => u.id_utilisateur !== current.id_utilisateur
-                    )[0].nom
-                  }
-                </Typography>
-              </Tooltip>
-            </>
-          )}
-          <div style={{ flex: "1" }} />
           <Tooltip title="Encadrant">
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <School />
-              <Typography variant="body2">
-                {
-                  users.filter((u) => u.id_utilisateur === project.enc_prim)[0]
-                    .nom
-                }
-              </Typography>
-              {project.enc_sec ? (
-                <Typography variant="body2">
-                  {
-                    users.filter((u) => u.id_utilisateur === project.enc_sec)[0]
-                      .nom
-                  }
-                </Typography>
-              ) : null}
+            <div className="horizontal-list space-between wrap">
+              {project.encadrants[0] && (
+                <Tooltip title="Encadrant">
+                  <Typography variant="body2" color="textSecondary">
+                    <School size="small" /> {project.encadrants[0].nom}{" "}
+                    {project.encadrants.length > 1 &&
+                      " - " + project.encadrants[1].nom}
+                  </Typography>
+                </Tooltip>
+              )}
+              {project.id_etudiant && (
+                <Tooltip title="Etudiant">
+                  <Typography variant="body2" color="textSecondary">
+                    <Person size="small" />{" "}
+                    {getUserByID(project.id_etudiant)?.nom || ""}{" "}
+                    {(project.id_etudiant_2 &&
+                      " - " + getUserByID(project.id_etudiant_2)?.nom) ||
+                      ""}
+                  </Typography>
+                </Tooltip>
+              )}
             </div>
           </Tooltip>
         </div>
@@ -114,7 +106,7 @@ function Projects(props) {
       <Paper style={{ padding: "0.5rem" }} variant="outlined">
         <Typography gutterBottom>
           <HourglassEmpty />
-          {"  "} Aucune soutenance n'est encore affectée au sujet
+          {"  "} Aucune soutenance n'est affectée au sujet
         </Typography>
       </Paper>
     </Paper>

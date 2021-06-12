@@ -10,18 +10,20 @@ import { canCandidate, leftCandidaturesText } from "../../Commun/Constraints";
 import { useHistory } from "react-router";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import ProjectDetail from "../../Commun/ProjectDetail";
 import StateChip from "../../Commun/ViewProjects/StateChip";
 import { NewReleases } from "@material-ui/icons";
+import { getAllProjects } from "../../redirectLogic";
+import { Project_States } from "../../../Constants";
 
 function Candidature(props) {
   const theme = useTheme();
-  const projects = useSelector((state) => state.projects.dataArray);
+  const projects = getAllProjects()._public.filter(
+    (p) => p.affecte_a.length < 1 && p.etat === Project_States.accepted
+  );
   const current = useSelector((state) => state.users.current);
-  const project =
-    useSelector((state) => state.projects.dataArray).filter(
-      (p) => p.id_sujet === current.sujet_affecte
-    )[0] || undefined;
+  const project = useSelector((state) => state.projects.dataArray).find(
+    (p) => p.id_sujet === current.sujet_affecte
+  );
 
   function getLastProjects() {
     const temp = [...projects];
@@ -82,22 +84,26 @@ function Candidature(props) {
             </Typography>
           </div>
         )}
-        <Divider />
-        <Paper
-          elevation={0}
-          style={{ padding: "0.5rem 0", margin: "0.5rem 0" }}
-        >
-          <Typography gutterBottom>
-            {" "}
-            <NewReleases /> Derniers sujets ajoutés
-          </Typography>
-          <div>
-            {" "}
-            {getLastProjects().map((p) => (
-              <LastProject project={p} />
-            ))}{" "}
-          </div>
-        </Paper>
+
+        {(getLastProjects().length && (
+          <>
+            <Divider />
+            <Paper
+              elevation={0}
+              style={{ padding: "0.5rem 0", margin: "0.5rem 0" }}
+            >
+              <Typography gutterBottom>
+                <NewReleases /> Derniers sujets ajoutés
+              </Typography>
+              <div>
+                {getLastProjects().map((p) => (
+                  <LastProject project={p} />
+                ))}
+              </div>
+            </Paper>
+          </>
+        )) ||
+          null}
       </Paper>
     </Paper>
   ) : null;
@@ -114,11 +120,11 @@ const LastProject = (props) => {
       variant="outlined"
       style={{ padding: "0.5rem", margin: "0.5rem 0" }}
     >
-      <ProjectDetail project={project}>
+      <Link className="link-style" to={`?pid=${project.id_sujet}`}>
         <StateChip project={project} />
         <div style={{ margin: "0.25rem 0" }} />
         <Typography>{project.titre}</Typography>
-      </ProjectDetail>
+      </Link>
     </Paper>
   );
 };

@@ -7,7 +7,7 @@ function Chooser(props) {
   const { saved, available, assigne, president, rapporteur, teacherStats } =
     props;
   const theme = useTheme();
-  var teachers = [...available, { id_utilisateur: "0", nom: "" }];
+  var teachers = [...(available || []), { id_utilisateur: "0", nom: "" }];
 
   if (president) {
     for (let i = 0; i < teachers.length; i++)
@@ -42,17 +42,17 @@ function Chooser(props) {
             {option.nom}
             <div style={{ flex: 1 }} />
             {option.matched && option.matched.length > 0 && (
-              <Tooltip title={option.matched.length + " matched tags"}>
+              <Tooltip title={option.matched.length + " Tags similaires"}>
                 <LocalOffer
-                  style={{ color: theme.palette.success.light }}
+                  style={{ color: theme.palette.success.main }}
                   fontSize="small"
                 />
               </Tooltip>
             )}
             {option.matchedDate && (
-              <Tooltip title={"matched date"}>
+              <Tooltip title={"Dates correspondantes"}>
                 <EventAvailable
-                  style={{ color: theme.palette.success.light }}
+                  style={{ color: theme.palette.success.main }}
                   fontSize="small"
                 />
               </Tooltip>

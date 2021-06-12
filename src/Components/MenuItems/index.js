@@ -23,6 +23,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, useLocation } from "react-router";
 import GetIcon from "./GetIcon";
+import SwitchAccount from "./SwitchAccount";
 
 function getChildren(pages, page) {
   return pages.filter((p) => p.parent && p.parent === page.link);
@@ -48,13 +49,17 @@ function MenuItems(props) {
       {pages.map(
         (page) =>
           !page.parent && (
-            <Item
-              page={page}
-              key={page.text}
-              children={getChildren(pages, page)}
-              drawerOpen={drawerOpen}
-              closeDrawer={closeDrawer}
-            />
+            <React.Fragment key={page.link}>
+              {/* switch account */}
+              {page.link === "/profile" && <SwitchAccount />}
+              <Item
+                page={page}
+                key={page.text}
+                children={getChildren(pages, page)}
+                drawerOpen={drawerOpen}
+                closeDrawer={closeDrawer}
+              />
+            </React.Fragment>
           )
       )}
 
@@ -69,6 +74,7 @@ function MenuItems(props) {
           style={{ color: theme.palette.error.main }}
         />
       </ListItem>
+
       <ConfirmLogout
         open={logoutDialog}
         setOpen={setLogoutDialog}

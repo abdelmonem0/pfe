@@ -5,12 +5,14 @@ import {
   IconButton,
   Paper,
   Button,
+  Typography,
 } from "@material-ui/core";
 import { Visibility, VisibilityOff, EmailOutlined } from "@material-ui/icons";
 import { useDispatch } from "react-redux";
 import { setCurrentUser } from "../actions";
 import { loginUser } from "../functions";
 import { useHistory } from "react-router";
+import LoginIcon from '../SVG/login.svg'
 
 export function Home() {
   const dispatch = useDispatch();
@@ -55,11 +57,12 @@ export function Home() {
         display: "flex",
         width: "100%",
         justifyContent: "center",
-        marginTop: "10%",
+        marginTop: "6%",
       }}
     >
       <div className="col-sm-10 col-md-6">
-        <Paper
+      <Typography variant="h3" gutterBottom>Bienvenue,</Typography>
+<Paper
           elevation={10}
           style={{
             flex: "1 1 100%",
@@ -82,6 +85,10 @@ export function Home() {
             <ForgotPassword handleForgotPassword={handleForgotPassword} />
           )}
         </Paper>
+        <div style={{width: "100%", display: "flex", justifyContent:"center", padding:"1rem"}}>
+        <img style={{maxWidth: "20rem"}} src={LoginIcon} alt=""/>
+
+        </div>
       </div>
     </div>
   );
@@ -93,7 +100,7 @@ const LoginForm = (props) => {
   return (
     <>
       <TextField
-        label="Nom d'utilisateur"
+        label="Identifiant ou email"
         variant="outlined"
         id="userId"
         onChange={props.onChange}
@@ -131,6 +138,7 @@ const LoginForm = (props) => {
           Mot de passe oublié?
         </Button>
       </div>
+   
     </>
   );
 };
@@ -156,6 +164,7 @@ const ForgotPassword = (props) => {
       <div>
         <Button onClick={props.handleForgotPassword}>Se connecter</Button>
       </div>
+      
     </>
   );
 };

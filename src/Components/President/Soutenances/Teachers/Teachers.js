@@ -3,6 +3,7 @@ import {
   Checkbox,
   Chip,
   Collapse,
+  Divider,
   makeStyles,
   Table,
   TableBody,
@@ -11,6 +12,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  useTheme,
 } from "@material-ui/core";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -39,6 +41,7 @@ function Teachers(props) {
   const [selectedTeachers, setSelectedTeachers] = useState(
     calledFromSoutenances ? values.selectedTeachers : []
   );
+  const theme = useTheme();
 
   const classes = useRowStyles();
 
@@ -154,7 +157,7 @@ function Teachers(props) {
   }
 
   return (
-    <div className="table-container">
+    <div className="table-container" style={{ marginTop: "1rem" }}>
       <TableContainer component="div">
         <TableToolbar
           calledFromSoutenances={calledFromSoutenances}
@@ -184,9 +187,9 @@ function Teachers(props) {
               </TableCell>
               <TableCell>Nom</TableCell>
               {calledFromSoutenances && <TableCell>Président</TableCell>}
-              <TableCell># spécialités</TableCell>
               <TableCell>email</TableCell>
-              <TableCell>Préférances</TableCell>
+              <TableCell>Tags</TableCell>
+              <TableCell>Préférences</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -221,38 +224,33 @@ function Teachers(props) {
                       />
                     </TableCell>
                   )}
-                  <TableCell>
-                    {teacher.tags.length > 0 ? (
-                      <Chip
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                        label={"Validé (" + teacher.tags.length + ")"}
-                      />
-                    ) : (
-                      <Chip
-                        size="small"
-                        color="secondary"
-                        label="Non definit"
-                      />
-                    )}
-                  </TableCell>
+
                   <TableCell>{teacher.email}</TableCell>
                   <TableCell>
-                    {teacher.dates.length > 0 ? (
-                      <Chip
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                        label={"Validé (" + teacher.dates.length + ")"}
-                      />
-                    ) : (
-                      <Chip
-                        size="small"
-                        color="secondary"
-                        label="Non definit"
-                      />
-                    )}
+                    <Chip
+                      style={{
+                        backgroundColor:
+                          teacher.tags.length > 0
+                            ? theme.palette.success.main
+                            : "",
+                        color: teacher.tags.length > 0 ? "black" : "",
+                      }}
+                      variant={!teacher.tags.length ? "outlined" : "default"}
+                      label={teacher.tags.length}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      style={{
+                        backgroundColor:
+                          teacher.dates.length > 0
+                            ? theme.palette.success.light
+                            : "",
+                        color: teacher.dates.length > 0 ? "black" : "",
+                      }}
+                      variant={!teacher.dates.length ? "outlined" : "default"}
+                      label={teacher.dates.length}
+                    />
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -262,20 +260,44 @@ function Teachers(props) {
                     colSpan={5}
                   >
                     <Collapse in={showTags}>
-                      <div
-                        style={{
-                          paddingBottom: "1rem",
-                          display: "flex",
-                          gap: "0.5rem",
-                        }}
-                      >
-                        {teacher.tags.map((tag) => (
-                          <Chip
-                            variant="outlined"
-                            size="small"
-                            label={tag.id_tag}
-                          />
-                        ))}
+                      <div className="horizontal-list">
+                        <div
+                          style={{
+                            paddingBottom: "1rem",
+                            flex: "1 1 49%",
+                            minWidth: "16rem",
+                          }}
+                        >
+                          Tags
+                          <div className="horizontal-list">
+                            {teacher.tags.map((tag) => (
+                              <Chip
+                                variant="outlined"
+                                size="small"
+                                label={tag.id_tag}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <Divider orientation="vertical" flexItem />
+                        <div
+                          style={{
+                            paddingBottom: "1rem",
+                            flex: "1 1 49%",
+                            minWidth: "16rem",
+                          }}
+                        >
+                          Préférences
+                          <div className="horizontal-list">
+                            {teacher.dates.map((date) => (
+                              <Chip
+                                variant="outlined"
+                                size="small"
+                                label={date.jour + ": " + date.crenaux}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </Collapse>
                   </TableCell>
