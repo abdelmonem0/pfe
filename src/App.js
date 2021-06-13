@@ -65,7 +65,7 @@ function App() {
           TransitionComponent={SlideTransition}
           key="snack"
           open={constants.snackbar.open}
-          autoHideDuration={50000}
+          autoHideDuration={5000}
           onClose={handleClose}
         >
           <Alert

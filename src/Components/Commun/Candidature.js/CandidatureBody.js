@@ -56,7 +56,7 @@ const Attachments = (props) => {
                 Commentaire:{" " + candidature.commentaires}
               </Typography>
             )}
-            <AttachedFiles project={project} />
+            <AttachedFiles files={candidature.fichiers || []} />
           </Paper>
         )}
         {(comment2 || student2Files.length > 0) && (

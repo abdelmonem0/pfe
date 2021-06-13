@@ -606,7 +606,13 @@ export function saveSoutenances() {
     soutenanceForDB.push({
       id_soutenance: s.id_soutenance,
       id_sujet: s.id_sujet,
-      date: s.date,
+      date: new Date(
+        s.date.split("/")[1] +
+          "/" +
+          s.date.split("/")[0] +
+          "/" +
+          s.date.split("/")[2]
+      ),
       crenau: s.crenau,
       sale: s.sale,
     });

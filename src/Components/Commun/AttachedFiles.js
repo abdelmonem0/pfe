@@ -21,9 +21,12 @@ import { getProjectByID } from "../Enseignant/Candidatures/logic";
 
 function AttachedFiles(props) {
   const dispatch = useDispatch();
-  const { project, canDelete } = props;
-  var _project = getProjectByID(project.id_sujet);
-  const canSee = canSeeCahierState(_project);
+  const { project, canDelete, files } = props;
+  var _project = project
+    ? getProjectByID(project.id_sujet)
+    : { fichiers: files };
+
+  const canSee = project ? canSeeCahierState(_project) : true;
   return (
     (_project.fichiers.length > 0 && canSee && (
       <Paper

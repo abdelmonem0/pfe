@@ -12,7 +12,8 @@ import { useDispatch } from "react-redux";
 import { setCurrentUser } from "../actions";
 import { loginUser } from "../functions";
 import { useHistory } from "react-router";
-import LoginIcon from '../SVG/login.svg'
+import LoginIcon from "../SVG/login.svg";
+import Logo from "../SVG/transparent.png";
 
 export function Home() {
   const dispatch = useDispatch();
@@ -57,12 +58,25 @@ export function Home() {
         display: "flex",
         width: "100%",
         justifyContent: "center",
-        marginTop: "6%",
+        marginTop: "4%",
       }}
     >
       <div className="col-sm-10 col-md-6">
-      <Typography variant="h3" gutterBottom>Bienvenue,</Typography>
-<Paper
+        <div
+          className="horizontal-list"
+          style={{ paddingBottom: "4rem", alignItems: "flex-end" }}
+        >
+          <img src={Logo} style={{ maxWidth: "6rem" }} />
+          <div className="vertical-list" style={{ gap: 0 }}>
+            <Typography variant="h4" style={{ fontWeight: "bold" }}>
+              PFE Manager
+            </Typography>
+            <Typography color="textSecondary">
+              Application Web pour la gestion des Projets de Fin d'Études
+            </Typography>
+          </div>
+        </div>
+        <Paper
           elevation={10}
           style={{
             flex: "1 1 100%",
@@ -85,9 +99,15 @@ export function Home() {
             <ForgotPassword handleForgotPassword={handleForgotPassword} />
           )}
         </Paper>
-        <div style={{width: "100%", display: "flex", justifyContent:"center", padding:"1rem"}}>
-        <img style={{maxWidth: "20rem"}} src={LoginIcon} alt=""/>
-
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            padding: "1rem",
+          }}
+        >
+          <img style={{ maxWidth: "16rem" }} src={LoginIcon} alt="" />
         </div>
       </div>
     </div>
@@ -138,7 +158,6 @@ const LoginForm = (props) => {
           Mot de passe oublié?
         </Button>
       </div>
-   
     </>
   );
 };
@@ -164,7 +183,6 @@ const ForgotPassword = (props) => {
       <div>
         <Button onClick={props.handleForgotPassword}>Se connecter</Button>
       </div>
-      
     </>
   );
 };
